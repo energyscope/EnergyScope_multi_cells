@@ -23,9 +23,9 @@
  #  SETS  depending  on  TD	 
  #  --------------------------	 
  param  peak_sh_factor	:=	 
- BE  1.33 
- CH  1.1 
- FR  1.18 
+ BE  1.372861244019139 
+ CH  1.3173152259075482 
+ FR  1.4168135975242897 
  ;		 
  		 
  #SETS  [Figure  3]		 

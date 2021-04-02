@@ -116,7 +116,7 @@ param avail_local {COUNTRIES, RESOURCES} >= 0; # Yearly availability of resource
 param avail_exterior {COUNTRIES, RESOURCES} >= 0;
 param c_op_local {COUNTRIES, RESOURCES} >= 0; # cost of resources in the different periods [MCHF/GWh]
 param c_op_exterior {RESOURCES} >= 0; 
-param n_car_max{COUNTRIES} >=0; #  [car] Maximum amount of cars. Required to compute the aggregated size of EVs batteries.
+param vehicule_capacity {TECHNOLOGIES} >=0, default 0; #  veh_capa [capacity/vehicles] Average capacity (pass-km/h or t-km/h) per vehicle. It makes the link between F and the number of vehicles
 param peak_sh_factor{COUNTRIES} >= 0;   # %_Peak_sh [-]: ratio between highest yearly demand and highest TDs demand
 param layers_in_out {RESOURCES union TECHNOLOGIES diff STORAGE_TECH , LAYERS}; # f: input/output Resources/Technologies to Layers. Reference is one unit ([GW] or [Mpkm/h] or [Mtkm/h]) of (main) output of the resource/technology. input to layer (output of technology) > 0.
 param c_inv {COUNTRIES, TECHNOLOGIES} >= 0; # Specific investment cost [MCHF/GW].[MCHF/GWh] for STORAGE_TECH
@@ -142,9 +142,12 @@ param storage_availability {STORAGE_TECH} >=0, default 1;# %_sto_avail [-]: Stor
 # Losses in the networks
 param loss_network {END_USES_TYPES} >= 0 default 0; # %_net_loss: Losses coefficient [0; 1] in the networks (grid and DHN)
 
-param Batt_per_Car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
-param c_grid_extra >=0; # Cost to reinforce the grid due to IRE penetration [MCHF].
+param batt_per_car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
+param c_grid_extra >=0, default 359; # Cost to reinforce the grid due to IRE penetration [M€2015/GW_intermittentRE].
+param import_capacity{COUNTRIES} >= 0; # Maximum electricity import capacity [GW]
 param solar_area{COUNTRIES} >= 0; # Maximum land available for PV deployement [km2]
+param power_density_pv{COUNTRIES} >=0 default 0;# Maximum power irradiance for PV.
+param power_density_solar_thermal{COUNTRIES} >=0 default 0;# Maximum power irradiance for solar thermal.
 
 ##Additional parameter (not presented in the paper)
 param total_time := sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (t_op [h, td]); # [h]. added just to simplify equations
@@ -159,11 +162,11 @@ param  dist{COUNTRIES}>=0; #travelled distance by fuels exchanged in each countr
 
 
 ##Independent variables [Table 3] :
-var Share_Mobility_Public{c in COUNTRIES} >= share_mobility_public_min[c], <= share_mobility_public_max[c]; # %_Public: Ratio [0; 1] public mobility over total passenger mobility
-var Share_Freight_Train{c in COUNTRIES}, >= share_freight_train_min[c], <= share_freight_train_max[c]; # %_Rail: Ratio [0; 1] rail transport over total freight transport
-var Share_Freight_Road{c in COUNTRIES}, >= share_freight_road_min[c], <= share_freight_road_max[c]; # %_Road: Ratio [0; 1] Road transport over total freight transport
-var Share_Freight_Boat{c in COUNTRIES}, >= share_freight_boat_min[c], <= share_freight_boat_max[c]; # %_Boat: Ratio [0; 1] boat transport over total freight transport
-var Share_Heat_Dhn{c in COUNTRIES}, >= share_heat_dhn_min[c], <= share_heat_dhn_max[c]; # %_DHN: Ratio [0; 1] centralized over total low-temperature heat
+var Share_mobility_public{c in COUNTRIES} >= share_mobility_public_min[c], <= share_mobility_public_max[c]; # %_Public: Ratio [0; 1] public mobility over total passenger mobility
+var Share_freight_train{c in COUNTRIES}, >= share_freight_train_min[c], <= share_freight_train_max[c]; # %_Rail: Ratio [0; 1] rail transport over total freight transport
+var Share_freight_road{c in COUNTRIES}, >= share_freight_road_min[c], <= share_freight_road_max[c]; # %_Road: Ratio [0; 1] Road transport over total freight transport
+var Share_freight_boat{c in COUNTRIES}, >= share_freight_boat_min[c], <= share_freight_boat_max[c]; # %_Boat: Ratio [0; 1] boat transport over total freight transport
+var Share_heat_dhn{c in COUNTRIES}, >= share_heat_dhn_min[c], <= share_heat_dhn_max[c]; # %_DHN: Ratio [0; 1] centralized over total low-temperature heat
 var F {COUNTRIES, TECHNOLOGIES} >= 0; # F: Installed capacity ([GW]) with respect to main output (see layers_in_out). [GWh] for STORAGE_TECH.
 var F_t {COUNTRIES, TECHNOLOGIES, HOURS, TYPICAL_DAYS} >= 0; # F_t: Operation in each period [GW] or, for STORAGE_TECH, storage level [GWh]. multiplication factor with respect to the values in layers_in_out table. Takes into account c_p
 #var R_t {COUNTRIES, RESOURCES , HOURS, TYPICAL_DAYS} >= 0; # R_t: Operation in each period [GW] . multiplication factor with respect to the values in layers_in_out table. Takes into account c_p
@@ -176,14 +179,14 @@ var R_t_export{COUNTRIES, RESOURCES, HOURS, TYPICAL_DAYS} >= 0;
 var Storage_in {COUNTRIES, i in STORAGE_TECH, LAYERS, HOURS, TYPICAL_DAYS} >= 0; # Sto_in [GW]: Power input to the storage in a certain period
 var Storage_out {COUNTRIES, i in STORAGE_TECH, LAYERS, HOURS, TYPICAL_DAYS} >= 0; # Sto_out [GW]: Power output from the storage in a certain period
 var Power_nuclear{COUNTRIES}  >=0; # [GW] P_Nuc: Constant load of nuclear
-var Shares_Mobility_Passenger {COUNTRIES, TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_PASSENGER"]} >=0; # %_MobPass [-]: Constant share of passenger mobility
-var Shares_Mobility_Freight {COUNTRIES, TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} >=0; # %_Freight [-]: Constant share of passenger mobility
-var Shares_LowT_Dec {COUNTRIES, TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}}>=0 ; # %_HeatDec [-]: Constant share of heat Low T decentralised + its specific thermal solar
-var F_Solar         {COUNTRIES, TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} >=0; # F_sol [GW]: Solar thermal installed capacity per heat decentralised technologies
-var F_t_Solar       {COUNTRIES, TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, h in HOURS, td in TYPICAL_DAYS} >= 0; # F_t_sol [GW]: Solar thermal operating per heat decentralised technologies
+var Shares_mobility_passenger {COUNTRIES, TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_PASSENGER"]} >=0; # %_MobPass [-]: Constant share of passenger mobility
+var Shares_mobility_freight {COUNTRIES, TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} >=0; # %_Freight [-]: Constant share of passenger mobility
+var Shares_lowT_dec {COUNTRIES, TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}}>=0 ; # %_HeatDec [-]: Constant share of heat Low T decentralised + its specific thermal solar
+var F_solar         {COUNTRIES, TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} >=0; # F_sol [GW]: Solar thermal installed capacity per heat decentralised technologies
+var F_t_solar       {COUNTRIES, TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, h in HOURS, td in TYPICAL_DAYS} >= 0; # F_t_sol [GW]: Solar thermal operating per heat decentralised technologies
 
 ##Dependent variables [Table 4] :
-var End_Uses {COUNTRIES, LAYERS, HOURS, TYPICAL_DAYS} >= 0; #EndUses [GW]: total demand for each type of end-uses (hourly power). Defined for all layers (0 if not demand). [Mpkm] or [Mtkm] for passenger or freight mobility.
+var End_uses {COUNTRIES, LAYERS, HOURS, TYPICAL_DAYS} >= 0; #EndUses [GW]: total demand for each type of end-uses (hourly power). Defined for all layers (0 if not demand). [Mpkm] or [Mtkm] for passenger or freight mobility.
 var TotalCost{COUNTRIES} >= 0; # C_tot [ktCO2-eq./year]: Total GWP emissions in the system.
 var C_inv {COUNTRIES, TECHNOLOGIES} >= 0; #C_inv [MCHF]: Total investment cost of each technology
 var C_maint {COUNTRIES, TECHNOLOGIES} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
@@ -205,23 +208,23 @@ var Exch_Freight{COUNTRIES}>=0; # yearly additional freight due to exchanges
 
 # [Figure 4] From annual energy demand to hourly power demand. End_Uses is non-zero only for demand layers.
 subject to end_uses_t {c in COUNTRIES, l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
-	End_Uses [c, l, h, td] = (if l == "ELECTRICITY" 
+	End_uses [c, l, h, td] = (if l == "ELECTRICITY" 
 		then
 			(end_uses_input[c,l] / total_time + end_uses_input[c,"LIGHTING"] * electricity_time_series [c, h, td] / t_op [h, td] ) + Network_losses [c,l,h,td]
 		else (if l == "HEAT_LOW_T_DHN" then
-			(end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td] ) * Share_Heat_Dhn[c] + Network_losses [c,l,h,td]
+			(end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td] ) * Share_heat_dhn[c] + Network_losses [c,l,h,td]
 		else (if l == "HEAT_LOW_T_DECEN" then
-			(end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td] ) * (1 - Share_Heat_Dhn[c])
+			(end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td] ) * (1 - Share_heat_dhn[c])
 		else (if l == "MOB_PUBLIC" then
-			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * Share_Mobility_Public[c]
+			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * Share_mobility_public[c]
 		else (if l == "MOB_PRIVATE" then
-			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * (1 - Share_Mobility_Public[c])
+			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * (1 - Share_mobility_public[c])
 		else (if l == "MOB_FREIGHT_RAIL" then
-			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_Freight_Train[c]
+			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_train[c]
 		else (if l == "MOB_FREIGHT_ROAD" then
-			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_Freight_Road[c]
+			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_road[c]
 		else (if l == "MOB_FREIGHT_BOAT" then
-			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_Freight_Boat[c]
+			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_boat[c]
 		else (if l == "HEAT_HIGH_T" then
 			end_uses_input[c,l] / total_time
 		else (if l == "SPACE_COOLING" then
@@ -322,7 +325,7 @@ subject to layer_balance {c in COUNTRIES, l in LAYERS, h in HOURS, td in TYPICAL
 		sum {i in RESOURCES} (layers_in_out[i, l] * (R_t_local [c, i, h, td] + R_t_exterior [c, i, h, td] - (1 + exchange_losses[i])* R_t_export[c, i, h, td] + R_t_import[c, i, h, td])) 
 		+ sum {k in TECHNOLOGIES diff STORAGE_TECH} (layers_in_out[k, l] * F_t [c, k, h, td]) 
 		+ sum {j in STORAGE_TECH} ( Storage_out [c, j, l, h, td] - Storage_in [c, j, l, h, td] )
-		- End_Uses [c, l, h, td]
+		- End_uses [c, l, h, td]
 		= 0;
 		
 	
@@ -369,7 +372,8 @@ subject to network_losses {c in COUNTRIES, eut in END_USES_TYPES, h in HOURS, td
 
 # [Eq. 21] 9.4 M€ is the extra investment needed if there is a big deployment of stochastic renewables
 subject to extra_grid{c in COUNTRIES}:
-	F [c,"GRID"] = 1 + (c_grid_extra / c_inv[c,"GRID"]) * (F [c,"WIND_ONSHORE"] + F [c,"WIND_OFFSHORE"] + F [c,"PV"]);
+    F [c,"GRID"] = 1 + (c_grid_extra / c_inv[c,"GRID"]) *( (F [c,"WIND_ONSHORE"]     + F [c,"WIND_OFFSHORE"]     + F [c,"PV"]      )
+					                                     - (f_min [c,"WIND_ONSHORE"] + f_min [c,"WIND_OFFSHORE"] + f_min [c,"PV"]) );
 
 
 # [Eq. 22] DHN: assigning a cost to the network
@@ -385,18 +389,18 @@ subject to constantNuc {c in COUNTRIES, h in HOURS, td in TYPICAL_DAYS}:
 	F_t [c,"NUCLEAR", h, td] = Power_nuclear[c];
 
 # [Eq. 25] Operating strategy in mobility passenger (to make model more realistic)
-# Each passenger mobility technology (j) has to supply a constant share  (Shares_Mobility_Passenger[j]) of the passenger mobility demand
+# Each passenger mobility technology (j) has to supply a constant share  (Shares_mobility_passenger[j]) of the passenger mobility demand
 subject to operating_strategy_mob_passenger{c in COUNTRIES, j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_PASSENGER"], h in HOURS, td in TYPICAL_DAYS}:
-	F_t [c, j, h, td]   = Shares_Mobility_Passenger [c,j] * (end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td] );
+	F_t [c, j, h, td]   = Shares_mobility_passenger [c,j] * (end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td] );
 
 # [Eq. 25] Operating strategy in mobility freight (to make model more realistic)
-# Each freight mobility technology (j) has to supply a constant share  (Shares_Mobility_Freight[j]) of the passenger mobility demand
+# Each freight mobility technology (j) has to supply a constant share  (Shares_mobility_freight[j]) of the passenger mobility demand
 subject to operating_strategy_mobility_freight{c in COUNTRIES, j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"], h in HOURS, td in TYPICAL_DAYS}:
-	F_t [c, j, h, td]   = Shares_Mobility_Freight [c,j] * (end_uses_input[c,"MOBILITY_FREIGHT"] * mob_freight_time_series [c, h, td] / t_op [h, td] );
+	F_t [c, j, h, td]   = Shares_mobility_freight [c,j] * (end_uses_input[c,"MOBILITY_FREIGHT"] * mob_freight_time_series [c, h, td] / t_op [h, td] );
 
 # adding additional freight
 subject to additional_freight{c in COUNTRIES} :
-	sum{j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} (Shares_Mobility_Freight [c,j]) = (Exch_Freight[c] + end_uses_input[c,"MOBILITY_FREIGHT"])/(end_uses_input[c,"MOBILITY_FREIGHT"]);
+	sum{j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} (Shares_mobility_freight [c,j]) = (Exch_Freight[c] + end_uses_input[c,"MOBILITY_FREIGHT"])/(end_uses_input[c,"MOBILITY_FREIGHT"]);
 
 # additional freight due to exchanges calculation
 subject to freight_of_exchanges{c in COUNTRIES} :
@@ -404,29 +408,29 @@ subject to freight_of_exchanges{c in COUNTRIES} :
 
 # [Eq. 26] To impose a constant share in the mobility
 subject to Freight_shares {c in COUNTRIES} :
-	Share_Freight_Train[c] + Share_Freight_Road[c] + Share_Freight_Boat[c] = sum{j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} (Shares_Mobility_Freight [c,j]); # =1 should work... But don't know why it doesn't
+	Share_freight_train[c] + Share_freight_road[c] + Share_freight_boat[c] = sum{j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} (Shares_mobility_freight [c,j]); # =1 should work... But don't know why it doesn't
 
 	
 ## Thermal solar & thermal storage:
 
 # [Eq. 26] relation between decentralised thermal solar power and capacity via period capacity factor.
 subject to thermal_solar_capacity_factor {c in COUNTRIES, j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, h in HOURS, td in TYPICAL_DAYS}:
-	F_t_Solar [c, j, h, td] <= F_Solar[c,j] * c_p_t["DEC_SOLAR", c, h, td];
+	F_t_solar [c, j, h, td] <= F_solar[c,j] * c_p_t["DEC_SOLAR", c, h, td];
 	
 # [Eq. 27] Overall thermal solar is the sum of specific thermal solar 	
 subject to thermal_solar_total_capacity {c in COUNTRIES} :
-	F [c,"DEC_SOLAR"] = sum {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} F_Solar[c,j];
+	F [c,"DEC_SOLAR"] = sum {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} F_solar[c,j];
 
 # [Eq. 28]: Decentralised thermal technology must supply a constant share of heat demand.
 subject to decentralised_heating_balance  {c in COUNTRIES, j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, i in TS_OF_DEC_TECH[j], h in HOURS, td in TYPICAL_DAYS}:
-	F_t [c, j, h, td] + F_t_Solar [c, j, h, td] + sum {l in LAYERS } ( Storage_out [c, i, l, h, td] - Storage_in [c, i, l, h, td])  
-		= Shares_LowT_Dec[c,j] * (end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td]);
+	F_t [c, j, h, td] + F_t_solar [c, j, h, td] + sum {l in LAYERS } ( Storage_out [c, i, l, h, td] - Storage_in [c, i, l, h, td])  
+		= Shares_lowT_dec[c,j] * (end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td]);
 
 ## EV storage :
 
 # [Eq. 32] Compute the equivalent size of V2G batteries based on the share of V2G, the amount of cars and the battery capacity per EVs technology
 subject to EV_storage_size {c in COUNTRIES, j in V2G, i in EVs_BATT_OF_V2G[j]}:
-	F [c,i] = n_car_max[c] * Shares_Mobility_Passenger[c,j] * Batt_per_Car[j];# Battery size proportional to the amount of cars
+	F [c,i] = F[c,j] / vehicule_capacity [j] * batt_per_car[j];# Battery size proportional to the amount of cars
 	
 # [Eq. 33]  Impose EVs to be supplied by their battery.
 subject to EV_storage_for_V2G_demand {c in COUNTRIES, j in V2G, i in EVs_BATT_OF_V2G[j], h in HOURS, td in TYPICAL_DAYS}:
@@ -441,7 +445,7 @@ subject to peak_lowT_dec {c in COUNTRIES, j in TECHNOLOGIES_OF_END_USES_TYPE["HE
 # [Eq. 35] Calculation of max heat demand in DHN (1st constrain required to linearised the max function)
 var Max_Heat_Demand{COUNTRIES} >= 0;
 subject to max_dhn_heat_demand {c in COUNTRIES, h in HOURS, td in TYPICAL_DAYS}:
-	Max_Heat_Demand[c] >= End_Uses [c,"HEAT_LOW_T_DHN", h, td];
+	Max_Heat_Demand[c] >= End_uses [c,"HEAT_LOW_T_DHN", h, td];
 # Peak in DHN
 subject to peak_lowT_dhn {c in COUNTRIES}:
 	sum {j in TECHNOLOGIES_OF_END_USES_TYPE ["HEAT_LOW_T_DHN"], i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"]} (F [c,j] + F[c,i]/storage_discharge_time[c,i]) >= peak_sh_factor[c] * Max_Heat_Demand[c];
@@ -492,9 +496,7 @@ subject to limit_hydro_dams_output {c in COUNTRIES, h in HOURS, td in TYPICAL_DA
 
 # [Eq. 39] Limit surface area for solar
 subject to solar_area_limited250km2 {c in COUNTRIES} :
-	F[c,"PV"]/0.2367+(F[c,"DEC_SOLAR"]+F[c,"DHN_SOLAR"])/0.2857 <= solar_area[c];
-# PV :            1 kW/4.22m2   => 0.2367 kW/m2 => 0.2367 GW/km2
-# Solar thermal : 1 kW/3.5m2 => 0.2857 kW/m2 => 0.2857 GW/km2
+	F[c,"PV"]/power_density_pv [c]+(F[c,"DEC_SOLAR"]+F[c,"DHN_SOLAR"])/power_density_solar_thermal[c] <= solar_area [c];
 
 
 
