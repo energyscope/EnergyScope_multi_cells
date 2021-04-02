@@ -1,6 +1,6 @@
 # -------------------------------------------------------------------------------------------------------------------------																													
-#	EnergyScope TD is an open-source energy model suitable for country scale analysis. It is a simplified representation of an urban or national energy system accounting for the energy flows																												
-#	within its boundaries. Based on a hourly resolution, it optimises the design and operation of the energy system while minimizing the cost of the system.																												
+#	EnergyScope MC is an open-source energy model suitable for multi-country scale analysis. It is a simplified representation of a multi-regional energy system accounting for the energy flows																												
+#	within their boundaries. Based on a hourly resolution, it optimises the design and operation of the energy system while minimizing the cost of the system.																												
 #																													
 #	Copyright (C) <2018-2019> <Ecole Polytechnique Fédérale de Lausanne (EPFL), Switzerland and Université catholique de Louvain (UCLouvain), Belgium>																												
 #																													
@@ -27,7 +27,7 @@
 # References based on Supplementary material																													
 																													
 # --------------------------																													
-# SETS not depending on TD, nor on countries																													
+# SETS not depending on TD, nor on COUNTRIES																													
 # --------------------------																													
 							
 
@@ -38,9 +38,7 @@ set END_USES_CATEGORIES := 	ELECTRICITY	HEAT_HIGH_T	HEAT_LOW_T	SPACE_COOLING	PRO
 set RESOURCES :=	ELECTRICITY	GASOLINE	DIESEL	BIOETHANOL	BIODIESEL	LFO		NG	SLF	SNG	WOOD	WET_BIOMASS	COAL		URANIUM	WASTE	H2	CO2_EMISSIONS RES_WIND RES_SOLAR  RES_HYDRO RES_GEO	 CO2_ATM CO2_INDUSTRY CO2_CAPTURED	PT_HEAT	ST_HEAT;												
 set BIOFUELS :=	BIOETHANOL	BIODIESEL	SNG	;																									
 set RE_RESOURCES :=	 BIOETHANOL	BIODIESEL	SNG WOOD RES_WIND RES_SOLAR  RES_HYDRO RES_GEO	WET_BIOMASS	;																												
-set EXPORT := 	CO2_EMISSIONS;
-#set IMPORT := ELECTRICITY;	
-#set E := ELECTRICITY;		
+set EXPORT := 	CO2_EMISSIONS;	
 set NOEXCHANGES := RES_WIND	 RES_SOLAR	  RES_HYDRO	 RES_GEO	CO2_ATM 	CO2_EMISSIONS	CO2_INDUSTRY 	BIODIESEL	BIOETHANOL	SNG;																					
 set FREIGHT_RESOURCES :=	SLF	WOOD	WASTE	CO2_CAPTURED;																									
 																													
@@ -109,7 +107,7 @@ param i_rate := 	0.015	; # part [2.7.4]
 
 param c_grid_extra :=	2.09E+02	;	# cost to reinforce the grid due to intermittent renewable energy penetration. See 2.2.2
 
-param gwp_limit_global := 0 ; # global emissions limit (/!\ there exist also a local gwp_limit, use it properly)																				
+param gwp_limit_global := 40000 ; # global emissions limit (/!\ there exist also a local gwp_limit, use it properly)																				
 																													
 # Part [2.4]																													
 param : Batt_per_Car :=	#ev_batt,size [GWh]: Size of batteries per car per technology of EV																												
