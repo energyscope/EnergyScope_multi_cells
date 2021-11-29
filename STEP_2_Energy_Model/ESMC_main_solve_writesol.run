@@ -7,12 +7,12 @@
 ################################################################################
 
 # Load standard model
-model ESTD_model_AMPL.mod;
+model ESMC_model_AMPL.mod;
 
 # Load standard data
 data ESMC_indep.dat # not TDs depending data, not countries depending data
 data ESMC_countries.dat   # not TDs depending data, but countries depending data
-data ESTD_12TD.dat; # TDs depending data
+data ESMC_12TD.dat; # TDs depending data
 
 
 ################################################################################

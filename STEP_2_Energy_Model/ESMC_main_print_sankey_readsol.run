@@ -7,12 +7,12 @@
 ################################################################################
 
 # Load standard model
-model ESTD_model_AMPL.mod;
+model ESMC_model_AMPL.mod;
 
 # Load standard data
 data ESMC_indep.dat # not TDs depending data, not countries depending data
 data ESMC_countries.dat   # not TDs depending data, but countries depending data
-data ESTD_12TD.dat; # TDs depending data
+data ESMC_12TD.dat; # TDs depending data
 
 
 ################################################################################
@@ -109,7 +109,8 @@ param PathName symbolic default "output";
 			################################################################################
 			
 			
-		###############################################################################                                                    
+			
+			###############################################################################                                                    
 			#																			  #
 			#                            OVERALL SYSTEM'S SANKEY            			  #                                                    
 			#																			  #
@@ -305,9 +306,9 @@ param PathName symbolic default "output";
 			"#A0522D", "TWh" > ( PathName & "/input2sankey.csv");
 			
 			# Solar --> Elec
-			if sum{c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F [c,"PV"] *c_p_t["PV",c,h,td]) > 10 then
+			if sum{c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F [c,"PV"] *c_p_t["PV",c,h,td] + F [c,"U_PV"] *c_p_t["U_PV",c,h,td]) > 10 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Solar PV" , "Elec", sum{c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in 
-			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["PV","ELECTRICITY"] * F [c,"PV"] *c_p_t["PV",c,h,td] ) / 1000 , "Solar", "#FFFF00", "TWh" > 
+			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["PV","ELECTRICITY"] * F [c,"PV"] *c_p_t["PV",c,h,td] + layers_in_out["U_PV","ELECTRICITY"] * F [c,"U_PV"] *c_p_t["U_PV",c,h,td]  ) / 1000 , "Solar", "#FFFF00", "TWh" > 
 			( PathName & "/input2sankey.csv");
 			# Solar --> Heat LT Dec 
 			if sum{c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t [c,"DEC_SOLAR", h, td]  ) > 10 then
@@ -1099,9 +1100,9 @@ param PathName symbolic default "output";
 			"#A0522D", "TWh" > ( PathName & "/input2sankey" & c & ".csv");
 			
 			# Solar --> Elec
-			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F [c,"PV"] *c_p_t["PV",c,h,td] ) > 10 then
+			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F [c,"PV"] *c_p_t["PV",c,h,td] + F [c,"U_PV"] *c_p_t["U_PV",c,h,td] ) > 10 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Solar PV" , "Elec", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in 
-			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["PV","ELECTRICITY"] * F [c,"PV"] *c_p_t["PV",c,h,td] ) / 1000 , "Solar", "#FFFF00", "TWh" > 
+			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["PV","ELECTRICITY"] * F [c,"PV"] *c_p_t["PV",c,h,td] + layers_in_out["U_PV","ELECTRICITY"] * F [c,"U_PV"] *c_p_t["U_PV",c,h,td] ) / 1000 , "Solar", "#FFFF00", "TWh" > 
 			( PathName & "/input2sankey" & c & ".csv");
 			# Solar --> Heat LT Dec 
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t [c,"DEC_SOLAR", h, td]  ) > 10 then
@@ -1778,5 +1779,6 @@ param PathName symbolic default "output";
 
 		
 		}
+
 
 		}# END SAVING

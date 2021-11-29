@@ -4,10 +4,17 @@ You may cite it as follows:
 - [1], for general reference to the EnergyScope project and the EnergyScope modeling framework  	
 - [2], for reference to the origins of the EnergyScope project or to the first online version of the calculator energyscope.ch 	
 - [3], for reference to the energyscope MILP modeling framework 	
-- [4], for reference to the current code 	
+- [4], for reference to the Belgian version
+- [5], for reference to the extension to a Multi-Cell version
+- [6], for reference to the energyscope Multi-Cell for Western EU energy system (v1)
+- [7], for the current code
+
 
 References:  
 [1] G. Limpens, S . Moret, H. Jeanmart, F. Maréchal (2019). EnergyScope TD: a novel open-source model for regional energy systems and its application to the case of Switzerland. https://doi.org/10.1016/j.apenergy.2019.113729	
 [2] V. Codina Gironès, S. Moret, F. Maréchal, D. Favrat (2015). Strategic energy planning for large-scale energy systems: A modelling framework to aid decision-making. Energy, 90(PA1), 173–186. https://doi.org/10.1016/j.energy.2015.06.008   	
 [3] S. Moret, M. Bierlaire, F. Maréchal (2016). Strategic Energy Planning under Uncertainty: a Mixed-Integer Linear Programming Modeling Framework for Large-Scale Energy Systems. https://doi.org/10.1016/B978-0-444-63428-3.50321-0  	
-[4] G. Limpens, H. Jeanmart, F. Maréchal (2020). Belgian energy transition: what are the options?  (under review)
+[4] Limpens, G. (2021). Generating energy transition pathways : application to Belgium.
+[5] Hernandez, A., Thiran, P., Jeanmart, H., & Limpens, G. (2020). EnergyScope Multi-Cell : A novel open-source model for multi-regional energy systems and application to a 3-cell , low-carbon energy [UCLouvain]. http://hdl.handle.net/2078.1/thesis:25229
+[6] Cornet, N., Eloy, P., Jeanmart, H., & Limpens, G. (2021). Energy Exchanges between Countries for a Future Low-Carbon Western Europe By merging cells in EnergyScope MC to handle wider regions.
+[7] Thiran, P., Hernandez, A., Limpens, G., Prina, M. G., Jeanmart, H., & Contino, F. (2021). Flexibility options in a multi-regional whole-energy system : the role of energy carriers in the Italian energy transition. Proceedings of ECOS 2021 - The 34th International Conference on Efficiency, Cost, Optimization, Simulation and Environmental Impact of Energy Systems, Mc, 1–12.

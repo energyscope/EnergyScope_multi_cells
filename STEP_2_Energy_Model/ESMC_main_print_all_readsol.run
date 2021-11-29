@@ -7,12 +7,12 @@
 ################################################################################
 
 # Load standard model
-model ESTD_model_AMPL.mod;
+model ESMC_model_AMPL.mod;
 
 # Load standard data
 data ESMC_indep.dat # not TDs depending data, not countries depending data
 data ESMC_countries.dat   # not TDs depending data, but countries depending data
-data ESTD_12TD.dat; # TDs depending data
+data ESMC_12TD.dat; # TDs depending data
 
 
 ################################################################################
@@ -30,7 +30,7 @@ option show_stats 1; # show statistics
 
 option cplex_options  'mipdisplay 5 mipinterval 1000'; 
 option cplex_options $cplex_options 'baropt predual=-1';
-option log_file 'output/log_print_all.txt';   #write the log in a .txt file. Create the file before running.
+option log_file 'output/log_print_all.csv';   #write the log in a .csv file. Create the file before running.
 
 
 option cplex_options $cplex_options 'mipgap 0.01 '; 
@@ -109,17 +109,17 @@ param PathName symbolic default "output";
 				#########################################
 				
 				#------------------------------------------
-				## Print cost breakdown to txt file.
+				## Print cost breakdown to csv file.
 				#------------------------------------------
 				print ("--------------SAVING COST  " & c & " -----------");
-				printf "%s\t%s\t%s\t%s\n", "Name","C_inv [M€/y]","C_maint [M€/y]","C_op [M€/y]" > ( PathName & "/cost_breakdown_" & c & ".txt"); 
+				printf "%s;%s;%s;%s\n", "Name","C_inv [M€/y]","C_maint [M€/y]","C_op [M€/y]" > ( PathName & "/cost_breakdown_" & c & ".csv"); 
 				for {i in TECHNOLOGIES union RESOURCES}{if i in TECHNOLOGIES
 				then
-						printf "%s\t%.6f\t%.6f\t%.6f\n", i, tau [c,i] * C_inv [c,i], C_maint [c,i], 0 > ( PathName & "/cost_breakdown_" & c & ".txt"); 
+						printf "%s;%.6f;%.6f;%.6f\n", i, tau [c,i] * C_inv [c,i], C_maint [c,i], 0 > ( PathName & "/cost_breakdown_" & c & ".csv"); 
 				else
-						printf "%s\t%.6f\t%.6f\t%.6f\n", i, 0, 0, C_op[c,i] > ( PathName & "/cost_breakdown_" & c & ".txt");
+						printf "%s;%.6f;%.6f;%.6f\n", i, 0, 0, C_op[c,i] > ( PathName & "/cost_breakdown_" & c & ".csv");
 				}
-				printf "%s\t%.6f\t%.6f\t%.6f", "Total [M€/y]", sum{i in TECHNOLOGIES} (tau [c,i] * C_inv [c,i]), sum{i in TECHNOLOGIES} C_maint [c,i], sum{i in RESOURCES} C_op[c,i] > ( PathName & "/cost_breakdown_" & c & ".txt");
+				printf "%s;%.6f;%.6f;%.6f", "Total [M€/y]", sum{i in TECHNOLOGIES} (tau [c,i] * C_inv [c,i]), sum{i in TECHNOLOGIES} C_maint [c,i], sum{i in RESOURCES} C_op[c,i] > ( PathName & "/cost_breakdown_" & c & ".csv");
 				
 
 				#------------------------------------------
@@ -127,49 +127,49 @@ param PathName symbolic default "output";
 				#------------------------------------------
 				print ("--------------SAVING GWP  " & c & " -----------");
 
-				printf "%s\t%s\t%s\n", "Name", "GWP_constr [kt_CO2eq/y]", "GWP_op [kt_CO2eq/y]" > ( PathName & "/gwp_breakdown_" & c & ".txt");  
+				printf "%s;%s;%s\n", "Name", "GWP_constr [kt_CO2eq/y]", "GWP_op [kt_CO2eq/y]" > ( PathName & "/gwp_breakdown_" & c & ".csv");  
 				for {i in TECHNOLOGIES union RESOURCES}{if i in TECHNOLOGIES
 				then
-						printf "%s\t%.6f\t%.6f\n", i, GWP_constr [c,i] / lifetime [c,i], 0 > ( PathName & "/gwp_breakdown_" & c & ".txt"); 
+						printf "%s;%.6f;%.6f\n", i, GWP_constr [c,i] / lifetime [c,i], 0 > ( PathName & "/gwp_breakdown_" & c & ".csv"); 
 				else
-						printf "%s\t%.6f\t%.6f\n", i, 0, GWP_op [c,i] > ( PathName & "/gwp_breakdown_" & c & ".txt"); 
+						printf "%s;%.6f;%.6f\n", i, 0, GWP_op [c,i] > ( PathName & "/gwp_breakdown_" & c & ".csv"); 
 				}
 				
-				printf "%s\t%.6f\t%.6f", "Total [ktCO2-eq/y]", sum{i in TECHNOLOGIES} (GWP_constr [c,i] / lifetime [c,i]), sum{i in RESOURCES} GWP_op [c,i] > ( PathName & "/gwp_breakdown_" & c & ".txt"); 
+				printf "%s;%.6f;%.6f", "Total [ktCO2-eq/y]", sum{i in TECHNOLOGIES} (GWP_constr [c,i] / lifetime [c,i]), sum{i in RESOURCES} GWP_op [c,i] > ( PathName & "/gwp_breakdown_" & c & ".csv"); 
 
 
 				#------------------------------------------
-				## Print losses to txt file
+				## Print losses to csv file
 				#------------------------------------------
 				print ("--------------SAVING losses  " & c & " -----------");
 				
-				printf "EUD\tLosses [GWh/y]" > ( PathName & "/losses_" & c & ".txt"); 
+				printf "EUD;Losses [GWh/y]" > ( PathName & "/losses_" & c & ".csv"); 
 				for {i in END_USES_TYPES}{
-						printf "\n%s\t%.3f", i, sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t] }(Network_losses [c,i,h,td] )  > ( PathName & "/losses_" & c & ".txt"); 
+						printf "\n%s;%.3f", i, sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t] }(Network_losses [c,i,h,td] )  > ( PathName & "/losses_" & c & ".csv"); 
 				}
 
 				#------------------------------------------
-				## Print ASSETS to txt file
+				## Print ASSETS to csv file
 				#------------------------------------------
 				print ("--------------SAVING ASSETS  " & c & " -----------");
-				printf "TECHNOLOGIES\tc_inv\tc_maint\tlifetime\tf_min\tf\tf_max\tfmin_perc\tf_perc\tfmax_perc\tc_p_actual\tc_p\ttau\tgwp_constr" > ( PathName & "/Assets_" & c & ".txt"); 
-				printf "\nUNITS\t[Meuro/GW]\t[Meuro/(GW*y)]\t[y]\t[GW or GWh]\t[GW or GWh]\t[GW or GWh]\t[0-1]\t[0-1]\t[0-1]\t[0-1]\t[0-1]\t[-]\t[ktCO2-eq./GW or GWh]" > ( PathName & "/Assets_" & c & ".txt"); 
+				printf "TECHNOLOGIES;c_inv;c_maint;lifetime;f_min;f;f_max;fmin_perc;f_perc;fmax_perc;c_p_actual;c_p;tau;gwp_constr" > ( PathName & "/Assets_" & c & ".csv"); 
+				printf "\nUNITS;[Meuro/GW];[Meuro/(GW*y)];[y];[GW or GWh];[GW or GWh];[GW or GWh];[0-1];[0-1];[0-1];[0-1];[0-1];[-];[ktCO2-eq./GW or GWh]" > ( PathName & "/Assets_" & c & ".csv"); 
 				for {i in END_USES_TYPES, tech in TECHNOLOGIES_OF_END_USES_TYPE[i]}{
-					printf "\n%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f",tech,
+					printf "\n%s;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f",tech,
 							C_inv[c,tech],C_maint[c,tech],lifetime[c,tech],f_min[c,tech],F[c,tech],f_max[c,tech],
 							fmin_perc[c,tech],if sum {j2 in 
 			TECHNOLOGIES_OF_END_USES_TYPE[i], t2 in PERIODS, h2 in HOUR_OF_PERIOD[t2], td2 in TYPICAL_DAY_OF_PERIOD[t2]} (F_t [c,j2, h2, 
 			td2] ) > 0 then sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} ((F_t [c,tech,h,td] ) / sum {j2 in 
 			TECHNOLOGIES_OF_END_USES_TYPE[i], t2 in PERIODS, h2 in HOUR_OF_PERIOD[t2], td2 in TYPICAL_DAY_OF_PERIOD[t2]} (F_t [c,j2, h2, 
 			td2] )) else 0,
-							fmax_perc[c,tech],if F[c,tech] >0 then sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} ((F_t [c,tech,h,td]) / (8760* F[c,tech])) else 0,c_p[c,tech],tau[c,tech],GWP_constr[c,tech] > ( PathName & "/Assets_" & c & ".txt"); 
+							fmax_perc[c,tech],if F[c,tech] >0 then sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} ((F_t [c,tech,h,td]) / (8760* F[c,tech])) else 0,c_p[c,tech],tau[c,tech],GWP_constr[c,tech] > ( PathName & "/Assets_" & c & ".csv"); 
 				}
 				for {tech in STORAGE_TECH union INFRASTRUCTURE}{
-					printf "\n%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f",tech,
+					printf "\n%s;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f",tech,
 							C_inv[c,tech],C_maint[c,tech],lifetime[c,tech],f_min[c,tech],F[c,tech],f_max[c,tech],
 							fmin_perc[c,tech],
 							-1,
-							fmax_perc[c,tech],c_p[c,tech],c_p[c,tech],tau[c,tech],GWP_constr[c,tech] > ( PathName & "/Assets_" & c & ".txt"); 
+							fmax_perc[c,tech],c_p[c,tech],c_p[c,tech],tau[c,tech],GWP_constr[c,tech] > ( PathName & "/Assets_" & c & ".csv"); 
 				}
 				
 				#------------------------------------------
@@ -177,32 +177,32 @@ param PathName symbolic default "output";
 				#------------------------------------------
 				print ("--------- SAVING Yearly balances  " & c & " --------");
 
-				printf "Tech" > ( PathName & "/YearBalance_" & c & ".txt");
+				printf "Tech" > ( PathName & "/YearBalance_" & c & ".csv");
 				for {l in LAYERS}{
-					printf "\t%s",l > ( PathName & "/YearBalance_" & c & ".txt");
+					printf ";%s",l > ( PathName & "/YearBalance_" & c & ".csv");
 				}
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "\n%s", i > ( PathName & "/YearBalance_" & c & ".txt");
+					printf "\n%s", i > ( PathName & "/YearBalance_" & c & ".csv");
 					for {l in LAYERS}{if i in TECHNOLOGIES
 					then 
-						printf "\t%f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-										layers_in_out[i, l] * F_t [c, i, h, td] > ( PathName & "/YearBalance_" & c & ".txt");
+						printf ";%f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+										layers_in_out[i, l] * F_t [c, i, h, td] > ( PathName & "/YearBalance_" & c & ".csv");
 					else
-						printf "\t%f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-										layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]) > ( PathName & "/YearBalance_" & c & ".txt");
+						printf ";%f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+										layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]) > ( PathName & "/YearBalance_" & c & ".csv");
 					}
 				}
 				for {j in STORAGE_TECH}{
-					printf "\n%s", j > ( PathName & "/YearBalance_" & c & ".txt");
+					printf "\n%s", j > ( PathName & "/YearBalance_" & c & ".csv");
 					for {l in LAYERS}{
-						printf "\t%f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-										(Storage_out [c, j, l, h, td] - Storage_in [c, j, l, h, td]) > ( PathName & "/YearBalance_" & c & ".txt");
+						printf ";%f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+										(Storage_out [c, j, l, h, td] - Storage_in [c, j, l, h, td]) > ( PathName & "/YearBalance_" & c & ".csv");
 					}
 				}
-				printf "\nEND_USES_DEMAND" > ( PathName & "/YearBalance_" & c & ".txt");
+				printf "\nEND_USES_DEMAND" > ( PathName & "/YearBalance_" & c & ".csv");
 				for {l in LAYERS}{
-					printf "\t%f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-									End_uses [c, l, h, td] > ( PathName & "/YearBalance_" & c & ".txt");
+					printf ";%f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+									End_uses [c, l, h, td] > ( PathName & "/YearBalance_" & c & ".csv");
 				}
 
 				#------------------------------------------
@@ -211,15 +211,15 @@ param PathName symbolic default "output";
 				print ("--------- SAVING Exchanges balance  " & c & " --------");
 
 				
-				printf "RESOURCES" > (PathName & "/exch_" & c & ".txt");
+				printf "RESOURCES" > (PathName & "/exch_" & c & ".csv");
 				for {c2 in COUNTRIES}{
-					printf "\t%s", c2 > (PathName & "/exch_" & c & ".txt");
+					printf ";%s", c2 > (PathName & "/exch_" & c & ".csv");
 				}
 				
 				for{i in RESOURCES}{
-					printf "\n%s", i > (PathName & "/exch_" & c & ".txt");
+					printf "\n%s", i > (PathName & "/exch_" & c & ".csv");
 					for{c2 in COUNTRIES}{
-						printf "\t%.6f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} Exchanges[c, c2, i, h, td] > (PathName & "/exch_" & c & ".txt");
+						printf ";%.6f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (Exch_imp[c, c2, i, h, td]-Exch_exp[c, c2, i, h, td]) > (PathName & "/exch_" & c & ".csv");
 					}
 				}
 				
@@ -230,12 +230,12 @@ param PathName symbolic default "output";
 				print ("--------- SAVING Resources balances  " & c & " --------");
 
 				
-				printf "RESOURCES" > (PathName & "/resources_" & c & ".txt");
-				printf "\tR_t_local\tR_t_exterior\tR_t_import\tR_t_export" > (PathName & "/resources_" & c & ".txt");
+				printf "RESOURCES" > (PathName & "/resources_" & c & ".csv");
+				printf ";R_t_local;R_t_exterior;R_t_import;R_t_export" > (PathName & "/resources_" & c & ".csv");
 				for{i in RESOURCES}{
-					printf "\n%s", i  > (PathName & "/resources_" & c & ".txt");
-					printf "\t%.6f\t%.6f\t%.6f\t%.6f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_local[c, i, h, td], sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_exterior[c, i, h, td],
-					sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_import[c, i, h, td], sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_export[c, i, h, td] > (PathName & "/resources_" & c & ".txt");
+					printf "\n%s", i  > (PathName & "/resources_" & c & ".csv");
+					printf ";%.6f;%.6f;%.6f;%.6f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_local[c, i, h, td], sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_exterior[c, i, h, td],
+					sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_import[c, i, h, td], sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_export[c, i, h, td] > (PathName & "/resources_" & c & ".csv");
 			
 				}
 				
@@ -252,26 +252,26 @@ param PathName symbolic default "output";
 				#------------------------------------------
 				print ("--------------SAVING elec Storage YEAR  " & c & " -----------");
 				 # storage curves
-				printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".csv");
 				for {i in STORAGE_TECH diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-					printf "\t%s", i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".txt");
+					printf ";%s", i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".csv");
 				}
 				for {i in STORAGE_TECH diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-					printf "\t%s_in" ,{l in LAYERS: storage_eff_in  [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".txt");
-					printf "\t%s_out",{l in LAYERS: storage_eff_out [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".txt");
+					printf ";%s_in" ,{l in LAYERS: storage_eff_in  [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".csv");
+					printf ";%s_out",{l in LAYERS: storage_eff_out [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".csv");
 				}
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td  > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td  > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".csv");
 					for {i in STORAGE_TECH diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-						printf "\t%f", Storage_level[c, i, t] > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".txt");
+						printf ";%f", Storage_level[c, i, t] > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".csv");
 					}
 					for {i in STORAGE_TECH diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-						printf "\t%f", (sum {l in LAYERS: storage_eff_in [i,l] > 0}
+						printf ";%f", (sum {l in LAYERS: storage_eff_in [i,l] > 0}
 										-(Storage_in [c, i, l, h, td] * storage_eff_in [i, l]))
-								> ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".txt");
-						printf "\t%f", (sum {l in LAYERS: storage_eff_in [i,l] > 0}
+								> ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".csv");
+						printf ";%f", (sum {l in LAYERS: storage_eff_in [i,l] > 0}
 										(Storage_out [c,i, l, h, td] / storage_eff_out [i, l]))
-								> ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".txt");
+								> ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & c & ".csv");
 						
 					}
 				}
@@ -279,26 +279,26 @@ param PathName symbolic default "output";
 				print ("--------------SAVING TS Storage YEAR  " & c & " -----------");
 
 				# storage curves
-				printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".csv");
 				for {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] union STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-					printf "\t%s", i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".txt");
+					printf ";%s", i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".csv");
 				}
 				for {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] union STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-					printf "\t%s_in" ,{l in LAYERS: storage_eff_in  [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".txt");
-					printf "\t%s_out",{l in LAYERS: storage_eff_out [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".txt");
+					printf ";%s_in" ,{l in LAYERS: storage_eff_in  [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".csv");
+					printf ";%s_out",{l in LAYERS: storage_eff_out [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".csv");
 				}
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td  > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td  > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".csv");
 					for {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] union STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-						printf "\t%f", Storage_level[c, i, t] > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".txt");
+						printf ";%f", Storage_level[c, i, t] > ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".csv");
 					}
 					for {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] union STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-						printf "\t%f", (sum {l in LAYERS: storage_eff_in [i,l] > 0}
+						printf ";%f", (sum {l in LAYERS: storage_eff_in [i,l] > 0}
 										-(Storage_in [c, i, l, h, td] * storage_eff_in [i, l]))
-								> ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".txt");
-						printf "\t%f", (sum {l in LAYERS: storage_eff_in [i,l] > 0}
+								> ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".csv");
+						printf ";%f", (sum {l in LAYERS: storage_eff_in [i,l] > 0}
 										(Storage_out [c, i, l, h, td] / storage_eff_out [i, l]))
-								> ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".txt");
+								> ( PathName & "/hourly_data_year" & "/Distri_TS_" & c & ".csv");
 						
 					}
 				}
@@ -308,258 +308,258 @@ param PathName symbolic default "output";
 				#------------------------------------------
 				print ("--------------SAVING Elec Layer YEAR  " & c & " -----------");
 
-				printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-					printf "\t%s",i > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".csv");
 
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then
-							printf "\t%f",(layers_in_out[i, "ELECTRICITY"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".txt");
+							printf ";%f",(layers_in_out[i, "ELECTRICITY"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".csv");
 					else
-							printf "\t%f",(layers_in_out[i, "ELECTRICITY"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".txt");
+							printf ";%f",(layers_in_out[i, "ELECTRICITY"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH}{
-						printf "\t%f",(-Storage_in [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "ELECTRICITY", h, td]  > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "ELECTRICITY", h, td]  > ( PathName & "/hourly_data_year" & "/ElecLayers_" & c & ".csv");
 				}
 
 				print ("--------------SAVING LT Layer YEAR  " & c & " -----------");
 
-				printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-					printf "\t%s",i > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".csv");
 
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".csv");
 					else
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".txt");
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (Storage_out [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".txt");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".csv");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (Storage_out [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".csv");
 					}
-					printf "\t%f", sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (-End_uses [c, l, h, td])  > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".txt");
+					printf ";%f", sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (-End_uses [c, l, h, td])  > ( PathName & "/hourly_data_year" & "/LTLayers_" & c & ".csv");
 				}
 
 				print ("--------------SAVING HT Layer YEAR  " & c & " -----------");
 
 
 
-				printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-					printf "\t%s",i > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".csv");
 
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(layers_in_out[i, "HEAT_HIGH_T"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "HEAT_HIGH_T"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".csv");
 					else
-						printf "\t%f",(layers_in_out[i, "HEAT_HIGH_T"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "HEAT_HIGH_T"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",(-Storage_in [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "HEAT_HIGH_T", h, td]  > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "HEAT_HIGH_T", h, td]  > ( PathName & "/hourly_data_year" & "/HTLayers_" & c & ".csv");
 				}
 
 				print ("--------------SAVING PASSANGER Layer YEAR  " & c & " -----------");
 
-				printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "\t%s",i > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".csv");
 
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
-				( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
+				( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".csv");
 				else
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
-				( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
+				( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".txt");
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".txt");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".csv");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".csv");
 					}
-					printf "\t%f", sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (-End_uses [c, l, h, td] ) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".txt");
+					printf ";%f", sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (-End_uses [c, l, h, td] ) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & c & ".csv");
 				}
 
 				print ("--------------SAVING FREIGHT Layer YEAR  " & c & " -----------");
 
-				printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "\t%s",i > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".csv");
 
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
-				( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
+				( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".csv");
 				else
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
-				( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
+				( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".txt");
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".txt");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".csv");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".csv");
 					}
-					printf "\t%f", sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (-End_uses [c, l, h, td] )  > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".txt");
+					printf ";%f", sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (-End_uses [c, l, h, td] )  > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & c & ".csv");
 				}
 				
 				
 				print ("--------------SAVING Cooling Layer YEAR  " & c & " -----------");
 
-				printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-					printf "\t%s",i > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".csv");
 
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then
-							printf "\t%f",(layers_in_out[i, "SPACE_COOLING"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".txt");
+							printf ";%f",(layers_in_out[i, "SPACE_COOLING"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".csv");
 					else
-							printf "\t%f",(layers_in_out[i, "SPACE_COOLING"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".txt");
+							printf ";%f",(layers_in_out[i, "SPACE_COOLING"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH}{
-						printf "\t%f",(-Storage_in [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "SPACE_COOLING", h, td]  > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "SPACE_COOLING", h, td]  > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & c & ".csv");
 				}
 
 
 				print ("--------------SAVING H2Layer YEAR  " & c & " -----------");
 
-				printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "\t%s",i > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".csv");
 
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(layers_in_out[i, "H2"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "H2"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".csv");
 					else
-						printf "\t%f",(layers_in_out[i, "H2"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "H2"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".csv");
 						
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",(-Storage_in [c, j, "H2", h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "H2", h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "H2", h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "H2", h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "H2", h, td]  > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "H2", h, td]  > ( PathName & "/hourly_data_year" & "/H2Layers_" & c & ".csv");
 				}
 				
 
 				print ("--------------SAVING NGLayer YEAR  " & c & " -----------");
 
-				printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "\t%s",i > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".csv");
 
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(layers_in_out[i, "NG"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "NG"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".csv");
 					else
-						printf "\t%f",(layers_in_out[i, "NG"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "NG"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".csv");
 						
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",(-Storage_in [c, j, "NG", h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "NG", h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "NG", h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "NG", h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "NG", h, td]  > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "NG", h, td]  > ( PathName & "/hourly_data_year" & "/NGLayers_" & c & ".csv");
 				}
 				
 				
 				print ("--------------SAVING SLFLayer YEAR  " & c & " -----------");
 
-				printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "\t%s",i > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".csv");
 
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(layers_in_out[i, "SLF"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "SLF"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".csv");
 					else
-						printf "\t%f",(layers_in_out[i, "SLF"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "SLF"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".csv");
 						
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",(-Storage_in [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "SLF", h, td]  > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "SLF", h, td]  > ( PathName & "/hourly_data_year" & "/SLFLayers_" & c & ".csv");
 				}
 				
 				
@@ -569,24 +569,24 @@ param PathName symbolic default "output";
 				#------------------------------------------
 				print ("--------- SAVING Exchanges YEAR  " & c & " --------");
 				
-				printf "Period\tHourofPeriod\tTD" > (PathName & "/hourly_data_year" & "/exch_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > (PathName & "/hourly_data_year" & "/exch_" & c & ".csv");
 				for {i in RESOURCES}{
 					for {c2 in COUNTRIES}{
-						printf "\t%s", i > (PathName & "/hourly_data_year" & "/exch_" & c & ".txt");
+						printf ";%s", i > (PathName & "/hourly_data_year" & "/exch_" & c & ".csv");
 					}
 				}
-				printf "\n(Unit : [GW])\t\t" > (PathName & "/hourly_data_year" & "/exch_" & c & ".txt");
+				printf "\n(Unit : [GW]);;" > (PathName & "/hourly_data_year" & "/exch_" & c & ".csv");
 				
 				for {i in RESOURCES}{
 				for {c2 in COUNTRIES}{
-						printf "\t%s", c2 > (PathName & "/hourly_data_year" & "/exch_" & c & ".txt");
+						printf ";%s", c2 > (PathName & "/hourly_data_year" & "/exch_" & c & ".csv");
 				}
 				}
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td   > (PathName & "/hourly_data_year" & "/exch_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td   > (PathName & "/hourly_data_year" & "/exch_" & c & ".csv");
 					for {i in RESOURCES}{
 						for {c2 in COUNTRIES}{
-							printf "\t%.6f", Exchanges[c, c2, i, h, td] > (PathName & "/hourly_data_year" & "/exch_" & c & ".txt");
+							printf ";%.6f", (Exch_imp[c, c2, i, h, td]-Exch_exp[c, c2, i, h, td]) > (PathName & "/hourly_data_year" & "/exch_" & c & ".csv");
 						}
 					}	
 				}
@@ -597,19 +597,19 @@ param PathName symbolic default "output";
 				#------------------------------------------
 				print ("--------- SAVING Resources balance YEAR  " & c & " --------");
 				
-				printf "Period\tHourofPeriod\tTD" > (PathName & "/hourly_data_year" & "/resources_" & c & ".txt");
+				printf "Period;HourofPeriod;TD" > (PathName & "/hourly_data_year" & "/resources_" & c & ".csv");
 				for {i in RESOURCES}{
-						printf "\t%s\t%s\t%s\t%s", i, i, i, i > (PathName & "/hourly_data_year" & "/resources_" & c & ".txt");
+						printf ";%s;%s;%s;%s", i, i, i, i > (PathName & "/hourly_data_year" & "/resources_" & c & ".csv");
 				}
-				printf "\n" > (PathName & "/hourly_data_year" & "/resources_" & c & ".txt");
-				printf "(Unit : [GW])\t\t" > (PathName & "/hourly_data_year" & "/resources_" & c & ".txt");
+				printf "\n" > (PathName & "/hourly_data_year" & "/resources_" & c & ".csv");
+				printf "(Unit : [GW]);;" > (PathName & "/hourly_data_year" & "/resources_" & c & ".csv");
 				for {i in RESOURCES}{
-						printf "\tR_t_local\tR_t_exterior\tR_t_import\tR_t_export" > (PathName & "/hourly_data_year" & "/resources_" & c & ".txt");
+						printf ";R_t_local;R_t_exterior;R_t_import;R_t_export" > (PathName & "/hourly_data_year" & "/resources_" & c & ".csv");
 				}
 				for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-					printf "\n%d\t%d\t%d",t,h,td   > (PathName & "/hourly_data_year" & "/resources_" & c & ".txt");
+					printf "\n%d;%d;%d",t,h,td   > (PathName & "/hourly_data_year" & "/resources_" & c & ".csv");
 					for {i in RESOURCES}{
-						printf "\t%.6f\t%.6f\t%.6f\t%.6f", R_t_local[c, i, h, td], R_t_exterior[c, i, h, td], R_t_import[c, i, h, td], R_t_export[c, i, h, td] > (PathName & "/hourly_data_year" & "/resources_" & c & ".txt");
+						printf ";%.6f;%.6f;%.6f;%.6f", R_t_local[c, i, h, td], R_t_exterior[c, i, h, td], R_t_import[c, i, h, td], R_t_export[c, i, h, td] > (PathName & "/hourly_data_year" & "/resources_" & c & ".csv");
 					}
 				}
 				
@@ -627,256 +627,256 @@ param PathName symbolic default "output";
 				#------------------------------------------
 				print ("--------------SAVING Elec Layer TD " & c & " -----------");
 
-				printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".txt");
+				printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-					printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".csv");
 
 				for {td in TYPICAL_DAYS, h in HOURS}{
-					printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".txt");
+					printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then
-							printf "\t%f",(layers_in_out[i, "ELECTRICITY"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".txt");
+							printf ";%f",(layers_in_out[i, "ELECTRICITY"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".csv");
 					else
-							printf "\t%f",(layers_in_out[i, "ELECTRICITY"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".txt");
+							printf ";%f",(layers_in_out[i, "ELECTRICITY"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH}{
-						printf "\t%f",(-Storage_in [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "ELECTRICITY", h, td]  > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "ELECTRICITY", h, td]  > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & c & ".csv");
 				}
 
 				print ("--------------SAVING LT Layer TD " & c & " -----------");
 
-				printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".txt");
+				printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-					printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".csv");
 
 				for {td in TYPICAL_DAYS, h in HOURS}{
-					printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".txt");
+					printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".csv");
 					else
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".txt");
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (Storage_out [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".txt");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".csv");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (Storage_out [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".csv");
 					}
-					printf "\t%f", sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (-End_uses [c, l, h, td])  > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".txt");
+					printf ";%f", sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (-End_uses [c, l, h, td])  > ( PathName & "/hourly_data_TD" & "/LTLayers_" & c & ".csv");
 				}
 
 				print ("--------------SAVING HT Layer TD " & c & " -----------");
 
-				printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".txt");
+				printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-					printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".csv");
 
 				for {td in TYPICAL_DAYS, h in HOURS}{
-					printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".txt");
+					printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(layers_in_out[i, "HEAT_HIGH_T"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "HEAT_HIGH_T"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".csv");
 					else
-						printf "\t%f",(layers_in_out[i, "HEAT_HIGH_T"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "HEAT_HIGH_T"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",(-Storage_in [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "HEAT_HIGH_T", h, td]  > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "HEAT_HIGH_T", h, td]  > ( PathName & "/hourly_data_TD" & "/HTLayers_" & c & ".csv");
 				}
 
 				print ("--------------SAVING PASSANGER Layer TD " & c & " -----------");
 
-				printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".txt");
+				printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".csv");
 
 				for {td in TYPICAL_DAYS, h in HOURS}{
-					printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".txt");
+					printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
-				( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
+				( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".csv");
 				else
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
-				( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
+				( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".txt");
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".txt");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".csv");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".csv");
 					}
-					printf "\t%f", sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (-End_uses [c, l, h, td] ) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".txt");
+					printf ";%f", sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (-End_uses [c, l, h, td] ) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & c & ".csv");
 				}
 
 				print ("--------------SAVING FREIGHT Layer TD " & c & " -----------");
 
-				printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".txt");
+				printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".csv");
 
 				for {td in TYPICAL_DAYS, h in HOURS}{
-					printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".txt");
+					printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
-				( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
+				( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".csv");
 				else
-						printf "\t%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
-				( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".txt");
+						printf ";%f",(sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
+				( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".txt");
-						printf "\t%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".txt");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".csv");
+						printf ";%f",sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".csv");
 					}
-					printf "\t%f", sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (-End_uses [c, l, h, td] )  > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".txt");
+					printf ";%f", sum {l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (-End_uses [c, l, h, td] )  > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & c & ".csv");
 				}
 				
 				
 				print ("--------------SAVING Cooling Layer TD " & c & " -----------");
 
-				printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".txt");
+				printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-					printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".csv");
 
 				for {td in TYPICAL_DAYS, h in HOURS}{
-					printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".txt");
+					printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then
-							printf "\t%f",(layers_in_out[i, "SPACE_COOLING"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".txt");
+							printf ";%f",(layers_in_out[i, "SPACE_COOLING"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".csv");
 					else
-							printf "\t%f",(layers_in_out[i, "SPACE_COOLING"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".txt");
+							printf ";%f",(layers_in_out[i, "SPACE_COOLING"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".csv");
 					}
 					for {j in STORAGE_TECH}{
-						printf "\t%f",(-Storage_in [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "SPACE_COOLING", h, td]  > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "SPACE_COOLING", h, td]  > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & c & ".csv");
 				}
 
 
 				print ("--------------SAVING H2Layer TD " & c & " -----------");
 
-				printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".txt");
+				printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".csv");
 
 				for {td in TYPICAL_DAYS, h in HOURS}{
-					printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".txt");
+					printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(layers_in_out[i, "H2"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "H2"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".csv");
 					else
-						printf "\t%f",(layers_in_out[i, "H2"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "H2"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".csv");
 						
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",(-Storage_in [c, j, "H2", h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "H2", h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "H2", h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "H2", h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "H2", h, td]  > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "H2", h, td]  > ( PathName & "/hourly_data_TD" & "/H2Layers_" & c & ".csv");
 				}
 				
 				
 				print ("--------------SAVING NGLayer TD " & c & " -----------");
 
-				printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".txt");
+				printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".csv");
 
 				for {td in TYPICAL_DAYS, h in HOURS}{
-					printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".txt");
+					printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(layers_in_out[i, "NG"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "NG"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".csv");
 					else
-						printf "\t%f",(layers_in_out[i, "NG"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "NG"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".csv");
 						
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",(-Storage_in [c, j, "NG", h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "NG", h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "NG", h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "NG", h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "NG", h, td]  > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "NG", h, td]  > ( PathName & "/hourly_data_TD" & "/NGLayers_" & c & ".csv");
 				}
 				
 				
 				print ("--------------SAVING SLFLayer TD " & c & " -----------");
 
-				printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".txt");
+				printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".txt");
+					printf ";%s",i > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".txt");
-					printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".txt");
+					printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".csv");
+					printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".csv");
 				}
-				printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".txt");
+				printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".csv");
 
 				for {td in TYPICAL_DAYS, h in HOURS}{
-					printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".txt");
+					printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".csv");
 					for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 					then 
-						printf "\t%f",(layers_in_out[i, "SLF"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "SLF"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".csv");
 					else
-						printf "\t%f",(layers_in_out[i, "SLF"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".txt");
+						printf ";%f",(layers_in_out[i, "SLF"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".csv");
 						
 					}
 					for {j in STORAGE_TECH }{
-						printf "\t%f",(-Storage_in [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".txt");
-						printf "\t%f", (Storage_out [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".txt");
+						printf ";%f",(-Storage_in [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".csv");
+						printf ";%f", (Storage_out [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".csv");
 					}
-					printf "\t%f", -End_uses [c, "SLF", h, td]  > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".txt");
+					printf ";%f", -End_uses [c, "SLF", h, td]  > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & c & ".csv");
 				}
 
 
@@ -886,24 +886,24 @@ param PathName symbolic default "output";
 				#------------------------------------------
 				print ("--------- SAVING Exchanges TD " & c & " --------");
 				
-				printf "Unit\t[GW]" > (PathName & "/hourly_data_TD" & "/exch_" & c & ".txt");
+				printf "Unit;[GW]" > (PathName & "/hourly_data_TD" & "/exch_" & c & ".csv");
 				for {i in RESOURCES}{
 					for {c2 in COUNTRIES}{
-						printf "\t%s", i > (PathName & "/hourly_data_TD" & "/exch_" & c & ".txt");
+						printf ";%s", i > (PathName & "/hourly_data_TD" & "/exch_" & c & ".csv");
 					}
 				}
-				printf "\n" > (PathName & "/hourly_data_TD" & "/exch_" & c & ".txt");
-				printf "Td\tTime" > (PathName & "/hourly_data_TD" & "/exch_" & c & ".txt");
+				printf "\n" > (PathName & "/hourly_data_TD" & "/exch_" & c & ".csv");
+				printf "Td;Time" > (PathName & "/hourly_data_TD" & "/exch_" & c & ".csv");
 				for {i in RESOURCES}{
 				for {c2 in COUNTRIES}{
-						printf "\t%s", c2 > (PathName & "/hourly_data_TD" & "/exch_" & c & ".txt");
+						printf ";%s", c2 > (PathName & "/hourly_data_TD" & "/exch_" & c & ".csv");
 				}
 				}
 				for {td in TYPICAL_DAYS, h in HOURS}{
-					printf "\n%d\t%d",td,h   > (PathName & "/hourly_data_TD" & "/exch_" & c & ".txt");
+					printf "\n%d;%d",td,h   > (PathName & "/hourly_data_TD" & "/exch_" & c & ".csv");
 					for {i in RESOURCES}{
 						for {c2 in COUNTRIES}{
-							printf "\t%.6f", Exchanges[c, c2, i, h, td] > (PathName & "/hourly_data_TD" & "/exch_" & c & ".txt");
+							printf ";%.6f", (Exch_imp[c, c2, i, h, td]-Exch_exp[c, c2, i, h, td]) > (PathName & "/hourly_data_TD" & "/exch_" & c & ".csv");
 						}
 					}	
 				}
@@ -913,19 +913,19 @@ param PathName symbolic default "output";
 				#------------------------------------------
 				print ("--------- SAVING Resources balance TD " & c & " --------");
 				
-				printf "Unit\t[GW]" > (PathName & "/hourly_data_TD" & "/resources_" & c & ".txt");
+				printf "Unit;[GW]" > (PathName & "/hourly_data_TD" & "/resources_" & c & ".csv");
 				for {i in RESOURCES}{
-						printf "\t%s\t%s\t%s\t%s", i, i, i, i > (PathName & "/hourly_data_TD" & "/resources_" & c & ".txt");
+						printf ";%s;%s;%s;%s", i, i, i, i > (PathName & "/hourly_data_TD" & "/resources_" & c & ".csv");
 				}
-				printf "\n" > (PathName & "/hourly_data_TD" & "/resources_" & c & ".txt");
-				printf "Td\tTime" > (PathName & "/hourly_data_TD" & "/resources_" & c & ".txt");
+				printf "\n" > (PathName & "/hourly_data_TD" & "/resources_" & c & ".csv");
+				printf "Td;Time" > (PathName & "/hourly_data_TD" & "/resources_" & c & ".csv");
 				for {i in RESOURCES}{
-						printf "\tR_t_local\tR_t_exterior\tR_t_import\tR_t_export" > (PathName & "/hourly_data_TD" & "/resources_" & c & ".txt");
+						printf ";R_t_local;R_t_exterior;R_t_import;R_t_export" > (PathName & "/hourly_data_TD" & "/resources_" & c & ".csv");
 				}
 				for {td in TYPICAL_DAYS, h in HOURS}{
-					printf "\n%d\t%d",td,h   > (PathName & "/hourly_data_TD" & "/resources_" & c & ".txt");
+					printf "\n%d;%d",td,h   > (PathName & "/hourly_data_TD" & "/resources_" & c & ".csv");
 					for {i in RESOURCES}{
-						printf "\t%.6f\t%.6f\t%.6f\t%.6f", R_t_local[c, i, h, td], R_t_exterior[c, i, h, td], R_t_import[c, i, h, td], R_t_export[c, i, h, td] > (PathName & "/hourly_data_TD" & "/resources_" & c & ".txt");
+						printf ";%.6f;%.6f;%.6f;%.6f", R_t_local[c, i, h, td], R_t_exterior[c, i, h, td], R_t_import[c, i, h, td], R_t_export[c, i, h, td] > (PathName & "/hourly_data_TD" & "/resources_" & c & ".csv");
 					}
 				}
 
@@ -949,17 +949,17 @@ param PathName symbolic default "output";
 			#########################################
 			
 			#------------------------------------------
-			## Print cost breakdown to txt file.
+			## Print cost breakdown to csv file.
 			#------------------------------------------
 			print "--------------SAVING COST ALL -----------";
-			printf "%s\t%s\t%s\t%s\n", "Name","C_inv [M€/y]","C_maint [M€/y]","C_op [M€/y]" > ( PathName & "/cost_breakdown_" & "ALL" & ".txt"); 
+			printf "%s;%s;%s;%s\n", "Name","C_inv [M€/y]","C_maint [M€/y]","C_op [M€/y]" > ( PathName & "/cost_breakdown_" & "ALL" & ".csv"); 
 			for {i in TECHNOLOGIES union RESOURCES}{if i in TECHNOLOGIES
 			then
-					printf "%s\t%.6f\t%.6f\t%.6f\n", i, sum{c in COUNTRIES} (tau [c,i] * C_inv [c,i]), sum{c in COUNTRIES} (C_maint [c,i]), 0 > ( PathName & "/cost_breakdown_" & "ALL" & ".txt"); 
+					printf "%s;%.6f;%.6f;%.6f\n", i, sum{c in COUNTRIES} (tau [c,i] * C_inv [c,i]), sum{c in COUNTRIES} (C_maint [c,i]), 0 > ( PathName & "/cost_breakdown_" & "ALL" & ".csv"); 
 			else
-					printf "%s\t%.6f\t%.6f\t%.6f\n", i, 0, 0, sum{c in COUNTRIES} (C_op[c,i]) > ( PathName & "/cost_breakdown_" & "ALL" & ".txt"); ;
+					printf "%s;%.6f;%.6f;%.6f\n", i, 0, 0, sum{c in COUNTRIES} (C_op[c,i]) > ( PathName & "/cost_breakdown_" & "ALL" & ".csv"); ;
 			}
-			printf "%s\t%.6f\t%.6f\t%.6f", "Total [M€/y]", sum{c in COUNTRIES, i in TECHNOLOGIES} (tau [c,i] * C_inv [c,i]), sum{c in COUNTRIES, i in TECHNOLOGIES} C_maint [c,i], sum{c in COUNTRIES, i in RESOURCES} C_op[c,i] > ( PathName & "/cost_breakdown_" & "ALL" & ".txt");
+			printf "%s;%.6f;%.6f;%.6f", "Total [M€/y]", sum{c in COUNTRIES, i in TECHNOLOGIES} (tau [c,i] * C_inv [c,i]), sum{c in COUNTRIES, i in TECHNOLOGIES} C_maint [c,i], sum{c in COUNTRIES, i in RESOURCES} C_op[c,i] > ( PathName & "/cost_breakdown_" & "ALL" & ".csv");
 				
 
 
@@ -968,33 +968,33 @@ param PathName symbolic default "output";
 			#------------------------------------------
 			print "--------------SAVING GWP ALL -----------";
 
-			printf "%s\t%s\t%s\n", "Name", "GWP_constr [kt_CO2eq/y]", "GWP_op [kt_CO2eq/y]" > ( PathName & "/gwp_breakdown_" & "ALL" & ".txt");  
+			printf "%s;%s;%s\n", "Name", "GWP_constr [kt_CO2eq/y]", "GWP_op [kt_CO2eq/y]" > ( PathName & "/gwp_breakdown_" & "ALL" & ".csv");  
 			for {i in TECHNOLOGIES union RESOURCES}{if i in TECHNOLOGIES
 			then
-					printf "%s\t%.6f\t%.6f\n", i, sum{c in COUNTRIES} (GWP_constr [c,i] / lifetime [c,i]), 0 > ( PathName & "/gwp_breakdown_" & "ALL" & ".txt"); 
+					printf "%s;%.6f;%.6f\n", i, sum{c in COUNTRIES} (GWP_constr [c,i] / lifetime [c,i]), 0 > ( PathName & "/gwp_breakdown_" & "ALL" & ".csv"); 
 			else
-					printf "%s\t%.6f\t%.6f\n", i, 0, sum{c in COUNTRIES} (GWP_op [c,i]) > ( PathName & "/gwp_breakdown_" & "ALL" & ".txt"); 
+					printf "%s;%.6f;%.6f\n", i, 0, sum{c in COUNTRIES} (GWP_op [c,i]) > ( PathName & "/gwp_breakdown_" & "ALL" & ".csv"); 
 			}
-			printf "%s\t%.6f\t%.6f", "Total [ktCO2-eq/y]", sum{c in COUNTRIES, i in TECHNOLOGIES} (GWP_constr [c,i] / lifetime [c,i]), sum{c in COUNTRIES, i in RESOURCES} GWP_op [c,i]  > ( PathName & "/gwp_breakdown_" & "ALL" & ".txt"); 
+			printf "%s;%.6f;%.6f", "Total [ktCO2-eq/y]", sum{c in COUNTRIES, i in TECHNOLOGIES} (GWP_constr [c,i] / lifetime [c,i]), sum{c in COUNTRIES, i in RESOURCES} GWP_op [c,i]  > ( PathName & "/gwp_breakdown_" & "ALL" & ".csv"); 
 
 			#------------------------------------------
-			## Print losses to txt file
+			## Print losses to csv file
 			#------------------------------------------
 			print "--------------SAVING losses ALL -----------";
 
-			printf "EUD\tLosses [GWh/y]" > ( PathName & "/losses_" & "ALL" & ".txt"); 
+			printf "EUD;Losses [GWh/y]" > ( PathName & "/losses_" & "ALL" & ".csv"); 
 			for {i in END_USES_TYPES}{
-					printf "\n%s\t%.3f", i, sum{c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t] }(Network_losses [c,i,h,td] )  > ( PathName & "/losses_" & "ALL" & ".txt"); 
+					printf "\n%s;%.3f", i, sum{c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t] }(Network_losses [c,i,h,td] )  > ( PathName & "/losses_" & "ALL" & ".csv"); 
 			}
 
 			#------------------------------------------
-			## Print ASSETS to txt file  (/!\ without tau)
+			## Print ASSETS to csv file  (/!\ without tau)
 			#------------------------------------------
 			print "--------------SAVING ASSETS ALL -----------";
-			printf "TECHNOLOGIES\tc_inv\tc_maint\tlifetime\tf_min\tf\tf_max\tfmin_perc\tf_perc\tfmax_perc\tc_p_actual\tc_p\tgwp_constr" > ( PathName & "/Assets_" & "ALL" & ".txt"); 
-			printf "\nUNITS\t[Meuro/GW]\t[Meuro/GW]\t[y]\t[GW or GWh]\t[GW or GWh]\t[GW or GWh]\t[0-1]\t[0-1]\t[0-1]\t[0-1]\t[0-1]\t[ktCO2-eq./GW or GWh]" > ( PathName & "/Assets_" & "ALL" & ".txt"); 
+			printf "TECHNOLOGIES;c_inv;c_maint;lifetime;f_min;f;f_max;fmin_perc;f_perc;fmax_perc;c_p_actual;c_p;gwp_constr" > ( PathName & "/Assets_" & "ALL" & ".csv"); 
+			printf "\nUNITS;[Meuro/GW];[Meuro/GW];[y];[GW or GWh];[GW or GWh];[GW or GWh];[0-1];[0-1];[0-1];[0-1];[0-1];[ktCO2-eq./GW or GWh]" > ( PathName & "/Assets_" & "ALL" & ".csv"); 
 			for {i in END_USES_TYPES, tech in TECHNOLOGIES_OF_END_USES_TYPE[i]}{
-				printf "\n%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f",tech,
+				printf "\n%s;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f",tech,
 						sum{c in COUNTRIES} (C_inv[c,tech]), sum{c in COUNTRIES} (C_maint[c,tech]), sum{c in COUNTRIES}(lifetime[c,tech])/card(COUNTRIES), sum{c in COUNTRIES} (f_min[c,tech]),
 						sum{c in COUNTRIES}(F[c,tech]), sum{c in COUNTRIES} (f_max[c,tech]),
 						if sum {c2 in COUNTRIES, j2 in TECHNOLOGIES_OF_END_USES_TYPE[i], t2 in PERIODS, h2 in HOUR_OF_PERIOD[t2], td2 in TYPICAL_DAY_OF_PERIOD[t2]} (F_t [c2,j2, h2,td2] ) > 0 then sum {c in COUNTRIES} (fmin_perc[c,tech]*sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,tech,h,td]))/ sum {c2 in COUNTRIES, j2 in 
@@ -1004,12 +1004,12 @@ param PathName symbolic default "output";
 						if sum {c2 in COUNTRIES, j2 in TECHNOLOGIES_OF_END_USES_TYPE[i], t2 in PERIODS, h2 in HOUR_OF_PERIOD[t2], td2 in TYPICAL_DAY_OF_PERIOD[t2]} (F_t [c2,j2, h2, td2]) > 0 then sum {c in COUNTRIES} (fmax_perc[c,tech]*sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,tech,h,td]))/ sum {c2 in COUNTRIES, j2 in 
 						TECHNOLOGIES_OF_END_USES_TYPE[i], t2 in PERIODS, h2 in HOUR_OF_PERIOD[t2], td2 in TYPICAL_DAY_OF_PERIOD[t2]} (F_t [c2,j2, h2, td2]) else 0,
 						if (sum{c in COUNTRIES} (F[c,tech]))>0 then sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,tech,h,td]) / (sum{c2 in COUNTRIES} (F[c2,tech])*8760) else 0,
-						sum{c in COUNTRIES} (c_p[c,tech])/card(COUNTRIES), sum{c in COUNTRIES} (GWP_constr[c,tech]) > ( PathName & "/Assets_" & "ALL" & ".txt"); 
+						sum{c in COUNTRIES} (c_p[c,tech])/card(COUNTRIES), sum{c in COUNTRIES} (GWP_constr[c,tech]) > ( PathName & "/Assets_" & "ALL" & ".csv"); 
 			}
 			for {tech in STORAGE_TECH union INFRASTRUCTURE}{
-				printf "\n%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f",tech,
+				printf "\n%s;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f",tech,
 						sum{c in COUNTRIES} (C_inv[c,tech]), sum{c in COUNTRIES} (C_maint[c,tech]), sum{c in COUNTRIES}(lifetime[c,tech])/card(COUNTRIES), sum{c in COUNTRIES} (f_min[c,tech]), sum{c in COUNTRIES} (F[c,tech]),
-						sum{c in COUNTRIES} (f_max[c,tech]), 0, -1, 1, 1, 1, sum{c in COUNTRIES} (GWP_constr[c,tech]) > ( PathName & "/Assets_" & "ALL" & ".txt"); 
+						sum{c in COUNTRIES} (f_max[c,tech]), 0, -1, 1, 1, 1, sum{c in COUNTRIES} (GWP_constr[c,tech]) > ( PathName & "/Assets_" & "ALL" & ".csv"); 
 			}
 			
 			
@@ -1018,32 +1018,32 @@ param PathName symbolic default "output";
 			#------------------------------------------
 			print "--------- SAVING Yearly balances ALL --------";
 
-			printf "Tech" > ( PathName & "/YearBalance_" & "ALL" & ".txt");
+			printf "Tech" > ( PathName & "/YearBalance_" & "ALL" & ".csv");
 			for {l in LAYERS}{
-				printf "\t%s",l > ( PathName & "/YearBalance_" & "ALL" & ".txt");
+				printf ";%s",l > ( PathName & "/YearBalance_" & "ALL" & ".csv");
 			}
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-				printf "\n%s", i > ( PathName & "/YearBalance_" & "ALL" & ".txt");
+				printf "\n%s", i > ( PathName & "/YearBalance_" & "ALL" & ".csv");
 				for {l in LAYERS}{if i in TECHNOLOGIES
 				then 
-					printf "\t%f", sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-									layers_in_out[i, l] * F_t [c, i, h, td] > ( PathName & "/YearBalance_" & "ALL" & ".txt");
+					printf ";%f", sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+									layers_in_out[i, l] * F_t [c, i, h, td] > ( PathName & "/YearBalance_" & "ALL" & ".csv");
 				else
-					printf "\t%f", sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-									layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]) > ( PathName & "/YearBalance_" & "ALL" & ".txt");
+					printf ";%f", sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+									layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]) > ( PathName & "/YearBalance_" & "ALL" & ".csv");
 				}
 			}
 			for {j in STORAGE_TECH}{
-				printf "\n%s", j > ( PathName & "/YearBalance_" & "ALL" & ".txt");
+				printf "\n%s", j > ( PathName & "/YearBalance_" & "ALL" & ".csv");
 				for {l in LAYERS}{
-					printf "\t%f", sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-									(Storage_out [c, j, l, h, td] - Storage_in [c, j, l, h, td]) > ( PathName & "/YearBalance_" & "ALL" & ".txt");
+					printf ";%f", sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+									(Storage_out [c, j, l, h, td] - Storage_in [c, j, l, h, td]) > ( PathName & "/YearBalance_" & "ALL" & ".csv");
 				}
 			}
-			printf "\nEND_USES_DEMAND" > ( PathName & "/YearBalance_" & "ALL" & ".txt");
+			printf "\nEND_USES_DEMAND" > ( PathName & "/YearBalance_" & "ALL" & ".csv");
 			for {l in LAYERS}{
-				printf "\t%f", sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-								End_uses [c, l, h, td] > ( PathName & "/YearBalance_" & "ALL" & ".txt");
+				printf ";%f", sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+								End_uses [c, l, h, td] > ( PathName & "/YearBalance_" & "ALL" & ".csv");
 			}
 			
 			
@@ -1052,15 +1052,34 @@ param PathName symbolic default "output";
 			#------------------------------------------
 			print ("--------- SAVING Exchanges losses balance ALL --------");
 			
-			printf "RESOURCES" > (PathName & "/exch_losses.txt");
+			printf "RESOURCES" > (PathName & "/exch_losses.csv");
 			for{c in COUNTRIES}{
-				printf "\t%s", c > (PathName & "/exch_losses.txt");
+				printf ";%s", c > (PathName & "/exch_losses.csv");
 			}
 			for {i in RESOURCES}{
-				printf "\n%s", i > (PathName & "/exch_losses.txt");
+				printf "\n%s", i > (PathName & "/exch_losses.csv");
 				for {c in COUNTRIES}{
-					printf "\t%.6f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-								(R_t_export [c, i, h, td]*exchange_losses[i]) > (PathName & "/exch_losses.txt");
+					printf ";%.6f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+								(R_t_export [c, i, h, td]*exchange_losses[i]) > (PathName & "/exch_losses.csv");
+				}
+			}
+			
+			#------------------------------------------
+			# Exchanges balance recap printing
+			#------------------------------------------
+			print ("--------- SAVING Exchanges balance recap ALL --------");
+			
+			printf "RESOURCES;REGION" > (PathName & "/exch_ALL.csv");
+			for{c in COUNTRIES}{
+				printf ";%s", c > (PathName & "/exch_ALL.csv");
+			}
+			for {i in RESOURCES}{
+				for {c in COUNTRIES}{
+					printf "\n%s;%s", i, c > (PathName & "/exch_ALL.csv");
+					for {c2 in COUNTRIES}{
+						printf ";%.6f", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+								(Exch_imp[c,c2,i,h,td] - Exch_exp[c,c2,i,h,td]) > (PathName & "/exch_ALL.csv");
+					}
 				}
 			}
 			
@@ -1070,11 +1089,11 @@ param PathName symbolic default "output";
 			#------------------------------------------
 			print ("--------- SAVING Resources balance ALL --------");
 			
-			printf "RESOURCES" > (PathName & "/resources_ALL.txt");
-			printf "\tR_t_local\tR_t_exterior" > (PathName & "/resources_ALL.txt");
+			printf "RESOURCES" > (PathName & "/resources_ALL.csv");
+			printf ";R_t_local;R_t_exterior" > (PathName & "/resources_ALL.csv");
 			for {i in RESOURCES}{
-				printf "\n%s\t%.6f\t%.6f", i, sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_local[c, i, h, td],
-				sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_exterior[c, i, h, td] > (PathName & "/resources_ALL.txt");
+				printf "\n%s;%.6f;%.6f", i, sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_local[c, i, h, td],
+				sum {c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} R_t_exterior[c, i, h, td] > (PathName & "/resources_ALL.csv");
 			}
 			
 
@@ -1087,26 +1106,26 @@ param PathName symbolic default "output";
 			#------------------------------------------
 			print "--------------SAVING elec Storage YEAR ALL -----------";
 			# storage curves
-			printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".txt");
+			printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".csv");
 			for {i in STORAGE_TECH diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-				printf "\t%s", i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".txt");
+				printf ";%s", i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".csv");
 			}
 			for {i in STORAGE_TECH diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-				printf "\t%s_in" ,{l in LAYERS: storage_eff_in  [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".txt");
-				printf "\t%s_out",{l in LAYERS: storage_eff_out [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".txt");
+				printf ";%s_in" ,{l in LAYERS: storage_eff_in  [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".csv");
+				printf ";%s_out",{l in LAYERS: storage_eff_out [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".csv");
 			}
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td  > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".txt");
+				printf "\n%d;%d;%d",t,h,td  > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".csv");
 				for {i in STORAGE_TECH diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-					printf "\t%f", sum{c in COUNTRIES} (Storage_level[c, i, t]) > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (Storage_level[c, i, t]) > ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".csv");
 				}
 				for {i in STORAGE_TECH diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] diff STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-					printf "\t%f", (sum {c in COUNTRIES, l in LAYERS: storage_eff_in [i,l] > 0}
+					printf ";%f", (sum {c in COUNTRIES, l in LAYERS: storage_eff_in [i,l] > 0}
 									-(Storage_in [c, i, l, h, td] * storage_eff_in [i, l]))
-							> ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".txt");
-					printf "\t%f", (sum {c in COUNTRIES, l in LAYERS: storage_eff_in [i,l] > 0}
+							> ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".csv");
+					printf ";%f", (sum {c in COUNTRIES, l in LAYERS: storage_eff_in [i,l] > 0}
 									(Storage_out [c,i, l, h, td] / storage_eff_out [i, l]))
-							> ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".txt");
+							> ( PathName & "/hourly_data_year" & "/Distri_E_stored_" & "ALL" & ".csv");
 					
 				}
 			}
@@ -1114,26 +1133,26 @@ param PathName symbolic default "output";
 			print "--------------SAVING TS Storage YEAR ALL -----------";
 
 			# storage curves
-			printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".txt");
+			printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".csv");
 			for {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] union STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-				printf "\t%s", i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".txt");
+				printf ";%s", i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".csv");
 			}
 			for {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] union STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-				printf "\t%s_in" ,{l in LAYERS: storage_eff_in  [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".txt");
-				printf "\t%s_out",{l in LAYERS: storage_eff_out [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".txt");
+				printf ";%s_in" ,{l in LAYERS: storage_eff_in  [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".csv");
+				printf ";%s_out",{l in LAYERS: storage_eff_out [i,l] > 0} i > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".csv");
 			}
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td  > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".txt");
+				printf "\n%d;%d;%d",t,h,td  > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".csv");
 				for {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] union STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-					printf "\t%f", sum{c in COUNTRIES} (Storage_level[c, i, t]) > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (Storage_level[c, i, t]) > ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".csv");
 				}
 				for {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"] union STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"]}{
-					printf "\t%f", (sum {c in COUNTRIES, l in LAYERS: storage_eff_in [i,l] > 0}
+					printf ";%f", (sum {c in COUNTRIES, l in LAYERS: storage_eff_in [i,l] > 0}
 									-(Storage_in [c, i, l, h, td] * storage_eff_in [i, l]))
-							> ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".txt");
-					printf "\t%f", (sum {c in COUNTRIES, l in LAYERS: storage_eff_in [i,l] > 0}
+							> ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".csv");
+					printf ";%f", (sum {c in COUNTRIES, l in LAYERS: storage_eff_in [i,l] > 0}
 									(Storage_out [c, i, l, h, td] / storage_eff_out [i, l]))
-							> ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".txt");
+							> ( PathName & "/hourly_data_year" & "/Distri_TS_" & "ALL" & ".csv");
 					
 				}
 			}
@@ -1143,259 +1162,259 @@ param PathName symbolic default "output";
 			#------------------------------------------
 			print "--------------SAVING Elec Layer YEAR ALL -----------";
 
-			printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".txt");
+			printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-				printf "\t%s",i > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".csv");
 
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then
-						printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "ELECTRICITY"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".txt");
+						printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "ELECTRICITY"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".csv");
 				else
-						printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "ELECTRICITY"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".txt");
+						printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "ELECTRICITY"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH}{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "ELECTRICITY", h, td])  > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "ELECTRICITY", h, td])  > ( PathName & "/hourly_data_year" & "/ElecLayers_" & "ALL" & ".csv");
 			}
 
 			print "--------------SAVING LT Layer YEAR ALL -----------";
 
-			printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".txt");
+			printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-				printf "\t%s",i > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".csv");
 
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{if i in TECHNOLOGIES
 				then 
-					printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".txt");
+					printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".csv");
 				else
-					printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".txt");
+					printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".txt");
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (Storage_out [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".txt");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".csv");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (Storage_out [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (-End_uses [c, l, h, td])  > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".txt");
+				printf ";%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (-End_uses [c, l, h, td])  > ( PathName & "/hourly_data_year" & "/LTLayers_" & "ALL" & ".csv");
 			}
 
 			print "--------------SAVING HT Layer YEAR ALL -----------";
 
-			printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".txt");
+			printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-				printf "\t%s",i > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".csv");
 
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{if i in TECHNOLOGIES
 				then 
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "HEAT_HIGH_T"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "HEAT_HIGH_T"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".csv");
 				else
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "HEAT_HIGH_T"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "HEAT_HIGH_T"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "HEAT_HIGH_T", h, td])  > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "HEAT_HIGH_T", h, td])  > ( PathName & "/hourly_data_year" & "/HTLayers_" & "ALL" & ".csv");
 			}
 
 			print "--------------SAVING PASSANGER Layer YEAR ALL -----------";
 
-			printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+			printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-				printf "\t%s",i > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then 
-					printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
-			( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+					printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
+			( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 				else
-						printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
-				( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+						printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
+				( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".txt");
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".csv");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (-End_uses [c, l, h, td] ) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+				printf ";%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (-End_uses [c, l, h, td] ) > ( PathName & "/hourly_data_year" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 			}
 
 			
 			
 			print "--------------SAVING FREIGHT Layer YEAR ALL -----------";
 
-			printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".txt");
+			printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-				printf "\t%s",i > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".csv");
 
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then 
-					printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
-			( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".txt");
+					printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
+			( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".csv");
 			else
-					printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
-			( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".txt");
+					printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
+			( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".txt");
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".txt");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".csv");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (-End_uses [c, l, h, td] )  > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".txt");
+				printf ";%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (-End_uses [c, l, h, td] )  > ( PathName & "/hourly_data_year" & "/FREIGHTLayers_" & "ALL" & ".csv");
 			}
 			
 			
 			print "--------------SAVING Cooling Layer YEAR ALL -----------";
 
-			printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".txt");
+			printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-				printf "\t%s",i > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".csv");
 
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then
-						printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "SPACE_COOLING"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".txt");
+						printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "SPACE_COOLING"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".csv");
 				else
-						printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "SPACE_COOLING"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".txt");
+						printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "SPACE_COOLING"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH}{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "SPACE_COOLING", h, td])  > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "SPACE_COOLING", h, td])  > ( PathName & "/hourly_data_year" & "/CoolingLayers_" & "ALL" & ".csv");
 			}
 
 
 
 			print "--------------SAVING H2Layer YEAR ALL -----------";
 
-			printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".txt");
+			printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-				printf "\t%s",i > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".csv");
 
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".txt");
+				printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then 
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "H2"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "H2"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".csv");
 				else
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "H2"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "H2"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".csv");
 					
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "H2", h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "H2", h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "H2", h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "H2", h, td]) > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "H2", h, td])  > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "H2", h, td])  > ( PathName & "/hourly_data_year" & "/H2Layers_" & "ALL" & ".csv");
 			}
 
 						
 			print "--------------SAVING NGLayer YEAR ALL -----------";
 
-			printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".txt");
+			printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-				printf "\t%s",i > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".csv");
 
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then 
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "NG"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "NG"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".csv");
 				else
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "NG"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "NG"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".csv");
 					
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "NG", h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "NG", h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "NG", h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "NG", h, td]) > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "NG", h, td])  > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "NG", h, td])  > ( PathName & "/hourly_data_year" & "/NGLayers_" & "ALL" & ".csv");
 			}
 			
 			
 			print "--------------SAVING SLFLayer YEAR ALL -----------";
 
-			printf "Period\tHourofPeriod\tTD" > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".txt");
+			printf "Period;HourofPeriod;TD" > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-				printf "\t%s",i > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".csv");
 
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td   > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d;%d",t,h,td   > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then 
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "SLF"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "SLF"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".csv");
 				else
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "SLF"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "SLF"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".csv");
 					
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "SLF", h, td])  > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "SLF", h, td])  > ( PathName & "/hourly_data_year" & "/SLFLayers_" & "ALL" & ".csv");
 			}
 			
 			#------------------------------------------
@@ -1403,24 +1422,24 @@ param PathName symbolic default "output";
 			#------------------------------------------
 			print "--------- SAVING Exchanges Losses YEAR ALL --------";
 				
-			printf "Period\tHourofPeriod\tTD" > (PathName & "/hourly_data_year" & "/exch_losses.txt");
+			printf "Period;HourofPeriod;TD" > (PathName & "/hourly_data_year" & "/exch_losses.csv");
 			for {i in RESOURCES}{
 				for {c in COUNTRIES}{
-					printf "\t%s", i > (PathName & "/hourly_data_year" & "/exch_losses.txt");
+					printf ";%s", i > (PathName & "/hourly_data_year" & "/exch_losses.csv");
 				}
 			}
-			printf "\n" > (PathName & "/hourly_data_year" & "/exch_losses.txt");
-			printf "(Unit : [GW])\t\t" > (PathName & "/hourly_data_year" & "/exch_losses.txt");
+			printf "\n" > (PathName & "/hourly_data_year" & "/exch_losses.csv");
+			printf "(Unit : [GW]);;" > (PathName & "/hourly_data_year" & "/exch_losses.csv");
 			for {i in RESOURCES}{
 				for {c in COUNTRIES}{
-						printf "\t%s", c > (PathName & "/hourly_data_year" & "/exch_losses.txt");
+						printf ";%s", c > (PathName & "/hourly_data_year" & "/exch_losses.csv");
 				}
 			}
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td   > (PathName & "/hourly_data_year" & "/exch_losses.txt");
+				printf "\n%d;%d;%d",t,h,td   > (PathName & "/hourly_data_year" & "/exch_losses.csv");
 				for {i in RESOURCES}{
 					for {c in COUNTRIES}{
-						printf "\t%.6f",(R_t_export[c, i, h, td]*exchange_losses[i]) > (PathName & "/hourly_data_year" & "/exch_losses.txt");
+						printf ";%.6f",(R_t_export[c, i, h, td]*exchange_losses[i]) > (PathName & "/hourly_data_year" & "/exch_losses.csv");
 					}
 				}	
 			}
@@ -1433,19 +1452,19 @@ param PathName symbolic default "output";
 			#------------------------------------------
 			print ("--------- SAVING Resources balance YEAR ALL --------");
 			
-			printf "Period\tHourofPeriod\tTD" > (PathName & "/hourly_data_year" & "/resources_ALL.txt");
+			printf "Period;HourofPeriod;TD" > (PathName & "/hourly_data_year" & "/resources_ALL.csv");
 			for {i in RESOURCES}{
-					printf "\t%s\t%s", i, i > (PathName & "/hourly_data_year" & "/resources_ALL.txt");
+					printf ";%s;%s", i, i > (PathName & "/hourly_data_year" & "/resources_ALL.csv");
 			}
-			printf "\n" > (PathName & "/hourly_data_year" & "/resources_ALL.txt");
-			printf "(Unit : [GW])\t\t" > (PathName & "/hourly_data_year" & "/resources_ALL.txt");
+			printf "\n" > (PathName & "/hourly_data_year" & "/resources_ALL.csv");
+			printf "(Unit : [GW]);;" > (PathName & "/hourly_data_year" & "/resources_ALL.csv");
 			for {i in RESOURCES}{
-					printf "\tR_t_local\tR_t_exterior" > (PathName & "/hourly_data_year" & "/resources_ALL.txt");
+					printf ";R_t_local;R_t_exterior" > (PathName & "/hourly_data_year" & "/resources_ALL.csv");
 			}
 			for {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}{
-				printf "\n%d\t%d\t%d",t,h,td   > (PathName & "/hourly_data_year" & "/resources_ALL.txt");
+				printf "\n%d;%d;%d",t,h,td   > (PathName & "/hourly_data_year" & "/resources_ALL.csv");
 				for {i in RESOURCES}{
-					printf "\t%.6f\t%.6f", sum{c in COUNTRIES} R_t_local[c, i, h, td], sum{c in COUNTRIES} R_t_exterior[c, i, h, td] > (PathName & "/hourly_data_year" & "/resources_ALL.txt");
+					printf ";%.6f;%.6f", sum{c in COUNTRIES} R_t_local[c, i, h, td], sum{c in COUNTRIES} R_t_exterior[c, i, h, td] > (PathName & "/hourly_data_year" & "/resources_ALL.csv");
 				}
 			}
 			
@@ -1469,260 +1488,260 @@ param PathName symbolic default "output";
 			#------------------------------------------
 			print "--------------SAVING Elec Layer TD ALL -----------";
 
-			printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".txt");
+			printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-				printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".csv");
 
 			for {td in TYPICAL_DAYS, h in HOURS}{
-				printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then
-						printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "ELECTRICITY"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".txt");
+						printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "ELECTRICITY"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".csv");
 				else
-						printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "ELECTRICITY"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".txt");
+						printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "ELECTRICITY"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH}{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "ELECTRICITY", h, td]) > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "ELECTRICITY", h, td])  > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "ELECTRICITY", h, td])  > ( PathName & "/hourly_data_TD" & "/ElecLayers_" & "ALL" & ".csv");
 			}
 
 			print "--------------SAVING LT Layer TD ALL -----------";
 
-			printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".txt");
+			printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-				printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".csv");
 
 			for {td in TYPICAL_DAYS, h in HOURS}{
-				printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{if i in TECHNOLOGIES
 				then 
-					printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".txt");
+					printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".csv");
 				else
-					printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".txt");
+					printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".txt");
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (Storage_out [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".txt");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".csv");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (Storage_out [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (-End_uses [c, l, h, td])  > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".txt");
+				printf ";%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (-End_uses [c, l, h, td])  > ( PathName & "/hourly_data_TD" & "/LTLayers_" & "ALL" & ".csv");
 			}
 
 			print "--------------SAVING HT Layer TD ALL -----------";
 
-			printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".txt");
+			printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-				printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".csv");
 
 			for {td in TYPICAL_DAYS, h in HOURS}{
-				printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{if i in TECHNOLOGIES
 				then 
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "HEAT_HIGH_T"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "HEAT_HIGH_T"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".csv");
 				else
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "HEAT_HIGH_T"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "HEAT_HIGH_T"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "HEAT_HIGH_T", h, td]) > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "HEAT_HIGH_T", h, td])  > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "HEAT_HIGH_T", h, td])  > ( PathName & "/hourly_data_TD" & "/HTLayers_" & "ALL" & ".csv");
 			}
 
 			print "--------------SAVING PASSANGER Layer TD ALL -----------";
 
-			printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+			printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-				printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 
 			for {td in TYPICAL_DAYS, h in HOURS}{
-				printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then 
-					printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
-			( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+					printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
+			( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 				else
-						printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
-				( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+						printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
+				( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".txt");
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".csv");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (-End_uses [c, l, h, td] ) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".txt");
+				printf ";%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"]} (-End_uses [c, l, h, td] ) > ( PathName & "/hourly_data_TD" & "/PASSANGERSLayers_" & "ALL" & ".csv");
 			}
 
 			
 			
 			print "--------------SAVING FREIGHT Layer TD ALL -----------";
 
-			printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".txt");
+			printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-				printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".csv");
 
 			for {td in TYPICAL_DAYS, h in HOURS}{
-				printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then 
-					printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
-			( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".txt");
+					printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * F_t [c, i, h, td])) > 
+			( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".csv");
 			else
-					printf "\t%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
-			( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".txt");
+					printf ";%f",(sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (layers_in_out[i, l] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td]))) > 
+			( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".txt");
-					printf "\t%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".txt");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_in [c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".csv");
+					printf ";%f",sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]}(-Storage_out[c, j, l, h, td]) > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (-End_uses [c, l, h, td] )  > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".txt");
+				printf ";%f", sum {c in COUNTRIES, l in END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"]} (-End_uses [c, l, h, td] )  > ( PathName & "/hourly_data_TD" & "/FREIGHTLayers_" & "ALL" & ".csv");
 			}
 			
 			
 			print "--------------SAVING Cooling Layer TD ALL -----------";
 
-			printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".txt");
+			printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-				printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".csv");
 
 			for {td in TYPICAL_DAYS, h in HOURS}{
-				printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then
-						printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "SPACE_COOLING"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".txt");
+						printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "SPACE_COOLING"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".csv");
 				else
-						printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "SPACE_COOLING"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".txt");
+						printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "SPACE_COOLING"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".csv");
 				}
 				for {j in STORAGE_TECH}{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "SPACE_COOLING", h, td]) > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "SPACE_COOLING", h, td])  > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "SPACE_COOLING", h, td])  > ( PathName & "/hourly_data_TD" & "/CoolingLayers_" & "ALL" & ".csv");
 			}
 
 
 			print "--------------SAVING H2Layer TD ALL -----------";
 
-			printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".txt");
+			printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-				printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".csv");
 
 			for {td in TYPICAL_DAYS, h in HOURS}{
-				printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".txt");
+				printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then 
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "H2"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "H2"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".csv");
 				else
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "H2"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "H2"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".csv");
 					
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "H2", h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "H2", h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "H2", h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "H2", h, td]) > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "H2", h, td])  > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "H2", h, td])  > ( PathName & "/hourly_data_TD" & "/H2Layers_" & "ALL" & ".csv");
 			}
 
 			
 
 			print "--------------SAVING NGLayer TD ALL -----------";
 
-			printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".txt");
+			printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-				printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".csv");
 
 			for {td in TYPICAL_DAYS, h in HOURS}{
-				printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then 
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "NG"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "NG"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".csv");
 				else
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "NG"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "NG"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".csv");
 					
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "NG", h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "NG", h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "NG", h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "NG", h, td]) > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "NG", h, td])  > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "NG", h, td])  > ( PathName & "/hourly_data_TD" & "/NGLayers_" & "ALL" & ".csv");
 			}
 			
 			
 			
 			print "--------------SAVING SLFLayer TD ALL -----------";
 
-			printf "Td\tTime" > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".txt");
+			printf "Td;Time" > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".csv");
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-				printf "\t%s",i > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".txt");
+				printf ";%s",i > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".csv");
 			}
 			for {j in STORAGE_TECH }{
-				printf "\t%s_Pin",j > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".txt");
-				printf "\t%s_Pout",j > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".txt");
+				printf ";%s_Pin",j > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".csv");
+				printf ";%s_Pout",j > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".csv");
 			}
-			printf "\tEND_USE" > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".txt");
+			printf ";END_USE" > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".csv");
 
 			for {td in TYPICAL_DAYS, h in HOURS}{
-				printf "\n%d\t%d",td,h   > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".txt");
+				printf "\n%d;%d",td,h   > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".csv");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{if i in TECHNOLOGIES
 				then 
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "SLF"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "SLF"] * F_t [c, i, h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".csv");
 				else
-					printf "\t%f", sum{c in COUNTRIES} (layers_in_out[i, "SLF"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (layers_in_out[i, "SLF"] * (R_t_local[c, i, h, td] + R_t_import[c, i, h, td] - (1 + exchange_losses[i]) * R_t_export[c, i, h, td] + R_t_exterior[c, i, h, td])) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".csv");
 					
 				}
 				for {j in STORAGE_TECH }{
-					printf "\t%f", sum{c in COUNTRIES} (-Storage_in [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".txt");
-					printf "\t%f", sum{c in COUNTRIES} (Storage_out [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".txt");
+					printf ";%f", sum{c in COUNTRIES} (-Storage_in [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".csv");
+					printf ";%f", sum{c in COUNTRIES} (Storage_out [c, j, "SLF", h, td]) > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".csv");
 				}
-				printf "\t%f", sum{c in COUNTRIES} (-End_uses [c, "SLF", h, td])  > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".txt");
+				printf ";%f", sum{c in COUNTRIES} (-End_uses [c, "SLF", h, td])  > ( PathName & "/hourly_data_TD" & "/SLFLayers_" & "ALL" & ".csv");
 			}
 			
 			#------------------------------------------
@@ -1730,24 +1749,24 @@ param PathName symbolic default "output";
 			#------------------------------------------
 			print "--------- SAVING Exchanges Losses TD ALL --------";
 			
-			printf "Unit\t[GW]" > (PathName & "/hourly_data_TD" & "/exch_losses.txt");
+			printf "Unit;[GW]" > (PathName & "/hourly_data_TD" & "/exch_losses.csv");
 			for {i in RESOURCES}{
 				for {c in COUNTRIES}{
-					printf "\t%s", i > (PathName & "/hourly_data_TD" & "/exch_losses.txt");
+					printf ";%s", i > (PathName & "/hourly_data_TD" & "/exch_losses.csv");
 				}
 			}
-			printf "\n" > (PathName & "/hourly_data_TD" & "/exch_losses.txt");
-			printf "Td\tTime" > (PathName & "/hourly_data_TD" & "/exch_losses.txt");
+			printf "\n" > (PathName & "/hourly_data_TD" & "/exch_losses.csv");
+			printf "Td;Time" > (PathName & "/hourly_data_TD" & "/exch_losses.csv");
 			for {i in RESOURCES}{
 				for {c in COUNTRIES}{
-						printf "\t%s", c > (PathName & "/hourly_data_TD" & "/exch_losses.txt");
+						printf ";%s", c > (PathName & "/hourly_data_TD" & "/exch_losses.csv");
 				}
 			}
 			for {td in TYPICAL_DAYS, h in HOURS}{
-				printf "\n%d\t%d",td,h   > (PathName & "/hourly_data_TD" & "/exch_losses.txt");
+				printf "\n%d;%d",td,h   > (PathName & "/hourly_data_TD" & "/exch_losses.csv");
 				for {i in RESOURCES}{
 					for {c in COUNTRIES}{
-						printf "\t%.6f",(R_t_export[c, i, h, td]*exchange_losses[i]) > (PathName & "/hourly_data_TD" & "/exch_losses.txt");
+						printf ";%.6f",(R_t_export[c, i, h, td]*exchange_losses[i]) > (PathName & "/hourly_data_TD" & "/exch_losses.csv");
 					}
 				}	
 			}
@@ -1760,19 +1779,19 @@ param PathName symbolic default "output";
 			#------------------------------------------
 			print ("--------- SAVING Resources balance TD ALL --------");
 			
-			printf "Unit\t[GW]" > (PathName & "/hourly_data_TD" & "/resources_ALL.txt");
+			printf "Unit;[GW]" > (PathName & "/hourly_data_TD" & "/resources_ALL.csv");
 			for {i in RESOURCES}{
-					printf "\t%s\t%s", i, i > (PathName & "/hourly_data_TD" & "/resources_ALL.txt");
+					printf ";%s;%s", i, i > (PathName & "/hourly_data_TD" & "/resources_ALL.csv");
 			}
-			printf "\n" > (PathName & "/hourly_data_TD" & "/resources_ALL.txt");
-			printf "Td\tTime" > (PathName & "/hourly_data_TD" & "/resources_ALL.txt");
+			printf "\n" > (PathName & "/hourly_data_TD" & "/resources_ALL.csv");
+			printf "Td;Time" > (PathName & "/hourly_data_TD" & "/resources_ALL.csv");
 			for {i in RESOURCES}{
-					printf "\tR_t_local\tR_t_exterior" > (PathName & "/hourly_data_TD" & "/resources_ALL.txt");
+					printf ";R_t_local;R_t_exterior" > (PathName & "/hourly_data_TD" & "/resources_ALL.csv");
 			}
 			for {td in TYPICAL_DAYS, h in HOURS}{
-				printf "\n%d\t%d",td,h   > (PathName & "/hourly_data_TD" & "/resources_ALL.txt");
+				printf "\n%d;%d",td,h   > (PathName & "/hourly_data_TD" & "/resources_ALL.csv");
 				for {i in RESOURCES}{
-					printf "\t%.6f\t%.6f", sum{c in COUNTRIES} R_t_local[c, i, h, td], sum{c in COUNTRIES} R_t_exterior[c, i, h, td] > (PathName & "/hourly_data_TD" & "/resources_ALL.txt");
+					printf ";%.6f;%.6f", sum{c in COUNTRIES} R_t_local[c, i, h, td], sum{c in COUNTRIES} R_t_exterior[c, i, h, td] > (PathName & "/hourly_data_TD" & "/resources_ALL.csv");
 				}
 			}
 		
@@ -1782,12 +1801,12 @@ param PathName symbolic default "output";
 			# Curtailement
 			#------------------------------------------		
 			
-			printf "Country" > (PathName & "/Curt" & ".txt");
+			printf "Country" > (PathName & "/Curt" & ".csv");
 			for {c in COUNTRIES}{
-			printf "\t%s", c > ( PathName & "/Curt" & ".txt"); }
+			printf ";%s", c > ( PathName & "/Curt" & ".csv"); }
 			
 			for {c in COUNTRIES}{
-			printf "\nCurtailment\t%.2f",Curt[c] > ( PathName & "/Curt" & ".txt");
+			printf "\nCurtailment;%.2f",Curt[c] > ( PathName & "/Curt" & ".csv");
 			}
 
 			###############################################################################                                                    
@@ -1797,36 +1816,36 @@ param PathName symbolic default "output";
 			###############################################################################
 			
 			#first table
-			printf "Country\tShare_heat_dhn\tShare_mobility_public\tShare_freight_train\tShare_freight_road\tShare_freight_boat\n" > ( PathName & "/Share" & ".txt"); 
+			printf "Country;Share_heat_dhn;Share_mobility_public;Share_freight_train;Share_freight_road;Share_freight_boat\n" > ( PathName & "/Share" & ".csv"); 
 			for {c in COUNTRIES}{
-			printf "%s\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n", c, Share_heat_dhn[c], Share_mobility_public[c], Share_freight_train[c], Share_freight_road[c], Share_freight_boat[c] > ( PathName & "/Share" & ".txt");
+			printf "%s;%.2f;%.2f;%.2f;%.2f;%.2f\n", c, Share_heat_dhn[c], Share_mobility_public[c], Share_freight_train[c], Share_freight_road[c], Share_freight_boat[c] > ( PathName & "/Share" & ".csv");
 			}
 			
 			# second table
-			printf "Country" > ( PathName & "/Share" & ".txt");
+			printf "Country" > ( PathName & "/Share" & ".csv");
 			for {i in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_PASSENGER"]}{
-				printf "\t%s",i > ( PathName & "/Share" & ".txt");
+				printf ";%s",i > ( PathName & "/Share" & ".csv");
 			}
 			for {i in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]}{
-				printf "\t%s",i > ( PathName & "/Share" & ".txt");
+				printf ";%s",i > ( PathName & "/Share" & ".csv");
 			}
 			for {i in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}}{
-				printf "\t%s",i > ( PathName & "/Share" & ".txt");
+				printf ";%s",i > ( PathName & "/Share" & ".csv");
 			}
 			
 			for {c in COUNTRIES}{
-				printf "\n%s",c > ( PathName & "/Share" & ".txt");
+				printf "\n%s",c > ( PathName & "/Share" & ".csv");
 				
 				for {i in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_PASSENGER"]}{
-					printf "\t%.4f", Shares_mobility_passenger[c,i] > ( PathName & "/Share" & ".txt");
+					printf ";%.4f", Shares_mobility_passenger[c,i] > ( PathName & "/Share" & ".csv");
 				}
 				
 				for {i in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]}{
-					printf "\t%.4f", Shares_mobility_freight[c,i] > ( PathName & "/Share" & ".txt");
+					printf ";%.4f", Shares_mobility_freight[c,i] > ( PathName & "/Share" & ".csv");
 				}
 				
 				for {i in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}}{
-					printf "%\t.4f", Shares_lowT_dec[c,i] > ( PathName & "/Share" & ".txt");
+					printf "%;.4f", Shares_lowT_dec[c,i] > ( PathName & "/Share" & ".csv");
 				}
 			
 			
@@ -1845,7 +1864,7 @@ param PathName symbolic default "output";
 			
 			
 			
-			###############################################################################                                                    
+				###############################################################################                                                    
 			#																			  #
 			#                            OVERALL SYSTEM'S SANKEY            			  #                                                    
 			#																			  #
@@ -2041,9 +2060,9 @@ param PathName symbolic default "output";
 			"#A0522D", "TWh" > ( PathName & "/input2sankey.csv");
 			
 			# Solar --> Elec
-			if sum{c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F [c,"PV"] *c_p_t["PV",c,h,td]) > 10 then
+			if sum{c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F [c,"PV"] *c_p_t["PV",c,h,td] + F [c,"U_PV"] *c_p_t["U_PV",c,h,td]) > 10 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Solar PV" , "Elec", sum{c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in 
-			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["PV","ELECTRICITY"] * F [c,"PV"] *c_p_t["PV",c,h,td] ) / 1000 , "Solar", "#FFFF00", "TWh" > 
+			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["PV","ELECTRICITY"] * F [c,"PV"] *c_p_t["PV",c,h,td] + layers_in_out["U_PV","ELECTRICITY"] * F [c,"U_PV"] *c_p_t["U_PV",c,h,td]  ) / 1000 , "Solar", "#FFFF00", "TWh" > 
 			( PathName & "/input2sankey.csv");
 			# Solar --> Heat LT Dec 
 			if sum{c in COUNTRIES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t [c,"DEC_SOLAR", h, td]  ) > 10 then
@@ -2835,9 +2854,9 @@ param PathName symbolic default "output";
 			"#A0522D", "TWh" > ( PathName & "/input2sankey" & c & ".csv");
 			
 			# Solar --> Elec
-			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F [c,"PV"] *c_p_t["PV",c,h,td] ) > 10 then
+			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F [c,"PV"] *c_p_t["PV",c,h,td] + F [c,"U_PV"] *c_p_t["U_PV",c,h,td] ) > 10 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Solar PV" , "Elec", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in 
-			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["PV","ELECTRICITY"] * F [c,"PV"] *c_p_t["PV",c,h,td] ) / 1000 , "Solar", "#FFFF00", "TWh" > 
+			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["PV","ELECTRICITY"] * F [c,"PV"] *c_p_t["PV",c,h,td] + layers_in_out["U_PV","ELECTRICITY"] * F [c,"U_PV"] *c_p_t["U_PV",c,h,td] ) / 1000 , "Solar", "#FFFF00", "TWh" > 
 			( PathName & "/input2sankey" & c & ".csv");
 			# Solar --> Heat LT Dec 
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t [c,"DEC_SOLAR", h, td]  ) > 10 then
