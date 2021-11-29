@@ -1,0 +1,9 @@
+name: energyscope
+
+dependencies:
+  - python >= 3.7
+  - numpy >= 1.10
+  - pandas >= 0.19
+  - matplotlib >= 1.5.1
+  - plotly >= 5.3.1
+  - setuptools_scm

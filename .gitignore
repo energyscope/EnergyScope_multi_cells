@@ -1,0 +1,14 @@
+
+*.log
+
+esmc/preprocessing/__pycache__/
+
+esmc/postprocessing/draw_sankey/__pycache__/
+
+esmc/postprocessing/__pycache__/
+
+esmc/__pycache__/
+
+.idea/
+
+case_studies/
