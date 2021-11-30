@@ -111,7 +111,7 @@ def print_case(dic, directory):
 
 def print_json(my_sets, file):    # printing the dictionnary containing all the sets into directory/sets.json
     with open(file, 'w') as fp:
-        json.dump(my_sets, fp)
+        json.dump(my_sets, fp, indent=4, sort_keys=True)
     return
 
 def read_json(file):

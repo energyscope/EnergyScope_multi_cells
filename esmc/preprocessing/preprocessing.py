@@ -5,6 +5,8 @@ import os
 import shutil
 from pathlib import Path
 import logging
+import git
+from datetime import datetime
 
 from amplpy import AMPL
 from esmc.postprocessing import amplpy2pd as a2p
@@ -444,14 +446,53 @@ def run_ampl(ampl):
         raise
     return t
 
+def update_version(config):
+    """
+
+    Updating the version.json file into case_studies directory to add the description of this run
+
+    """
+    # path of case_studies dir
+    two_up = Path(__file__).parents[2]
+    cs_versions = os.path.join(two_up, 'case_studies/versions.json')
+
+    # get git commit used
+    repo = git.Repo(search_parent_directories=True)
+    commit_name = repo.head.commit.summary
+
+    # get current datetime
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+    # read versions dict
+    try:
+        versions  = a2p.read_json(cs_versions)
+    except:
+        versions = dict()
+
+    # update the key for this case_study
+    keys_to_extract = ['comment']
+    versions[config['case_study']] = {key: config[key] for key in keys_to_extract}
+    keys_to_extract = ['running', 'printing_out', 'printing_step2_in']
+    versions[config['case_study']]['step1_config'] = {key: config['step1_config'][key] for key in keys_to_extract}
+    keys_to_extract = ['running', 'printing_data', 'printing_inputs', 'printing_outputs']
+    versions[config['case_study']]['step2_config'] = {key: config['step2_config'][key] for key in keys_to_extract}
+    versions[config['case_study']]['commit_name'] = commit_name
+    versions[config['case_study']]['datetime'] = now
+
+    a2p.print_json(versions, cs_versions)
+    return
+
 def run_esmc(config):
     step1 = tuple()
     step2 = tuple()
+
+
 
     two_up = Path(__file__).parents[2]
     # case study dir
     cs = os.path.join(two_up, 'case_studies')
     make_dir(os.path.join(cs, config['case_study']))
+    update_version(config)
 
     Nbr_TD = config['Nbr_TD']
 

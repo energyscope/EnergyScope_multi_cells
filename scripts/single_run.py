@@ -13,7 +13,7 @@ for c in countries:
     data[i] = os.path.join(path,'Data/DATA_' + c + '.xlsx')
     i += 1
 N_ts = 7  # number of timeseries with a WEIGHT defined (per country)
-Nbr_TD = 12  # number of typical day
+Nbr_TD = 10  # number of typical day
 # for step2_in #
 # name of timeseries in DATA.xlsx and corresponding name in ESTD data file
 # for EUD timeseries
@@ -66,9 +66,9 @@ ampl_options = {'show_stats': 3,
                 'gentimes': 0,
                 'cplex_options': cplex_options_str}
 # config of each step
-step1_config = {'running': False,
-                'printing_out': False,
-                'printing_step2_in': False,
+step1_config = {'running': True,
+                'printing_out': True,
+                'printing_step2_in': True,
                 'step1_path': step1_path,  # path to Step 1 directory
                 'EUD_params': EUD_params,
                 'RES_params': RES_params,
@@ -85,6 +85,7 @@ step2_config = {'step2_path': step2_path,  # path to Step 2 directory
                 }
 # general config
 config = {'case_study': 'test2',
+          'comment': 'this a test of json version printing',
           # Name of the case study. The outputs will be printed into : config['ES_path']+'\output_'+config['case_study']
           # general inputs
           'Nbr_TD': Nbr_TD,  # Number of typical days
