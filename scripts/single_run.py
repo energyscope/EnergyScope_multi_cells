@@ -3,13 +3,14 @@ from pathlib import Path
 
 import esmc.preprocessing.preprocessing as prp
 
+path = Path(__file__).parents[1]
 # setting configuration
 # for step1_in and step2_in #
 countries = ['ES-PT', 'FR', 'IE-UK']  # countries list
 data = countries.copy()  # data path (in same order as data path)
 i = 0
 for c in countries:
-    data[i] = 'Data/DATA_' + c + '.xlsx'
+    data[i] = os.path.join(path,'Data/DATA_' + c + '.xlsx')
     i += 1
 N_ts = 7  # number of timeseries with a WEIGHT defined (per country)
 Nbr_TD = 12  # number of typical day
@@ -26,7 +27,6 @@ RES_params = {'PV': 'PV', 'Wind_offshore': 'WIND_OFFSHORE', 'Wind_onshore': 'WIN
 RES_mult_params = {'Tidal': ['TIDAL_STREAM', 'TIDAL_RANGE'], 'Hydro_dam': ['HYDRO_DAM'], 'Hydro_river': ['HYDRO_RIVER'],
                    'Solar': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
 
-path = Path(__file__).parents[1]
 # path step1
 step1_path = os.path.join(path,'esmc/preprocessing/step1')
 log_step1 = os.path.join(step1_path, 'log_' + str(Nbr_TD) + '.txt')
@@ -77,15 +77,14 @@ step1_config = {'running': False,
                 'ampl_options_step1': options_step1
                 }
 step2_config = {'step2_path': step2_path,  # path to Step 2 directory
-                'printing_data': False,
-                # printing the data in ESMC_countries.dat and ESMC_indep.dat file for the optimisation problem
+                'printing_data': False,    #TODO printing the data in ESMC_countries.dat and ESMC_indep.dat file for the optimisation problem
                 'printing_inputs': True,  # printing sets, params and vars into json files
-                'running': False,  # running step 2
-                'printing_outputs': False,  # printing outputs of step 2
+                'running': True,  # running step 2
+                'printing_outputs': True,  # printing outputs of step 2
                 'ampl_options': ampl_options
                 }
 # general config
-config = {'case_study': 'test',
+config = {'case_study': 'test2',
           # Name of the case study. The outputs will be printed into : config['ES_path']+'\output_'+config['case_study']
           # general inputs
           'Nbr_TD': Nbr_TD,  # Number of typical days

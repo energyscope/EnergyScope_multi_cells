@@ -470,7 +470,7 @@ def run_esmc(config):
         # path for step1
         step1_path = step1_config['step1_path']
         data_step1 = [os.path.join(step1_path, 'data_' + str(Nbr_TD) + '.dat')]
-        mod_step1 = os.path.join(step1_path, 'step1/TD_main.mod')
+        mod_step1 = os.path.join(step1_path, 'TD_main.mod')
         step1_out = os.path.join(step1_path, 'TD_of_days_' + str(Nbr_TD) + '.out')
         # print .dat for step1
         step1_in(data_step1[0], config['countries'], config['data_folders'], step1_config['N_ts'], Nbr_TD)
@@ -485,7 +485,7 @@ def run_esmc(config):
             # print .out STEP_1
             a2p.print_step1_out(ampl_step1, step1_out)
             if step1_config['printing_step2_in']:
-                logging.info('Printing ESTD+\'Nbr_TD\'+TD.dat')
+                logging.info('Printing ESTD'+str(Nbr_TD)+'TD.dat')
                 # print ESTD_+'Nbr_TD'+TD.dat
                 step2_in(data_step2[0], config['countries'], config['data_folders'], step1_out,
                          step1_config['EUD_params'], step1_config['RES_params'], step1_config['RES_mult_params'],

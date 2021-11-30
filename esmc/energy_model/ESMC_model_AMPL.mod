@@ -31,7 +31,7 @@ set CWITHOUTDAM; # countries that don't have hydro dams
 
 set PERIODS := 1 .. 8760; # time periods (hours of the year)
 set HOURS := 1 .. 24; # hours of the day
-set TYPICAL_DAYS:= 1 .. 12; # typical days
+set TYPICAL_DAYS; # typical days
 set T_H_TD within {PERIODS, HOURS, TYPICAL_DAYS}; # set linking periods, hours, days, typical days
 set SECTORS; # sectors of the energy system
 set END_USES_INPUT; # Types of demand (end-uses). Input to the model
