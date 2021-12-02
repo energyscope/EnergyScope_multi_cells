@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import csv
-import os
 
 def get_var_cases(var_name, cases, all_results):
     df = all_results[cases[0]][var_name].copy().drop(columns=var_name+'.val')

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import os
 import json
+from pathlib import Path
 from amplpy import AMPL, DataFrame
 
 def get_vars(ampl):
@@ -103,10 +103,10 @@ def print_step1_out(ampl, step1_out):
     out.to_csv(step1_out, header=False, index=False, sep='\t')
     return
 
-def print_case(dic, directory):
+def print_case(dic=dict(), directory=Path()):
     # prints the dictionnary of pd.DataFrame() dic into the directory as one csv per DataFrame
     for key in dic:
-        dic[key].to_csv(os.path.join(directory, key + '.csv'))
+        dic[key].to_csv(directory/(key + '.csv'))
     return
 
 def print_json(my_sets, file):    # printing the dictionnary containing all the sets into directory/sets.json
@@ -121,13 +121,13 @@ def read_json(file):
     return data
 
 
-def read_output(modelDirectory, case_study, var):
+def read_output(case_study, var, modelDirectory=Path()):
     d = dict()
-    outDir = os.path.join(modelDirectory,'output_'+case_study+'TD')
+    outDir = modelDirectory/('output_'+case_study+'TD')
     for v in var:
-        d[v] =  pd.read_csv(os.path.join(outDir,v+'.csv'), index_col=0)
+        d[v] =  pd.read_csv(outDir/(v+'.csv'), index_col=0)
     return d
 
-def read_T_H_TD(modelDirectory, case_study):
-    inputsDir = os.path.join(modelDirectory,'output_'+case_study+'TD'+'/inputs')
-    return pd.read_csv(os.path.join(inputsDir,'T_H_TD.csv'), index_col=0)
+def read_T_H_TD(case_study, modelDirectory=Path()):
+    inputsDir = modelDirectory/('output_'+case_study+'TD'+'/inputs')
+    return pd.read_csv(inputsDir/'T_H_TD.csv', index_col=0)

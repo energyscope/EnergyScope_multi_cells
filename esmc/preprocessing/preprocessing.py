@@ -16,6 +16,7 @@ def make_dir(path):
     if not os.path.isdir(path):
         os.mkdir(path)
 
+
 def step1_in(out_path, countries, data, N_ts=6, Nbr_TD=12):
     "step1_in reads the datas at the path of data and prints the Ndata param in Ndata.tsv and the list of timeseries used in this Ndata with their weights and norm"
     N_c = len(data)  # number of countries
@@ -106,14 +107,14 @@ def step1_in(out_path, countries, data, N_ts=6, Nbr_TD=12):
         TD_writer = csv.writer(TD_file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
 
         TD_writer.writerow([
-                               '# -------------------------------------------------------------------------------------------------------------------------	'])
+            '# -------------------------------------------------------------------------------------------------------------------------	'])
         TD_writer.writerow([
-                               '#	EnergyScope TD is an open-source energy model suitable for country scale analysis. It is a simplified representation of an urban or national energy system accounting for the energy flows'])
+            '#	EnergyScope TD is an open-source energy model suitable for country scale analysis. It is a simplified representation of an urban or national energy system accounting for the energy flows'])
         TD_writer.writerow([
-                               '#	within its boundaries. Based on a hourly resolution, it optimises the design and operation of the energy system while minimizing the cost of the system.'])
+            '#	within its boundaries. Based on a hourly resolution, it optimises the design and operation of the energy system while minimizing the cost of the system.'])
         TD_writer.writerow(['#	'])
         TD_writer.writerow([
-                               '#	Copyright (C) <2018-2019> <Ecole Polytechnique Fédérale de Lausanne (EPFL), Switzerland and Université catholique de Louvain (UCLouvain), Belgium>'])
+            '#	Copyright (C) <2018-2019> <Ecole Polytechnique Fédérale de Lausanne (EPFL), Switzerland and Université catholique de Louvain (UCLouvain), Belgium>'])
         TD_writer.writerow(['#	'])
         TD_writer.writerow(['#	'])
         TD_writer.writerow(['#	Licensed under the Apache License, Version 2.0 (the "License");'])
@@ -130,7 +131,7 @@ def step1_in(out_path, countries, data, N_ts=6, Nbr_TD=12):
         TD_writer.writerow(['#	'])
         TD_writer.writerow(['#	Description and complete License: see LICENSE file.'])
         TD_writer.writerow([
-                               '# -------------------------------------------------------------------------------------------------------------------------	'])
+            '# -------------------------------------------------------------------------------------------------------------------------	'])
         TD_writer.writerow(['	'])
         TD_writer.writerow(['# SETS depending on TD	'])
         TD_writer.writerow(['# --------------------------	'])
@@ -157,6 +158,7 @@ def step1_in(out_path, countries, data, N_ts=6, Nbr_TD=12):
         TD_writer.writerow([';'])
 
     return
+
 
 def step2_in(out_path, countries, data, step1_out, EUD_params, RES_params, RES_mult_params, N_ts=6, Nbr_TD=12):
     ## READING OUTPUT OF STEP1 ##
@@ -246,14 +248,14 @@ def step2_in(out_path, countries, data, step1_out, EUD_params, RES_params, RES_m
         TD_writer = csv.writer(TD_file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
 
         TD_writer.writerow([
-                               '# -------------------------------------------------------------------------------------------------------------------------	'])
+            '# -------------------------------------------------------------------------------------------------------------------------	'])
         TD_writer.writerow([
-                               '#	EnergyScope TD is an open-source energy model suitable for country scale analysis. It is a simplified representation of an urban or national energy system accounting for the energy flows'])
+            '#	EnergyScope TD is an open-source energy model suitable for country scale analysis. It is a simplified representation of an urban or national energy system accounting for the energy flows'])
         TD_writer.writerow([
-                               '#	within its boundaries. Based on a hourly resolution, it optimises the design and operation of the energy system while minimizing the cost of the system.'])
+            '#	within its boundaries. Based on a hourly resolution, it optimises the design and operation of the energy system while minimizing the cost of the system.'])
         TD_writer.writerow(['#	'])
         TD_writer.writerow([
-                               '#	Copyright (C) <2018-2019> <Ecole Polytechnique Fédérale de Lausanne (EPFL), Switzerland and Université catholique de Louvain (UCLouvain), Belgium>'])
+            '#	Copyright (C) <2018-2019> <Ecole Polytechnique Fédérale de Lausanne (EPFL), Switzerland and Université catholique de Louvain (UCLouvain), Belgium>'])
         TD_writer.writerow(['#	'])
         TD_writer.writerow(['#	'])
         TD_writer.writerow(['#	Licensed under the Apache License, Version 2.0 (the "License");'])
@@ -270,7 +272,7 @@ def step2_in(out_path, countries, data, step1_out, EUD_params, RES_params, RES_m
         TD_writer.writerow(['#	'])
         TD_writer.writerow(['#	Description and complete License: see LICENSE file.'])
         TD_writer.writerow([
-                               '# -------------------------------------------------------------------------------------------------------------------------	'])
+            '# -------------------------------------------------------------------------------------------------------------------------	'])
         TD_writer.writerow(['	'])
         TD_writer.writerow(['# SETS depending on TD	'])
         TD_writer.writerow(['# --------------------------	'])
@@ -413,6 +415,7 @@ def step2_in(out_path, countries, data, step1_out, EUD_params, RES_params, RES_m
             TD_writer.writerow([';'])
     return
 
+
 def set_ampl(mod_path, data_path, options):
     try:
 
@@ -434,6 +437,7 @@ def set_ampl(mod_path, data_path, options):
 
     return ampl
 
+
 def run_ampl(ampl):
     try:
         ampl.solve()
@@ -446,6 +450,7 @@ def run_ampl(ampl):
         raise
     return t
 
+
 def update_version(config):
     """
 
@@ -454,7 +459,7 @@ def update_version(config):
     """
     # path of case_studies dir
     two_up = Path(__file__).parents[2]
-    cs_versions = os.path.join(two_up, 'case_studies/versions.json')
+    cs_versions = two_up / 'case_studies/versions.json'
 
     # get git commit used
     repo = git.Repo(search_parent_directories=True)
@@ -465,7 +470,7 @@ def update_version(config):
 
     # read versions dict
     try:
-        versions  = a2p.read_json(cs_versions)
+        versions = a2p.read_json(cs_versions)
     except:
         versions = dict()
 
@@ -482,16 +487,15 @@ def update_version(config):
     a2p.print_json(versions, cs_versions)
     return
 
+
 def run_esmc(config):
     step1 = tuple()
     step2 = tuple()
 
-
-
     two_up = Path(__file__).parents[2]
     # case study dir
-    cs = os.path.join(two_up, 'case_studies')
-    make_dir(os.path.join(cs, config['case_study']))
+    cs = two_up / 'case_studies'
+    make_dir(cs / config['case_study'])
     update_version(config)
 
     Nbr_TD = config['Nbr_TD']
@@ -499,20 +503,20 @@ def run_esmc(config):
     # setting path for step 2
     step2_config = config['step2_config']
     step2_path = step2_config['step2_path']
-    data_step2 = [os.path.join(step2_path, 'ESMC_' + str(Nbr_TD) + 'TD.dat'),
-                  os.path.join(step2_path, 'ESMC_indep.dat'),
-                  os.path.join(step2_path, 'ESMC_countries.dat')]
-    mod_step2 = os.path.join(step2_path, 'ESMC_model_AMPL.mod')
-    step2_out = os.path.join(step2_path, 'output')
+    data_step2 = [step2_path/('ESMC_' + str(Nbr_TD) + 'TD.dat'),
+                  step2_path/'ESMC_indep.dat',
+                  step2_path/'ESMC_countries.dat']
+    mod_step2 = step2_path/'ESMC_model_AMPL.mod'
+    step2_out = step2_path/'output'
 
     # step 1
     if config['step1_config']['running']:
         step1_config = config['step1_config']
         # path for step1
         step1_path = step1_config['step1_path']
-        data_step1 = [os.path.join(step1_path, 'data_' + str(Nbr_TD) + '.dat')]
-        mod_step1 = os.path.join(step1_path, 'TD_main.mod')
-        step1_out = os.path.join(step1_path, 'TD_of_days_' + str(Nbr_TD) + '.out')
+        data_step1 = [step1_path/('data_' + str(Nbr_TD) + '.dat')]
+        mod_step1 = step1_path/'TD_main.mod'
+        step1_out = step1_path/('TD_of_days_' + str(Nbr_TD) + '.out')
         # print .dat for step1
         step1_in(data_step1[0], config['countries'], config['data_folders'], step1_config['N_ts'], Nbr_TD)
         # set ampl STEP_1
@@ -526,7 +530,7 @@ def run_esmc(config):
             # print .out STEP_1
             a2p.print_step1_out(ampl_step1, step1_out)
             if step1_config['printing_step2_in']:
-                logging.info('Printing ESTD'+str(Nbr_TD)+'TD.dat')
+                logging.info('Printing ESTD' + str(Nbr_TD) + 'TD.dat')
                 # print ESTD_+'Nbr_TD'+TD.dat
                 step2_in(data_step2[0], config['countries'], config['data_folders'], step1_out,
                          step1_config['EUD_params'], step1_config['RES_params'], step1_config['RES_mult_params'],
@@ -537,13 +541,13 @@ def run_esmc(config):
 
     # copy input files
     shutil.copyfile(mod_step2,
-                    os.path.join(cs, config['case_study'], 'ESMC_model_AMPL.mod'))
+                    cs / config['case_study'] / 'ESMC_model_AMPL.mod')
     shutil.copyfile(data_step2[0],
-                    os.path.join(cs, config['case_study'], 'ESMC_' + str(config['Nbr_TD']) + 'TD.dat'))
+                    cs / config['case_study'] / ('ESMC_' + str(config['Nbr_TD']) + 'TD.dat'))
     shutil.copyfile(data_step2[1],
-                    os.path.join(cs, config['case_study'], 'ESMC_indep.dat'))
+                    cs / config['case_study'] / 'ESMC_indep.dat')
     shutil.copyfile(data_step2[0],
-                    os.path.join(cs, config['case_study'], 'ESMC_countries.dat'))
+                    cs / config['case_study'] / 'ESMC_countries.dat')
 
     # set ampl for step_2
     ampl = set_ampl(mod_path=mod_step2, data_path=data_step2, options=step2_config['ampl_options'])
@@ -556,11 +560,11 @@ def run_esmc(config):
     inputs = {'sets': sets, 'parameters': parameters, 'variables': variables}
     if step2_config['printing_inputs']:
         # creating inputs dir
-        make_dir(os.path.join(cs, config['case_study'], 'input'))
+        make_dir(cs / config['case_study'] / 'input')
         # printing inputs
-        a2p.print_json(sets, os.path.join(cs, config['case_study'], 'input', 'sets.json'))
-        a2p.print_json(parameters, os.path.join(cs, config['case_study'], 'input', 'parameters.json'))
-        a2p.print_json(variables, os.path.join(cs, config['case_study'], 'input', 'variables.json'))
+        a2p.print_json(sets, cs/config['case_study']/'input'/'sets.json')
+        a2p.print_json(parameters, cs/config['case_study']/'input'/'parameters.json')
+        a2p.print_json(variables, cs/config['case_study']/'input'/'variables.json')
     # instantiate results
     results = dict()
 
@@ -573,13 +577,13 @@ def run_esmc(config):
         if step2_config['printing_outputs']:
             logging.info('Printing outputs')
             # creating output directory
-            make_dir(os.path.join(cs, config['case_study'], 'output'))
+            make_dir(cs/config['case_study']/'output')
             # getting results
             results = a2p.get_results(ampl)
             # printing results
-            a2p.print_case(results, os.path.join(cs, config['case_study'], 'output'))
+            a2p.print_case(results, cs/config['case_study']/'output')
 
-    step2 = {'ampl': ampl,'time': t, 'inputs': inputs, 'results': results}
+    step2 = {'ampl': ampl, 'time': t, 'inputs': inputs, 'results': results}
 
     logging.info('End of run')
 
