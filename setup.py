@@ -32,7 +32,17 @@ setup(
     setup_requires=["setuptools_scm"],
     install_requires=[
         'numpy',
-        'pandas'
+        'matplotlib',
+        'pandas',
+        'csv',
+        'json',
+        'os',
+        'shutil',
+        'pathlib',
+        'logging',
+        'git',
+        'datetime',
+        'amplpy'
     ],
     keywords=[]
 )
