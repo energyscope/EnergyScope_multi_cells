@@ -550,21 +550,14 @@ def run_esmc(config):
                     cs / config['case_study'] / 'ESMC_countries.dat')
 
     # set ampl for step_2
-    ampl = set_ampl(mod_path=mod_step2, data_path=data_step2, options=step2_config['ampl_options'])
+    esom = a2p.OptiProbl(mod_path=mod_step2, data_path=data_step2, options=step2_config['ampl_options'])
     t = 0
     # getting inputs
-    inputs = dict()
-    sets = a2p.get_sets(ampl)
-    parameters = a2p.get_params(ampl)
-    variables = a2p.get_vars(ampl)
-    inputs = {'sets': sets, 'parameters': parameters, 'variables': variables}
+
     if step2_config['printing_inputs']:
-        # creating inputs dir
-        make_dir(cs / config['case_study'] / 'input')
-        # printing inputs
-        a2p.print_json(sets, cs/config['case_study']/'input'/'sets.json')
-        a2p.print_json(parameters, cs/config['case_study']/'input'/'parameters.json')
-        a2p.print_json(variables, cs/config['case_study']/'input'/'variables.json')
+        # printing sets, params and vars
+        esom.print_intputs(directory=cs / config['case_study'] / 'input')
+
     # instantiate results
     results = dict()
 
@@ -572,19 +565,15 @@ def run_esmc(config):
 
         # running ES
         logging.info('Running EnergyScope')
-        t = run_ampl(ampl)
-        logging.info('End of run')
+        esom.run_ampl()
+        logging.info('End of run in ' + str(esom.t) + 'seconds')
         if step2_config['printing_outputs']:
             logging.info('Printing outputs')
-            # creating output directory
-            make_dir(cs/config['case_study']/'output')
             # getting results
-            results = a2p.get_results(ampl)
+            esom.get_results()
             # printing results
-            a2p.print_case(results, cs/config['case_study']/'output')
-
-    step2 = {'ampl': ampl, 'time': t, 'inputs': inputs, 'results': results}
+            esom.print_results(directory=cs/config['case_study']/'output')
 
     logging.info('End of run')
 
-    return {'step1': step1, 'step2': step2}
+    return {'step1': step1, 'step2': esom}

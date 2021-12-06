@@ -10,7 +10,7 @@ countries = ['ES-PT', 'FR', 'IE-UK']  # countries list
 data = countries.copy()  # data path (in same order as data path)
 i = 0
 for c in countries:
-    data[i] = path / 'Data/DATA_' + c + '.xlsx'
+    data[i] = path /'Data'/('DATA_' + c + '.xlsx')
     i += 1
 N_ts = 7  # number of timeseries with a WEIGHT defined (per country)
 Nbr_TD = 10  # number of typical day
@@ -34,6 +34,7 @@ log_step1 = step1_path / ('log_' + str(Nbr_TD) + '.txt')
 step2_path = path / 'esmc/energy_model'
 step2_out = step2_path / 'output'
 log_step2 = step2_out / 'log.txt'
+
 cplex_options_step1 = ['mipdisplay=5',
                        'mipinterval=1000',
                        'mipgap=1e-6']
@@ -60,7 +61,7 @@ cplex_options = ['baropt',
                  'display=2']
 cplex_options_str = ' '.join(cplex_options)
 ampl_options = {'show_stats': 3,
-                'log_file': log_step2,
+                'log_file': str(log_step2),
                 'presolve': 0,
                 'times': 0,
                 'gentimes': 0,
@@ -78,9 +79,9 @@ step1_config = {'running': False,
                 }
 step2_config = {'step2_path': step2_path,  # path to Step 2 directory
                 'printing_data': False,    #TODO printing the data in ESMC_countries.dat and ESMC_indep.dat file for the optimisation problem
-                'printing_inputs': False,  # printing sets, params and vars into json files
-                'running': False,  # running step 2
-                'printing_outputs': False,  # printing outputs of step 2
+                'printing_inputs': True,  # printing sets, params and vars into json files
+                'running': True,  # running step 2
+                'printing_outputs': True,  # printing outputs of step 2
                 'ampl_options': ampl_options
                 }
 # general config
@@ -101,8 +102,8 @@ config = {'case_study': 'test3',
           'step2_config': step2_config  # configuration of step 2
           }
 ampl_models = prp.run_esmc(config)
-ampl = ampl_models['step2']['ampl']
-t = ampl_models['step2']['time']
-sets = ampl_models['step2']['inputs']['sets']
-parameters = ampl_models['step2']['inputs']['parameters']
-variables = ampl_models['step2']['inputs']['variables']
+esom = ampl_models['step2']
+t = esom.t
+sets = esom.sets
+parameters = esom.params
+variables = esom.vars

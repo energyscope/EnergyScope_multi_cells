@@ -67,7 +67,7 @@ except Exception:
 
 from .preprocessing.preprocessing import make_dir, step1_in, step2_in, set_ampl, run_ampl, run_esmc, update_version
 from .preprocessing.TD_functions import compute_ts_from_td, compute_dc, compute_metrics
-from .postprocessing.amplpy2pd import to_pd, to_pd_pivot, get_results_pivot, get_results, get_thtd, read_output,\
-    read_T_H_TD, get_sets, get_subset, get_vars, get_params, read_json, print_json, print_case, print_step1_out
+from .postprocessing.opti_probl import OptiProbl
+from .postprocessing.amplpy2pd import print_json, read_json
 from  .postprocessing.postprocessing import get_used, get_var_cases, subgroup, subgroup_on_max, compute_convergence
 from .postprocessing.draw_sankey.ESSankey import drawSankey
