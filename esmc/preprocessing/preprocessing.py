@@ -10,6 +10,7 @@ from datetime import datetime
 
 from amplpy import AMPL
 from esmc.postprocessing import amplpy2pd as a2p
+from esmc.postprocessing import opti_probl as op
 
 
 def make_dir(path):
@@ -17,7 +18,7 @@ def make_dir(path):
         os.mkdir(path)
 
 
-def step1_in(out_path, countries, data, N_ts=6, Nbr_TD=12):
+def step1_in(out_path, countries, data, N_ts=7, Nbr_TD=10):
     "step1_in reads the datas at the path of data and prints the Ndata param in Ndata.tsv and the list of timeseries used in this Ndata with their weights and norm"
     N_c = len(data)  # number of countries
 
@@ -160,7 +161,25 @@ def step1_in(out_path, countries, data, N_ts=6, Nbr_TD=12):
     return
 
 
-def step2_in(out_path, countries, data, step1_out, EUD_params, RES_params, RES_mult_params, N_ts=6, Nbr_TD=12):
+def step2_in(out_path, countries, data, step1_out, EUD_params=None, RES_params=None, RES_mult_params=None, N_ts=7, Nbr_TD=10):
+
+    # Default name of timeseries in DATA.xlsx and corresponding name in ESTD data file
+    if EUD_params is None:
+        # for EUD timeseries
+        EUD_params = {'Electricity (%_elec)': 'param electricity_time_series :=',
+                      'Space Heating (%_sh)': 'param heating_time_series :=',
+                      'Space Cooling': 'param cooling_time_series :=',
+                      'Passanger mobility (%_pass)': 'param mob_pass_time_series :=',
+                      'Freight mobility (%_freight)': 'param mob_freight_time_series :='}
+    if RES_params is None:
+        # for resources timeseries that have only 1 tech linked to it
+        RES_params = {'PV': 'PV', 'Wind_offshore': 'WIND_OFFSHORE', 'Wind_onshore': 'WIND_ONSHORE'}
+    if RES_mult_params is None:
+        # for resources timeseries that have several techs linked to it
+        RES_mult_params = {'Tidal': ['TIDAL_STREAM', 'TIDAL_RANGE'], 'Hydro_dam': ['HYDRO_DAM'],
+                           'Hydro_river': ['HYDRO_RIVER'],
+                           'Solar': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
+
     ## READING OUTPUT OF STEP1 ##
     TD_of_days = pd.read_csv(step1_out, names=['TD_of_days'])
     TD_of_days['day'] = np.arange(1, 366, 1)  # putting the days of the year beside
@@ -492,10 +511,10 @@ def run_esmc(config):
     step1 = tuple()
     step2 = tuple()
 
-    two_up = Path(__file__).parents[2]
+    project_dir = Path(__file__).parents[2]
     # case study dir
-    cs = two_up / 'case_studies'
-    make_dir(cs / config['case_study'])
+    cs = project_dir / 'case_studies'
+    (cs / config['case_study']).mkdir(parents=True, exist_ok=True)
     update_version(config)
 
     Nbr_TD = config['Nbr_TD']
@@ -550,7 +569,7 @@ def run_esmc(config):
                     cs / config['case_study'] / 'ESMC_countries.dat')
 
     # set ampl for step_2
-    esom = a2p.OptiProbl(mod_path=mod_step2, data_path=data_step2, options=step2_config['ampl_options'])
+    esom = op.OptiProbl(mod_path=mod_step2, data_path=data_step2, options=step2_config['ampl_options'])
     t = 0
     # getting inputs
 

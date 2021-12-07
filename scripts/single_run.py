@@ -3,7 +3,7 @@ from pathlib import Path
 
 import esmc.preprocessing.preprocessing as prp
 
-path = Path(__file__).parents[1]
+project_dir = Path(__file__).parents[1]
 # setting configuration
 # for step1_in and step2_in #
 countries = ['ES-PT', 'FR', 'IE-UK']  # countries list
@@ -15,17 +15,7 @@ for c in countries:
 N_ts = 7  # number of timeseries with a WEIGHT defined (per country)
 Nbr_TD = 10  # number of typical day
 # for step2_in #
-# name of timeseries in DATA.xlsx and corresponding name in ESTD data file
-# for EUD timeseries
-EUD_params = {'Electricity (%_elec)': 'param electricity_time_series :=',
-              'Space Heating (%_sh)': 'param heating_time_series :=', 'Space Cooling': 'param cooling_time_series :=',
-              'Passanger mobility (%_pass)': 'param mob_pass_time_series :=',
-              'Freight mobility (%_freight)': 'param mob_freight_time_series :='}
-# for resources timeseries that have only 1 tech linked to it
-RES_params = {'PV': 'PV', 'Wind_offshore': 'WIND_OFFSHORE', 'Wind_onshore': 'WIND_ONSHORE'}
-# for resources timeseries that have several techs linked to it
-RES_mult_params = {'Tidal': ['TIDAL_STREAM', 'TIDAL_RANGE'], 'Hydro_dam': ['HYDRO_DAM'], 'Hydro_river': ['HYDRO_RIVER'],
-                   'Solar': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
+
 
 # path step1
 step1_path = path / 'esmc/preprocessing/step1'
@@ -51,21 +41,7 @@ options_step1 = {'show_stats': 3,
 #                 'presolve': 200, 'times': 1, 'gentimes': 1,
 #                 'cplex_options_timelimit': 64800,
 #                 'cplex_options': 'baropt predual=-1 bardisplay=1 display=2'}
-cplex_options = ['baropt',
-                 'predual=-1',
-                 'barstart=4',
-                 'crossover=0'
-                 'timelimit 64800',
-                 'bardisplay=1',
-                 'prestats=1',
-                 'display=2']
-cplex_options_str = ' '.join(cplex_options)
-ampl_options = {'show_stats': 3,
-                'log_file': str(log_step2),
-                'presolve': 0,
-                'times': 0,
-                'gentimes': 0,
-                'cplex_options': cplex_options_str}
+
 # config of each step
 step1_config = {'running': False,
                 'printing_out': False,
@@ -85,7 +61,7 @@ step2_config = {'step2_path': step2_path,  # path to Step 2 directory
                 'ampl_options': ampl_options
                 }
 # general config
-config = {'case_study': 'test3',
+config = {'case_study': 'test5',
           'comment': 'this a test of json version printing',
           # Name of the case study. The outputs will be printed into : config['ES_path']+'\output_'+config['case_study']
           # general inputs
