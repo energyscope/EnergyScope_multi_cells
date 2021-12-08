@@ -1,0 +1,11 @@
+
+.idea/
+
+case_studies/
+*.log
+
+esmc/__pycache__/
+
+esmc/postprocessing/__pycache__/
+
+*.pyc
