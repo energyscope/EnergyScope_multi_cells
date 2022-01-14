@@ -34,6 +34,7 @@ setup(
         'numpy',
         'matplotlib',
         'pandas',
+        'openpyxl',
         'csv',
         'json',
         'os',

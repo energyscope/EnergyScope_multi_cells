@@ -12,3 +12,7 @@ esmc/__pycache__/
 .idea/
 
 case_studies/
+
+esmc/utils/__pycache__/
+
+.ipynb_checkpoints/

@@ -2,7 +2,6 @@
 import logging.config
 import logging
 import os
-import importlib
 
 from .common import commons
 
@@ -65,11 +64,11 @@ except Exception:
     logging.config.dictConfig(_LOGCONFIG)
 
 
-from .preprocessing.preprocessing import make_dir, step1_in, step2_in, set_ampl, run_ampl, run_esmc, update_version
+from .preprocessing.preprocessing import step1_in, step2_in, set_ampl, run_ampl, run_esmc, update_version
 from .preprocessing.TD_functions import compute_ts_from_td, compute_dc, compute_metrics
-from .preprocessing.esmc import Esmc
-from .preprocessing.region import Region
-from .postprocessing.opti_probl import OptiProbl
+from esmc.utils.region import Region
+from esmc.utils.opti_probl import OptiProbl
+from esmc.utils.esmc import Esmc
 from .postprocessing.amplpy2pd import print_json, read_json
 from  .postprocessing.postprocessing import get_used, get_var_cases, subgroup, subgroup_on_max, compute_convergence
 from .postprocessing.draw_sankey.ESSankey import drawSankey

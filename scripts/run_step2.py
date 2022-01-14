@@ -1,10 +1,9 @@
 from esmc import Esmc
 from pathlib import Path
 
-config = {'case_study': 'test6',
+config = {'case_study': 'test7',
           'comment': 'this a test of json version printing',
-          'regions_names': ['ES-PT', 'FR', 'IE-UK'],
-          'project_dir': Path(__file__).parents[1]}
+          'regions_names': ['ES-PT', 'FR', 'IE-UK']}
 
 my_model = Esmc(config, Nbr_TD=10)
 

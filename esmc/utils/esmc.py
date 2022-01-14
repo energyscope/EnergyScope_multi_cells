@@ -2,8 +2,8 @@
 This file contains a class to define an energy system
 
 """
-from esmc.preprocessing.region import Region
-from esmc.postprocessing.opti_probl import OptiProbl
+from esmc.utils.region import Region
+from esmc.utils.opti_probl import OptiProbl
 import esmc.postprocessing.amplpy2pd as a2p
 import shutil
 import git
@@ -27,15 +27,16 @@ class Esmc:
         self.case_study = config['case_study']
         self.comment = config['comment']
 
-        self.project_dir = Path()
-        self.project_dir = config['project_dir']
-        self.cs_dir = self.project_dir/'case_studies'/self.case_study
+        self.regions_names = config['regions_names']
+        self.regions_names.sort()
+        self.space_id = '_'.join(self.regions_names)  # identification of the spatial case study in one string
+
+        self.project_dir = Path(__file__).parents[2]
+        self.cs_dir = self.project_dir/'case_studies'/self.space_id/self.case_study
         self.cs_dir.mkdir(parents=True, exist_ok=True) # create case_Study directory
 
 
         self.Nbr_TD = Nbr_TD
-        self.regions_names = config['regions_names']
-        self.space_id = '_'.join(self.regions_names) # identification of the spatial case study in one string
         self.regions = dict()
         self.init_regions()
         self.data_exch = dict()
@@ -123,11 +124,11 @@ class Esmc:
                              'barstart=4',
                              'crossover=0'
                              'timelimit 64800',
-                             'bardisplay=0',
+                             'bardisplay=1',
                              'prestats=0',
                              'display=0']
             cplex_options_str = ' '.join(cplex_options)
-            ampl_options = {'show_stats': 0,
+            ampl_options = {'show_stats': 3,
                             'log_file': str(self.cs_dir/'log.txt'),
                             'presolve': 0,
                             'times': 0,

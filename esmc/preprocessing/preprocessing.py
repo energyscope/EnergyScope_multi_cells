@@ -10,12 +10,7 @@ from datetime import datetime
 
 from amplpy import AMPL
 from esmc.postprocessing import amplpy2pd as a2p
-from esmc.postprocessing import opti_probl as op
-
-
-def make_dir(path):
-    if not os.path.isdir(path):
-        os.mkdir(path)
+from esmc.utils import opti_probl as op
 
 
 def step1_in(out_path, countries, data, N_ts=7, Nbr_TD=10):

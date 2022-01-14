@@ -36,7 +36,7 @@ class OptiProbl:
         self.params = list()
         self.sets = dict()
         self.t = float()
-        self.results = dict()
+        self.outputs = dict()
 
         # get values of attributes
         self.get_vars()
@@ -93,7 +93,7 @@ class OptiProbl:
             else:
                 self.sets[name] = self.get_subset(obj)
 
-    def print_intputs(self, directory=None):
+    def print_inputs(self, directory=None):
         """
 
         Prints the sets, parameters' names and variables' names of the LP optimization problem
@@ -116,22 +116,22 @@ class OptiProbl:
 
         return
 
-    def get_results(self):
+    def get_outputs(self):
         """
 
                Function to extract the values of each variable after running the optimization problem
 
                       """
-        # function to get the results of ampl under the form of a dict filled with one df for each variable
+        # function to get the outputs of ampl under the form of a dict filled with one df for each variable
         amplpy_sol = self.ampl.getVariables()
-        self.results = dict()
+        self.outputs = dict()
         for name, var in amplpy_sol:
-            self.results[name] = self.to_pd(var.getValues())
+            self.outputs[name] = self.to_pd(var.getValues())
 
-    def print_results(self, directory=None):
+    def print_outputs(self, directory=None):
         """
 
-        Prints the results (dictionary of pd.DataFrame()) into the directory as one csv per DataFrame
+        Prints the outputs (dictionary of pd.DataFrame()) into the directory as one csv per DataFrame
 
         Parameters
         ----------
@@ -145,34 +145,34 @@ class OptiProbl:
         # creating outputs dir
         directory.mkdir(parents=True, exist_ok=True)
         # printing outputs
-        for ix, (key, val) in enumerate(self.results.items()):
+        for ix, (key, val) in enumerate(self.outputs.items()):
             val.to_csv(directory / (str(key) + '.csv'))
         return
 
-    def read_results(self, directory=None):
+    def read_outputs(self, directory=None):
         """
 
-        Reads the results previously printed into csv files to recover a case study without running it again
+        Reads the outputs previously printed into csv files to recover a case study without running it again
 
         Parameters
         ----------
         directory : pathlib.Path
-        Path of the directory where the results are saved
+        Path of the directory where the outputs are saved
 
         """
         # default directory
         if directory is None:
             directory = self.dir / 'outputs'
-        # read results
-        self.results = dict()
+        # read outputs
+        self.outputs = dict()
         for v in self.vars:
-            self.results[v] = pd.read_csv(directory / (v + '.csv'), index_col=0)
+            self.outputs[v] = pd.read_csv(directory / (v + '.csv'), index_col=0)
 
     def print_step1_out(self, step1_out_dir):  # TODO to be moved to temporal aggregation class
 
         # printing .out file
-        results_step1 = self.results
-        cm = results_step1['Cluster_matrix'].pivot(index='index0', columns='index1', values='Cluster_matrix.val')
+        outputs_step1 = self.outputs
+        cm = outputs_step1['Cluster_matrix'].pivot(index='index0', columns='index1', values='Cluster_matrix.val')
         cm.index.name = None
         out = pd.DataFrame(cm.mul(np.arange(1, 366), axis=0).sum(axis=0)).astype(int)
         out.to_csv(step1_out_dir, header=False, index=False, sep='\t')
