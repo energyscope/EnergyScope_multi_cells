@@ -27,7 +27,7 @@
 ############################
 ###  MILP formulation    ###
 ############################
-set DIMENSIONS := 1 .. 504;		# Number of input data per day (24h x nbr of time series)
+# set DIMENSIONS := 1 .. 504;		# Number of input data per day (24h x nbr of time series)
 set DAYS := 1 .. 365;			# Number of days
 
 ### parameters

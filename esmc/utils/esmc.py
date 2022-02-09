@@ -4,9 +4,11 @@ This file contains a class to define an energy system
 """
 from esmc.utils.region import Region
 from esmc.utils.opti_probl import OptiProbl
+from esmc.preprocessing.temporal_aggregation import TemporalAggregation
 import esmc.postprocessing.amplpy2pd as a2p
 import shutil
 import git
+import pandas as pd
 from pathlib import Path
 from datetime import datetime
 
@@ -14,8 +16,7 @@ from datetime import datetime
 class Esmc:
     """
 
-    The NSGAII class includes methods to perform a deterministic and
-    robust optimization using NSGA-II optimizer.
+    TODO Update documentation
 
     Parameters
     ----------
@@ -24,27 +25,36 @@ class Esmc:
     """
 
     def __init__(self, config, Nbr_TD=10):
+        # identification of case study
         self.case_study = config['case_study']
         self.comment = config['comment']
-
         self.regions_names = config['regions_names']
         self.regions_names.sort()
         self.space_id = '_'.join(self.regions_names)  # identification of the spatial case study in one string
-
-        self.project_dir = Path(__file__).parents[2]
-        self.cs_dir = self.project_dir/'case_studies'/self.space_id/self.case_study
-        self.cs_dir.mkdir(parents=True, exist_ok=True) # create case_Study directory
-
-
         self.Nbr_TD = Nbr_TD
+
+        # path definition
+        self.project_dir = Path(__file__).parents[2]
+        self.dat_dir = self.project_dir/'case_studies'/'dat_files'/self.space_id
+        self.cs_dir = self.project_dir/'case_studies'/self.space_id/self.case_study
+        # create directories
+        self.dat_dir.mkdir(parents=True, exist_ok=True)
+        self.cs_dir.mkdir(parents=True, exist_ok=True)
+
+        # update version tracking json file
+        self.update_version()
+
+        # create and initialize regions
         self.regions = dict()
         self.init_regions()
         self.data_exch = dict()
-        self.esom = None
-        # TODO self.spatial_aggreg = object spatial_aggreg
-        # TODO self.temporal_aggreg = ...
 
-        self.update_version()
+        # initialize TemporalAggregation object
+        # TODO self.spatial_aggreg = object spatial_aggreg
+        self.ta = TemporalAggregation(self.regions, self.dat_dir)
+
+        # create energy system optimization problem (esom)
+        self.esom = None
 
         return
 
@@ -53,6 +63,8 @@ class Esmc:
         for r in self.regions_names:
             self.regions[r] = Region(nuts=r, data_dir=data_dir)
         return
+
+
 
     def update_version(self):
         """
