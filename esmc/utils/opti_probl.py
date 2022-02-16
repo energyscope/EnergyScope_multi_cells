@@ -38,10 +38,6 @@ class OptiProbl:
         self.t = float()
         self.outputs = dict()
 
-        # get values of attributes
-        self.get_vars()
-        self.get_params()
-        self.get_sets()
         return
 
     def run_ampl(self):
@@ -56,9 +52,32 @@ class OptiProbl:
             self.ampl.eval('display _solve_elapsed_time;')
             self.t = self.ampl.getData('_solve_elapsed_time;').toList()[0]
 
+
         except Exception as e:
             print(e)
             raise
+        return
+
+    def get_solve_time(self):
+        """
+
+       Get the solving time for ampl and stores it into t attribute
+
+        """
+        self.t = self.ampl.getData('_solve_elapsed_time;').toList()[0]
+        # TODO understand why doesn't work with kmedoid_clustering
+        return
+
+    def get_inputs(self):
+        """
+
+        Get the name of variables and parameters and the sets
+
+        """
+        # get values of attributes
+        self.get_vars()
+        self.get_params()
+        self.get_sets()
 
     def get_vars(self):
         """
@@ -109,6 +128,10 @@ class OptiProbl:
             directory = self.dir / 'inputs'
         # creating inputs dir
         directory.mkdir(parents=True, exist_ok=True)
+
+        # if params is empty get all inputs
+        if not self.params:
+            self.get_inputs()
         # printing inputs
         a2p.print_json(self.sets, directory / 'sets.json')
         a2p.print_json(self.params, directory / 'parameters.json')
@@ -163,20 +186,15 @@ class OptiProbl:
         # default directory
         if directory is None:
             directory = self.dir / 'outputs'
+        # if vars is an empty list, get vars
+        if not self.vars:
+            self.get_vars()
         # read outputs
         self.outputs = dict()
         for v in self.vars:
             self.outputs[v] = pd.read_csv(directory / (v + '.csv'), index_col=0)
 
-    def print_step1_out(self, step1_out_dir):  # TODO to be moved to temporal aggregation class
 
-        # printing .out file
-        outputs_step1 = self.outputs
-        cm = outputs_step1['Cluster_matrix'].pivot(index='index0', columns='index1', values='Cluster_matrix.val')
-        cm.index.name = None
-        out = pd.DataFrame(cm.mul(np.arange(1, 366), axis=0).sum(axis=0)).astype(int)
-        out.to_csv(step1_out_dir, header=False, index=False, sep='\t')
-        return
 
     #############################
     #       STATIC METHODS      #

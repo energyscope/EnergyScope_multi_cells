@@ -8,6 +8,7 @@ import pandas as pd
 import csv
 from pathlib import Path
 import esmc.preprocessing.dat_print as dp
+from esmc.utils.opti_probl import OptiProbl
 
 class TemporalAggregation:
     """
@@ -35,7 +36,7 @@ class TemporalAggregation:
         Prints the animals name and what sound it makes
     """
 
-    def __init__(self, regions, dat_dir, Nbr_TD=10):
+    def __init__(self, regions, dat_dir, Nbr_TD=10, algo='kmedoid'):
         """TODO
         Parameters
         ----------
@@ -50,25 +51,26 @@ class TemporalAggregation:
         self.Nbr_TD = Nbr_TD
         self.regions = regions
         self.dat_dir = dat_dir
+        # pivot ts in each region to have (365x(24*N_ts))
         self.pivot_ts()
 
         self.weights = pd.DataFrame()
         self.n_daily_ts = pd.DataFrame()
-
+        # group and weight the time series of all the regions
         self.group()
-
         self.n_data = pd.DataFrame()
-
         self.weight()
 
-        self.print_dat()
+        # run clustering algorithm
+        if algo=='kmedoid':
+            self.td_of_days = self.kmedoid_clustering()
 
         return
 
     def pivot_ts(self):
         """Pivot the time series of each region in the daily format"""
         for r in self.regions.values():
-            r.pivot_ts()
+            r.n_pivot_ts()
 
         return
 
@@ -127,20 +129,22 @@ class TemporalAggregation:
 
         return
 
-    def print_dat(self):
+    def print_dat(self, dat_file=None):
         """
 
         Returns
         -------
 
         """
+        if dat_file is None:
+            # path to the .dat file
+            dat_file = self.dat_dir / ('data_' + str(self.Nbr_TD) + '.dat')
 
         # set n_data columns index to numerical index
         n_data = self.n_data.copy()
         n_data.columns = np.arange(1, self.n_data.shape[1] + 1)
 
-        # path to the .dat file
-        dat_file = self.dat_dir / ('data'+str(self.Nbr_TD)+'.dat')
+
 
         # printing signature of data file
         dp.print_header(Path(__file__).parent/'kmedoid_clustering'/'header.txt', dat_file)
@@ -160,6 +164,47 @@ class TemporalAggregation:
         # printing param n_data in ampl syntax
         dp.print_df(df=dp.ampl_syntax(n_data), out_path=dat_file, name='param Ndata :')
         return
+
+    def kmedoid_clustering(self):
+        """
+
+        Returns
+        -------
+
+        """
+
+        # define path
+        mod_path = Path(__file__).parent/'kmedoid_clustering'/'TD_main.mod'
+        data_path = self.dat_dir/('data_'+str(self.Nbr_TD)+'.dat')
+        log_file = self.dat_dir/('log_'+str(self.Nbr_TD)+'.txt')
+
+        # print .dat file
+        self.print_dat(dat_file=data_path)
+
+        # define options
+        cplex_options = ['mipdisplay=5',
+                               'mipinterval=1000',
+                               'mipgap=1e-6']
+        cplex_options_str = ' '.join(cplex_options)
+        options= {'show_stats': 3,
+                         'log_file': str(log_file),
+                         'times': 1,
+                         'gentimes': 1,
+                         'cplex_options': cplex_options_str}
+
+        # create and run optimization problem
+        my_optimizer = OptiProbl(mod_path, [data_path], options)
+        my_optimizer.run_ampl()
+        # get cluster_matrix, compute td_of_days and print it
+        my_optimizer.get_outputs()
+        cm = my_optimizer.outputs['Cluster_matrix'].pivot(index='index0', columns='index1', values='Cluster_matrix.val')
+        cm.index.name = None
+        td_of_days = pd.DataFrame(cm.mul(np.arange(1, 366), axis=0).sum(axis=0), index=np.arange(1,366),
+                                  columns=['TD_of_days']).astype(int)
+        td_of_days.to_csv(self.dat_dir/('TD_of_days_'+str(self.Nbr_TD)+'.out'), header=False, index=False, sep='\t')
+        return td_of_days
+
+
 
     @staticmethod
     def numpy_broadcasting(df0, df1):
@@ -191,8 +236,4 @@ class TemporalAggregation:
         return df_out
 
     #TODO
-    # test the whole chain to create n_data
-    # add the print of .dat
-    # add clustering model attribute -> first step do it with ampl model but think that it could be replaced by another one
-    # add solving of model and ouptut
-    # add print of ESTD_##TD.dat
+    # add reading of TD_of_days.out if not running ta_algo
