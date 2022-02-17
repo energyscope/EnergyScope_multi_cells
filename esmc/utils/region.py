@@ -1,10 +1,12 @@
+import logging
+
 import pandas as pd
 import numpy as np
 from pathlib import Path
 
 
 class Region:
-    """
+    """TODO update doc
 
     The Region class defines a region with its nuts abbreviation and allows to read the data corresponding to that region
 
@@ -27,7 +29,9 @@ class Region:
         self.data = dict()
         self.read_data()
 
-        self.n_daily_ts = pd.DataFrame()
+        self.n_daily_ts = pd.DataFrame() # normalized (sum over the year=1) daily time series (shape=(365x(24*n_ts))
+        self.ts_td = None # rescaled daily time series of the typical days
+        self.peak_sh_factor = np.nan # ...
 
         self.results = dict()
 
@@ -73,39 +77,99 @@ class Region:
         self.read_weights()
         return
 
-    def pivot_ts(self):
+    def norm_ts(self, ts=None):
+        """Compute the normalized time series
+        Parameters
+        ----------
+        ts : pd.DataFrame()
+            Time series to normalize under the form (365xN_ts).
+            If no time series is given, then self.data['Time_series'] is taken as a default
+
+        Returns
+        -------
+        Normalized time series dataframe
+
         """
+        # NORMALIZING TIMESERIES
+        if ts is None:
+            ts = self.data['Time_series'].copy()
+        return (ts/ts.sum()).fillna(0)
+
+    def pivot_ts(self, ts=None):
+        """Pivot time series in daily format
 
         Transforms the time series in the data to have normalized daily time series of shape (365x(N_ts*24))
         and stores it in the attribute n_daily_ts
 
+        Parameters
+        ----------
+        ts : pd.DataFrame()
+            Time series to pivot under the form (365xN_ts).
+            If no time series is given, then self.data['Time_series'] is taken as a default
+
+        Returns
+        -------
+        Pivoted time series in the daily format (365x(N_ts*24))
+
         """
-        # TODO make normlisation asside
+        if ts is None:
+            ts = self.data['Time_series'].copy()
 
-        # NORMALIZING TIMESERIES #
-        # compute norm = sum(ts)
-        timeseries = self.data['Time_series']
-        norm = timeseries.sum(axis=0)
-        norm.name = 'Norm'
-        # normalise ts to have sum(norm_ts)=1
-        norm_ts = timeseries / norm
-        # fill NaN with 0
-        norm_ts.fillna(0, inplace=True)
-
-        # CREATING DAY AND HOUR COLUMNS (for later pivoting) #
-        # creating df with 2 columns : day of the year | hour in the day
-        # TODO make it a global variable ?
-        day_and_hour_array = np.ones((24 * 365, 2))
-        for i in range(365):
-            day_and_hour_array[i * 24:(i + 1) * 24, 0] = day_and_hour_array[i * 24:(i + 1) * 24, 0] * (i + 1)
-            day_and_hour_array[i * 24:(i + 1) * 24, 1] = np.arange(1, 25, 1)
-        day_and_hour = pd.DataFrame(day_and_hour_array, index=np.arange(1, 8761, 1), columns=['Days', 'H_of_D'])
-        day_and_hour = day_and_hour.astype('int64')
-        # merge day_and_hour with weight_ts for later pivot
-        norm_ts = norm_ts.merge(day_and_hour, left_index=True, right_index=True)
-
+        ts_names = ts.columns
+        # adding columns for pivoting
+        ts['Days'] = np.repeat(np.arange(1,366), 24, axis=0)
+        ts['H_of_D'] = np.resize(np.arange(1,25), ts.shape[0])
         # pivoting normalized time series (norm_ts) to get daily normalized time series (Ndaily_ts)
-        self.n_daily_ts = norm_ts.pivot(index='Days', columns='H_of_D', values=timeseries.columns)
+        return ts.pivot(index='Days', columns='H_of_D', values=ts_names)
 
+    def n_pivot_ts(self, ts=None):
+        """Normalize and pivot time series
+
+        Normalized and pivoted time series in the daily format (365x(N_ts*24)) is stored into n_daily_ts attribute
+
+        Parameters
+        ----------
+        ts : pd.DataFrame()
+            Time series (365xN_ts) to normalize and pivot under the form.
+            If no time series is given, then self.data['Time_series'] is taken as a default
+
+        """
+        if ts is None:
+            ts = self.data['Time_series'].copy()
+
+        self.n_daily_ts = self.pivot_ts(ts=self.norm_ts(ts=ts))
 
         return
+
+    def rescale_td_ts(self, td_count: pd.DataFrame):
+        """Select and rescale the time series of the typical days (TDs)
+        The time series of the typical days are rescaled such that
+        the sum over the year of the synthetic time series produced from the TDs
+        is equal to the sum over the year of the original time series
+
+        """
+        ts = self.data['Time_series'].copy()
+        tot_yr = ts.sum() # compute the total of each ts over the year
+        ts = self.pivot_ts(ts).transpose() # pivotting the ts in a daily format
+        ts_td = ts.loc[:,td_count['TD_of_days']] # selecting only the ts of TDs
+        # computing the total over the year by multiplying the total of each TD by the number of days it represents
+        tot_td = ts_td.sum(axis=0,level=0).mul(td_count.set_index('TD_of_days').loc[:,'#days'],axis=1).sum(axis=1)
+        ts_td = ts_td.mul(tot_yr/tot_td,axis=0, level=0).fillna(value=1e-4) # rescaling the ts of the TDs to have the same total over the year
+        ts_td.columns = td_count['TD_number'] # set index to TD_number
+        self.ts_td = ts_td
+        return
+
+    def compute_peak_sh(self):
+        """Computes the peak_sh_factor
+        Computes the ratio between the peak space heating demand over the year and over the typical days (peak_sh_factor)
+        and stores it into the attribute
+        """
+        if self.ts_td is None:
+            logging.error('Call first rescale_td_ts to compute td_ts')
+
+        max_sh_td = self.ts_td.loc[('Space Heating (%_sh)', slice(None)),:].max().max()
+        max_sh_yr = self.data['Time_series'].loc[:,'Space Heating (%_sh)'].max()
+        self.peak_sh_factor = max_sh_yr/max_sh_td
+        return
+
+#TODO generate synthetic time series

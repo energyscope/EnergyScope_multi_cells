@@ -24,24 +24,32 @@ def ampl_syntax(df: pd.DataFrame, comment=''):
     return df2
 
 
-def print_set(my_set: list, out_path: pathlib.Path, name: str):
+def print_set(my_set: list, out_path: pathlib.Path, name: str, comment=''):
     with open(out_path, mode='a', newline='') as file:
         writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(['set ' + name + ' := \t' + '\t'.join(my_set) + ';'])
+        writer.writerow(['set ' + name + ' := \t' + '\t'.join(my_set) + ';' + comment])
 
 
-def print_df(df: pd.DataFrame, out_path: pathlib.Path, name=''):
-    df.to_csv(out_path, sep='\t', mode='a', header=True, index=True, index_label=name, quoting=csv.QUOTE_NONE)
+def print_df(df: pd.DataFrame, out_path: pathlib.Path, name='', header=True, index=True, end_table=True):
+    df.to_csv(out_path, sep='\t', mode='a', header=header, index=index, index_label=name, quoting=csv.QUOTE_NONE)
+    if end_table:
+        with open(out_path, mode='a', newline='') as file:
+            writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow([';'])
 
-    with open(out_path, mode='a', newline='') as file:
-        writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow([';'])
 
-
-def newline(out_path: pathlib.Path):
+def newline(out_path: pathlib.Path, comment=list()):
     with open(out_path, mode='a', newline='') as file:
         writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL)
         writer.writerow([''])
+        for l in comment:
+            writer.writerow([l])
+
+def end_table(out_path: pathlib.Path, comment=''):
+    with open(out_path, mode='a', newline='') as file:
+        writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow([';'+comment])
+
 
 
 def print_param(param, out_path: pathlib.Path, name: str, comment=''):

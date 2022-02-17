@@ -2,6 +2,8 @@
 This file contains a class to define an energy system
 
 """
+import logging
+
 import numpy as np
 
 from esmc.utils.region import Region
@@ -12,6 +14,7 @@ import esmc.postprocessing.amplpy2pd as a2p
 import shutil
 import git
 import pandas as pd
+import csv
 from pathlib import Path
 from datetime import datetime
 
@@ -67,11 +70,11 @@ class Esmc:
             self.regions[r] = Region(nuts=r, data_dir=data_dir)
         return
 
-    def init_ta(self):
+    def init_ta(self, algo='kmedoid'):
         """Initialize the temporal aggregator
 
         """
-        self.ta = TemporalAggregation(self.regions, self.dat_dir)
+        self.ta = TemporalAggregation(self.regions, self.dat_dir, Nbr_TD=self.Nbr_TD, algo=algo)
         return
 
 
@@ -185,73 +188,148 @@ class Esmc:
         -------
 
         """
+
+
+        # PRELIMINARY COMPUTATIONS
+        # From temporal aggregation results (td_of_days): generate t_h_td and td_count
+        # and compute rescaled typical days ts and peak_sh_factor for each region
+        self.ta.generate_t_h_td()
+        peak_sh_factor = pd.DataFrame(0, index=self.regions_names, columns=['peak_sh_factor'])
+        for r in self.regions:
+            self.regions[r].rescale_td_ts(self.ta.td_count)
+            self.regions[r].compute_peak_sh()
+            peak_sh_factor.loc[r, 'peak_sh_factor'] = self.regions[r].peak_sh_factor
+
+        t_h_td = self.ta.t_h_td.copy()
+        t_h_td['par_l'] = '('
+        t_h_td['par_r'] = ')'
+        t_h_td['comma1'] = ','
+        t_h_td['comma2'] = ','
+        t_h_td = t_h_td[['par_l', 'H_of_Y', 'comma1', 'H_of_D', 'comma2', 'TD_number', 'par_r']]  # reordering columns
+
+        # file to print to
+        dat_file = self.dat_dir/('ESMC_'+str(self.Nbr_TD)+'TD.dat')
+
+        # PRINTING
+        # printing signature of data file
+        dp.print_header(self.project_dir/'esmc'/'energy_model'/'header_td_data.txt', dat_file)
+
+        # printing set depending on TD
+        # printing set TYPICAL_DAYS
+        dp.print_set(my_set=[str(i) for i in np.arange(1, self.Nbr_TD + 1)],out_path=dat_file,name='TYPICAL_DAYS', comment='# typical days')
+        # printing set T_H_TD
+        dp.newline(dat_file,['set T_H_TD := 		'])
+        t_h_td.to_csv(dat_file, sep='\t', header=False, index=False, mode='a', quoting=csv.QUOTE_NONE)
+        dp.end_table(dat_file)
+        # printing parameters depending on TD
+        # printing interlude
+        dp.newline(dat_file,['# -----------------------------','# PARAMETERS DEPENDING ON NUMBER OF TYPICAL DAYS : ','# -----------------------------',''])
+        # printing peak_sh_factor
+        dp.print_df(df=dp.ampl_syntax(peak_sh_factor),out_path=dat_file,name='param ')
+
         # Default name of timeseries in DATA.xlsx and corresponding name in ESTD data file
         if EUD_params is None:
-            # for EUD timeseries
+        # for EUD timeseries
             EUD_params = {'Electricity (%_elec)': 'param electricity_time_series :=',
                           'Space Heating (%_sh)': 'param heating_time_series :=',
                           'Space Cooling': 'param cooling_time_series :=',
                           'Passanger mobility (%_pass)': 'param mob_pass_time_series :=',
                           'Freight mobility (%_freight)': 'param mob_freight_time_series :='}
         if RES_params is None:
-            # for resources timeseries that have only 1 tech linked to it
+        # for resources timeseries that have only 1 tech linked to it
             RES_params = {'PV': 'PV', 'Wind_offshore': 'WIND_OFFSHORE', 'Wind_onshore': 'WIND_ONSHORE'}
         if RES_mult_params is None:
-            # for resources timeseries that have several techs linked to it
+        # for resources timeseries that have several techs linked to it
             RES_mult_params = {'Tidal': ['TIDAL_STREAM', 'TIDAL_RANGE'], 'Hydro_dam': ['HYDRO_DAM'],
                                'Hydro_river': ['HYDRO_RIVER'],
                                'Solar': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
-        #TODO call self.generate_t_h_td
-        t_h_td = self.ta.t_h_td.copy()
-        # adding ampl syntax for printing
-        t_h_td['par_l'] = '('
-        t_h_td['par_r'] = ')'
-        t_h_td['comma1'] = ','
-        t_h_td['comma2'] = ','
-        t_h_td = t_h_td[['par_g', 'H_of_Y', 'comma1', 'H_of_D', 'comma2', 'TD_of_days', 'par_d']] # reordering columns
 
+        # if only 1 country
+        N_c = 2  # TODO check if need adaptation for 1 region
+        if N_c == 1:
+            logging.warning('Only one region defined')
+            # # printing EUD timeseries param
+            # for l in EUD_params.keys():
+            #     with open(out_path, mode='a', newline='\n') as TD_file:
+            #         TD_writer = csv.writer(TD_file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
+            #                                lineterminator="\n")
+            #         TD_writer.writerow([EUD_params[l][0:-1]])
+            #     for c in countries:
+            #         name = l + '_' + c
+            #         ts = all_TD_ts[name]
+            #         ts.columns = np.arange(1, Nbr_TD + 1)
+            #         ts = ts * norm[name] / norm_TD[name]
+            #         ts.fillna(0, inplace=True)
+            #         ts.rename(columns={ts.shape[1]: str(ts.shape[1]) + ' ' + ':='}, inplace=True)
+            #         ts.to_csv(out_path, sep='\t', header=True, index=True, index_label='', mode='a', quoting=csv.QUOTE_NONE)
+            #     with open(out_path, mode='a', newline='\n') as TD_file:
+            #         TD_writer = csv.writer(TD_file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
+            #                                lineterminator="\n")
+            #         TD_writer.writerow(';')
+            #         TD_writer.writerow([''])
+            #
+            # # printing c_p_t param #
+            # with open(out_path, mode='a', newline='\n') as TD_file:
+            #     TD_writer = csv.writer(TD_file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
+            #                            lineterminator="\n")
+            #     TD_writer.writerow(['param c_p_t:='])
+            #     # printing c_p_t part where 1 ts => 1 tech
+            # for l in RES_params.keys():
+            #     for c in countries:
+            #         name = l + '_' + c
+            #         ts = all_TD_ts[name]
+            #         ts.columns = np.arange(1, Nbr_TD + 1)
+            #         ts = ts * norm[name] / norm_TD[name]
+            #         ts.fillna(0, inplace=True)
+            #         ts.rename(columns={ts.shape[1]: str(ts.shape[1]) + ' ' + ':='}, inplace=True)
+            #         ts.to_csv(out_path, sep='\t', header=True, index=True, index_label='["' + RES_params[l] + '",*,*] :',
+            #                   mode='a', quoting=csv.QUOTE_NONE)
+            # # printing c_p_t part where 1 ts => more then 1 tech
+            # for l in RES_mult_params.keys():
+            #     for j in RES_mult_params[l]:
+            #         for c in countries:
+            #             name = l + '_' + c
+            #             ts = all_TD_ts[name]
+            #             ts.columns = np.arange(1, Nbr_TD + 1)
+            #             ts = ts * norm[name] / norm_TD[name]
+            #             ts.fillna(0, inplace=True)
+            #             ts.rename(columns={ts.shape[1]: str(ts.shape[1]) + ' ' + ':='}, inplace=True)
+            #             ts.to_csv(out_path, sep='\t', header=True, index=True, index_label='["' + j + '",*,*] :', mode='a',
+            #                       quoting=csv.QUOTE_NONE)
+            #
+            # with open(out_path, mode='a', newline='\n') as TD_file:
+            #     TD_writer = csv.writer(TD_file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
+            #                            lineterminator="\n")
+            #     TD_writer.writerow([';'])
+        else:
+            # printing EUD timeseries param
+            for l in EUD_params.keys():
+                dp.newline(out_path=dat_file,comment=[EUD_params[l]])
+                for r in self.regions:
+                    # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the name of the time series, put it into ampl syntax and print it
+                    dp.print_df(df=dp.ampl_syntax(self.regions[r].ts_td.loc[(l, slice(None)),:].droplevel(level=0)), out_path=dat_file,
+                                name='["'+r+'",*,*] : ', end_table=False)
+                dp.end_table(out_path=dat_file)
 
+            # printing c_p_t param #
+            dp.newline(out_path=dat_file, comment=['param c_p_t:='])
+            # printing c_p_t part where 1 ts => 1 tech
+            for l in RES_params.keys():
+                for r in self.regions:
+                    # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the name of the time series, put it into ampl syntax and print it
+                    dp.print_df(df=dp.ampl_syntax(self.regions[r].ts_td.loc[(l, slice(None)),:].droplevel(level=0)), out_path=dat_file,
+                                name='["' + RES_params[l] + '","' + r + '",*,*] :', end_table=False)
 
+            # printing c_p_t part where 1 ts => more then 1 tech
+            for l in RES_mult_params.keys():
+                for j in RES_mult_params[l]:
+                    for r in self.regions:
+                        # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the name of the time series, put it into ampl syntax and print it
+                        dp.print_df(df=dp.ampl_syntax(self.regions[r].ts_td.loc[(l, slice(None)), :].droplevel(level=0)),
+                                    out_path=dat_file, name='["' + j + '","' + r + '",*,*] :', end_table=False)
 
-
+            dp.end_table(out_path=dat_file)
         return
 
-    def generate_t_h_td(self):
-        """Generate t_h_td and td_count dataframes and assign it to each region
-        t_h_td is a pd.DataFrame containing 4 columns:
-        hour of the year (H_of_Y), hour of the day (H_of_D), typical day representing this day (TD_of_days)
-        and the number assigned to this typical day (TD_number)
 
-        td_count is a pd.DataFrame of 2 columns
-
-
-
-        """
-        # GETTING td_of_days FROM TEMPORAL AGGREGATION
-        td_of_days = self.ta.td_of_days.copy()
-        td_of_days['day'] = np.arange(1, 366, 1)
-
-        # COMPUTING NUMBER OF DAYS REPRESENTED BY EACH TD AND ASSIGNING A TD NUMBER TO EACH REPRESENTATIVE DAY
-        td_count = td_of_days.groupby('TD_of_days').count()
-        td_count = td_count.reset_index().rename(columns={'index': 'TD_of_days', 'day': '#days'})
-        td_count['TD'] = np.arange(1, self.Nbr_TD + 1)
-        self.ta.td_count = td_count.copy()  # save into TemporalAggregation object
-
-        # BUILDING T_H_TD MATRICE
-        t_h_td = pd.DataFrame(np.repeat(td_of_days['TD_of_days'].values, 24, axis=0),
-                              columns=['TD_of_days'])  # column TD_of_days is each TD repeated 24 times
-        map_td = dict(zip(td_count['TD_of_days'],
-                          np.arange(1, self.Nbr_TD + 1)))  # mapping dictionnary from TD_of_Days to TD number
-        t_h_td['TD_number'] = t_h_td['TD_of_days'].map(map_td)
-        t_h_td['H_of_D'] = np.resize(np.arange(1, 25), t_h_td.shape[0])  # 365 times hours from 1 to 24
-        t_h_td['H_of_Y'] = np.arange(1, 8761)
-        # save into TemporalAggregation object
-        self.ta.t_h_td = t_h_td
-        self.ta.td_count= td_count
-
-        for r in self.regions:
-            self.regions[r].t_h_td = t_h_td
-            self.regions[r].td_count = td_count
-
-        return
 
