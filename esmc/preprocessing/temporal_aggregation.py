@@ -61,11 +61,29 @@ class TemporalAggregation:
         self.n_data = pd.DataFrame()
         self.weight()
 
+        self.td_of_days = pd.DataFrame()
         # run clustering algorithm
         if algo=='kmedoid':
             self.td_of_days = self.kmedoid_clustering()
+        elif algo=='read':
+            self.td_of_days = self.read_td_of_days()
+        self.t_h_td = pd.DataFrame()
 
         return
+
+    def read_td_of_days(self, td_file=None):
+        """Reads the file containing the TD_of_days
+        By default, reads the following path : self.dat_dir / ('TD_of_days_' + str(self.Nbr_TD) + '.out')
+        Stores the data into the attribute td_of_days as a pd.DataFrame()
+        """
+        if td_file is None:
+            td_file = self.dat_dir / ('TD_of_days_' + str(self.Nbr_TD) + '.out')
+        td_of_days = pd.read_csv(td_file, header=None)
+        td_of_days.columns = ['TD_of_days']
+        td_of_days.index = np.arange(1,366)
+        return td_of_days
+
+
 
     def pivot_ts(self):
         """Pivot the time series of each region in the daily format"""
@@ -203,6 +221,37 @@ class TemporalAggregation:
                                   columns=['TD_of_days']).astype(int)
         td_of_days.to_csv(self.dat_dir/('TD_of_days_'+str(self.Nbr_TD)+'.out'), header=False, index=False, sep='\t')
         return td_of_days
+
+    def generate_t_h_td(self):
+        """Generate t_h_td and td_count dataframes and assign it to each region
+        t_h_td is a pd.DataFrame containing 4 columns:
+        hour of the year (H_of_Y), hour of the day (H_of_D), typical day representing this day (TD_of_days)
+        and the number assigned to this typical day (TD_number)
+
+        td_count is a pd.DataFrame of 2 columns
+
+        """
+        # GETTING td_of_days FROM TEMPORAL AGGREGATION
+        td_of_days = self.td_of_days.copy()
+        td_of_days['day'] = np.arange(1, 366, 1)
+
+        # COMPUTING NUMBER OF DAYS REPRESENTED BY EACH TD AND ASSIGNING A TD NUMBER TO EACH REPRESENTATIVE DAY
+        td_count = td_of_days.groupby('TD_of_days').count()
+        td_count = td_count.reset_index().rename(columns={'index': 'TD_of_days', 'day': '#days'})
+        td_count['TD_number'] = np.arange(1, self.Nbr_TD + 1)
+
+        # BUILDING T_H_TD MATRICE
+        t_h_td = pd.DataFrame(np.repeat(td_of_days['TD_of_days'].values, 24, axis=0),
+                              columns=['TD_of_days'])  # column TD_of_days is each TD repeated 24 times
+        map_td = dict(zip(td_count['TD_of_days'],
+                          np.arange(1, self.Nbr_TD + 1)))  # mapping dictionnary from TD_of_Days to TD number
+        t_h_td['TD_number'] = t_h_td['TD_of_days'].map(map_td)
+        t_h_td['H_of_D'] = np.resize(np.arange(1, 25), t_h_td.shape[0])  # 365 times hours from 1 to 24
+        t_h_td['H_of_Y'] = np.arange(1, 8761)
+        # save into TemporalAggregation object
+        self.t_h_td = t_h_td
+        self.td_count = td_count
+        return
 
 
 
