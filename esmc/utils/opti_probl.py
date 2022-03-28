@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import csv
 from pathlib import Path
 from amplpy import AMPL, DataFrame
 from esmc.postprocessing import amplpy2pd as a2p
@@ -35,7 +36,7 @@ class OptiProbl:
         self.vars = list()
         self.params = list()
         self.sets = dict()
-        self.t = float()
+        self.t = None
         self.outputs = dict()
 
         return
@@ -49,6 +50,7 @@ class OptiProbl:
         try:
             self.ampl.solve()
             self.ampl.eval('display solve_result;')
+            self.ampl.eval('display solve_result_num;')
             self.ampl.eval('display _solve_elapsed_time;')
             self.t = self.ampl.getData('_solve_elapsed_time;').toList()[0]
 
@@ -151,7 +153,8 @@ class OptiProbl:
         for name, var in amplpy_sol:
             self.outputs[name] = self.to_pd(var.getValues())
 
-    def print_outputs(self, directory=None):
+
+    def print_outputs(self, directory=None, solve_time=False):
         """
 
         Prints the outputs (dictionary of pd.DataFrame()) into the directory as one csv per DataFrame
@@ -170,6 +173,14 @@ class OptiProbl:
         # printing outputs
         for ix, (key, val) in enumerate(self.outputs.items()):
             val.to_csv(directory / (str(key) + '.csv'))
+
+        if solve_time:
+            if self.t is None:
+                self.get_solve_time()
+            with open(directory / 'Solve_time.csv', mode='w', newline='\n') as file:
+                writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
+                                       lineterminator="\n")
+                writer.writerow(['solve_elapsed_time', self.t])
         return
 
     def read_outputs(self, directory=None):

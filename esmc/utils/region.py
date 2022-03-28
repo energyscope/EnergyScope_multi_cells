@@ -55,7 +55,7 @@ class Region:
         self.data['Demand'].index.rename('EUD', inplace=True)
         return
 
-    def read_weights(self, N_ts=8):
+    def read_weights(self, N_ts=9):
         self.data['Weights'] = pd.read_excel(self.data_path, sheet_name='2.2 User defined', header=[4], index_col=0,
                                              nrows=N_ts,usecols=[0, 1, 2],
                                              engine='openpyxl').rename(columns={'Unnamed: 1': 'Weights',

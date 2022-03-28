@@ -124,12 +124,30 @@ class TemporalAggregation:
         The results are stored in a new column of the weights attribute called 'Weights_n'
 
         """
+        # demand and production time series names
+        prod_ts = ['PV', 'Wind_onshore', 'Wind_offshore', 'Hydro_dam', 'Hydro_river', 'Tidal', 'Solar']
+        demand_ts = ['Electricity (%_elec)', 'Space Heating (%_sh)', 'Space Cooling (%_sc)',
+                     'Passanger mobility (%_pass)', 'Freight mobility (%_freight)']
 
         self.weights.loc[:,'Weights_n'] = 0 # initialize normalized weights column
         # NORMALIZING WEIGHTS ACCROSS COUNTRIES #
-        regions_total = self.weights.loc[:, 'Cell_w'].sum(axis=0, level=1)
-        self.weights.loc[:,'Weights_n'] = (self.weights.loc[:,'Weights']*self.weights.loc[:,'Cell_w']).div(regions_total, axis=0, level=1)
+        regions_total = pd.Series(0,index=self.weights.index.levels[1])
+        regions_total[demand_ts] = self.weights.loc[(slice(None),demand_ts), 'Cell_w'].sum(axis=0) # total of demand ts weights
+        regions_total[prod_ts] = self.weights.loc[(slice(None),prod_ts), 'Cell_w'].sum(axis=0) # total of production ts weights
+
+        #TODO automatize this (everything should happen in python code, prod and demand ts classification should be an input, set a treshold on cell_w and/or weight_n to neglect a ts, names should coincide with model's names)
+        # replacing regions_total by the sum of demands for demands and the sum of potential productions for productions
+
+        # first normalization
+        self.weights.loc[:,'Weights_n'] = (self.weights.loc[:,'Cell_w']).div(regions_total, axis=0, level=1)
+        # sort out the ts with Weights_n < 0.02 and renormalize the Weights_n
+        self.weights.loc[self.weights['Weights_n']<0.001,'Weights_n'] = 0
+        regions_total[demand_ts] = self.weights.loc[(slice(None), demand_ts), 'Weights_n'].sum(axis=0)  # total of demand ts weights
+        regions_total[prod_ts] = self.weights.loc[(slice(None), prod_ts), 'Weights_n'].sum(axis=0)  # total of production ts weights
+        # second normalization to have sum=1
+        self.weights.loc[:,'Weights_n'] = (self.weights.loc[:,'Weights_n']).div(regions_total, axis=0, level=1)
         return
+
 
     def weight(self):
         """Weighting the normalized daily time series
@@ -228,8 +246,8 @@ class TemporalAggregation:
         hour of the year (H_of_Y), hour of the day (H_of_D), typical day representing this day (TD_of_days)
         and the number assigned to this typical day (TD_number)
 
-        td_count is a pd.DataFrame of 2 columns
-
+        td_count is a pd.DataFrame containing 2 columns:
+        List of typical days (TD_of_days) and number of days they represent (#days)
         """
         # GETTING td_of_days FROM TEMPORAL AGGREGATION
         td_of_days = self.td_of_days.copy()

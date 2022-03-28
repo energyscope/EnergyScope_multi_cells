@@ -162,6 +162,8 @@ class Esmc:
 
         # set ampl for step_2
         self.esom = OptiProbl(mod_path=mod_path, data_path=data_path, options=ampl_options)
+        # print in log emission limit
+        self.esom.ampl.eval('print "gwp_limit_global [ktCO2eq/y]", gwp_limit_global;')
 
         return
 
@@ -169,15 +171,22 @@ class Esmc:
         if run:
             self.esom.run_ampl()
             self.esom.get_solve_time()
+            # print in log main outputs
+            self.esom.ampl.eval('print "TotalGWP_global", sum{c in COUNTRIES} (TotalGWP[c]);')
+            self.esom.ampl.eval('print "GWP_op_global", sum{c in COUNTRIES, r in RESOURCES} (GWP_op[c,r]);')
+            self.esom.ampl.eval('print "CO2_net_global", sum{c in COUNTRIES, r in RESOURCES} (CO2_net[c,r]);')
+            self.esom.ampl.eval('print "TotalCost_global", sum{c in COUNTRIES} (TotalCost[c]);')
+
+
         if outputs:
             self.esom.get_outputs()
         return
 
-    def prints_esom(self, inputs=True, outputs=True):
+    def prints_esom(self, inputs=True, outputs=True, solve_time=False):
         if inputs:
             self.esom.print_inputs()
         if outputs:
-            self.esom.print_outputs()
+            self.esom.print_outputs(solve_time=solve_time)
         return
 
     def print_td_data(self, EUD_params=None, RES_params=None, RES_mult_params=None):
@@ -232,7 +241,7 @@ class Esmc:
         # for EUD timeseries
             EUD_params = {'Electricity (%_elec)': 'param electricity_time_series :=',
                           'Space Heating (%_sh)': 'param heating_time_series :=',
-                          'Space Cooling': 'param cooling_time_series :=',
+                          'Space Cooling (%_sc)': 'param cooling_time_series :=',
                           'Passanger mobility (%_pass)': 'param mob_pass_time_series :=',
                           'Freight mobility (%_freight)': 'param mob_freight_time_series :='}
         if RES_params is None:
