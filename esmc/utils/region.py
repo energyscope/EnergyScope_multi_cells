@@ -55,6 +55,12 @@ class Region:
         self.data['Demand'].index.rename('EUD', inplace=True)
         return
 
+    def read_tech(self):
+        self.data['Technologies'] = pd.read_excel(self.data_path, sheet_name='3.2 TECH', header=[0], index_col=0,
+                                            usecols=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], engine='openpyxl').dropna(how='any')
+        self.data['Technologies'].index.rename('TECH', inplace=True)
+        return
+
     def read_weights(self, N_ts=9):
         self.data['Weights'] = pd.read_excel(self.data_path, sheet_name='2.2 User defined', header=[4], index_col=0,
                                              nrows=N_ts,usecols=[0, 1, 2],
@@ -74,6 +80,7 @@ class Region:
         """
         self.read_ts()
         self.read_eud()
+        self.read_tech()
         self.read_weights()
         return
 
