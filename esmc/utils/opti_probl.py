@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 import csv
 from pathlib import Path
+import pickle
 from amplpy import AMPL, DataFrame
 from esmc.postprocessing import amplpy2pd as a2p
-
 
 
 class OptiProbl:
@@ -157,7 +157,7 @@ class OptiProbl:
     def print_outputs(self, directory=None, solve_time=False):
         """
 
-        Prints the outputs (dictionary of pd.DataFrame()) into the directory as one csv per DataFrame
+        Prints the outputs (dictionary of pd.DataFrame()) into a pickle file
 
         Parameters
         ----------
@@ -171,8 +171,11 @@ class OptiProbl:
         # creating outputs dir
         directory.mkdir(parents=True, exist_ok=True)
         # printing outputs
-        for ix, (key, val) in enumerate(self.outputs.items()):
-            val.to_csv(directory / (str(key) + '.csv'))
+        with open(directory/'outputs.p', 'wb') as handle:
+            pickle.dump(self.outputs, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        # for ix, (key, val) in enumerate(self.outputs.items()):
+        #     val.to_csv(directory / (str(key) + '.csv'))
 
         if solve_time:
             if self.t is None:
@@ -197,13 +200,16 @@ class OptiProbl:
         # default directory
         if directory is None:
             directory = self.dir / 'outputs'
-        # if vars is an empty list, get vars
-        if not self.vars:
-            self.get_vars()
-        # read outputs
-        self.outputs = dict()
-        for v in self.vars:
-            self.outputs[v] = pd.read_csv(directory / (v + '.csv'), index_col=0)
+
+        with open(directory/'outputs.p', 'rb') as handle:
+            self.outputs = pickle.load(handle)
+        # # if vars is an empty list, get vars
+        # if not self.vars:
+        #     self.get_vars()
+        # # read outputs
+        # self.outputs = dict()
+        # for v in self.vars:
+        #     self.outputs[v] = pd.read_csv(directory / (v + '.csv'), index_col=0)
 
 
 

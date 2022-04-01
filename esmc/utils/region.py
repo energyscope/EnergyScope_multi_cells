@@ -47,18 +47,23 @@ class Region:
                                                  nrows=8760, engine='openpyxl')
         self.data['Time_series'].drop(labels='period_duration [h]', axis=1, inplace=True)
         self.data['Time_series'].dropna(axis=1, how='all', inplace=True)
+        self.data['Time_series'] = self.clean_indexes(self.data['Time_series'])
+
         return
 
     def read_eud(self):
         self.data['Demand'] = pd.read_excel(self.data_path, sheet_name='2.3 EUD', header=[1], index_col=0,
                                              nrows=10,usecols=[0, 1, 2, 3, 4], engine='openpyxl')
         self.data['Demand'].index.rename('EUD', inplace=True)
+        self.data['Demand'] = self.clean_indexes(self.data['Demand'])
         return
 
     def read_tech(self):
         self.data['Technologies'] = pd.read_excel(self.data_path, sheet_name='3.2 TECH', header=[0], index_col=0,
                                             usecols=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], engine='openpyxl').dropna(how='any')
         self.data['Technologies'].index.rename('TECH', inplace=True)
+        self.data['Technologies'] = self.clean_indexes(self.data['Technologies'])
+
         return
 
     def read_weights(self, N_ts=9):
@@ -68,6 +73,8 @@ class Region:
                                                                                 'Cell importance': 'Cell_w'})\
             .dropna(axis=0, how='any')
         self.data['Weights'].index.rename('Category', inplace=True)
+        self.data['Weights'] = self.clean_indexes(self.data['Weights'])
+
         # The time series without weight into data have NaN as Weight and Cell_w
         self.data['Weights'] = self.data['Weights'].reindex(self.data['Time_series'].columns, method=None, fill_value=np.nan)
         return
@@ -178,5 +185,27 @@ class Region:
         max_sh_yr = self.data['Time_series'].loc[:,'Space Heating (%_sh)'].max()
         self.peak_sh_factor = max_sh_yr/max_sh_td
         return
+
+    @staticmethod
+    def clean_indexes(df):
+        """Cleans the leading and trailing spaces in the index and columns names
+
+        Parameters
+        ----------
+        df: pd.DataFrame
+        DataFrame to clean
+
+        Returns
+        -------
+        df: pd.DataFrame
+        Cleaned dataframe
+
+        """
+        if type(df.index[0]) == str:
+            df.index = df.index.str.strip()
+        if type(df.columns[0]) == str:
+            df.columns = df.columns.str.strip()
+
+        return df
 
 #TODO generate synthetic time series
