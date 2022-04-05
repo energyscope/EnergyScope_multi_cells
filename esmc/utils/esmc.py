@@ -47,12 +47,8 @@ class Esmc:
         self.dat_dir.mkdir(parents=True, exist_ok=True)
         self.cs_dir.mkdir(parents=True, exist_ok=True)
 
-        # update version tracking json file
-        self.update_version()
-
         # create and initialize regions
         self.regions = dict()
-        self.init_regions()
         self.data_exch = dict()
 
         # initialize TemporalAggregation object
@@ -63,6 +59,8 @@ class Esmc:
         self.esom = None
 
         return
+
+# TODO add an automated initialization for specific pipeline
 
     def init_regions(self):
         data_dir = self.project_dir/'Data'
@@ -115,32 +113,35 @@ class Esmc:
         a2p.print_json(versions, cs_versions)
         return
 
-    def set_esom(self, ref_dir=None, ampl_options=None):
+    def set_esom(self, ref_dir=None, ampl_options=None, copy=True):
         """
 
         Set the energy system optimisation model (esom) with the mod and dat files from ref_dir that are copied into the
 
         """
 
-        # path of the reference files for ampl
-        if ref_dir is None:
-            ref_dir = self.project_dir/'case_studies'/'dat_files'
-
-        mod_ref = self.project_dir/'esmc'/'energy_model'/'ESMC_model_AMPL.mod'
-        data_ref = [ref_dir/self.space_id/('ESMC_' + str(self.Nbr_TD) + 'TD.dat'),
-                  ref_dir/'ESMC_indep.dat',
-                  ref_dir/self.space_id/'ESMC_countries.dat']
         # path where to copy them for this case study
         mod_path =  self.cs_dir/'ESMC_model_AMPL.mod'
         data_path = [self.cs_dir/('ESMC_' + str(self.Nbr_TD) + 'TD.dat'),
                      self.cs_dir / 'ESMC_indep.dat',
                      self.cs_dir / 'ESMC_countries.dat']
 
-        # copy the files from ref_dir to case_study directory
-        shutil.copyfile(mod_ref, mod_path)
-        shutil.copyfile(data_ref[0], data_path[0])
-        shutil.copyfile(data_ref[1], data_path[1])
-        shutil.copyfile(data_ref[2], data_path[2])
+        # if new case study, we copy ref files if not, we keep the ones that exist
+        if copy:
+            # path of the reference files for ampl
+            if ref_dir is None:
+                ref_dir = self.project_dir / 'case_studies' / 'dat_files'
+
+            mod_ref = self.project_dir / 'esmc' / 'energy_model' / 'ESMC_model_AMPL.mod'
+            data_ref = [ref_dir / self.space_id / ('ESMC_' + str(self.Nbr_TD) + 'TD.dat'),
+                        ref_dir / 'ESMC_indep.dat',
+                        ref_dir / self.space_id / 'ESMC_countries.dat']
+
+            # copy the files from ref_dir to case_study directory
+            shutil.copyfile(mod_ref, mod_path)
+            shutil.copyfile(data_ref[0], data_path[0])
+            shutil.copyfile(data_ref[1], data_path[1])
+            shutil.copyfile(data_ref[2], data_path[2])
 
         # default ampl_options
         if ampl_options is None:
@@ -162,12 +163,30 @@ class Esmc:
 
         # set ampl for step_2
         self.esom = OptiProbl(mod_path=mod_path, data_path=data_path, options=ampl_options)
-        # print in log emission limit
-        self.esom.ampl.eval('print "gwp_limit_global [ktCO2eq/y]", gwp_limit_global;')
-
         return
 
     def solve_esom(self, run=True, outputs=True):
+        """Solves the esom wih ampl
+
+        Parameters
+        ----------
+        run
+        outputs
+
+        Returns
+        -------
+
+        """
+        #TODO
+        # Add possibility to choose options
+        # Add possibility to print things into the log
+
+        # update version tracking json file
+        self.update_version()
+        # print in log emission limit
+        self.esom.ampl.eval('print "gwp_limit_global [ktCO2eq/y]", gwp_limit_global;')
+        self.esom.ampl.eval('print "Number of TDs", last(TYPICAL_DAYS);	')
+
         if run:
             self.esom.run_ampl()
             self.esom.get_solve_time()
@@ -224,8 +243,9 @@ class Esmc:
         dp.print_header(self.project_dir/'esmc'/'energy_model'/'header_td_data.txt', dat_file)
 
         # printing set depending on TD
-        # printing set TYPICAL_DAYS
-        dp.print_set(my_set=[str(i) for i in np.arange(1, self.Nbr_TD + 1)],out_path=dat_file,name='TYPICAL_DAYS', comment='# typical days')
+
+        # printing set TYPICAL_DAYS -> replaced by printing param nbr_tds
+        #dp.print_set(my_set=[str(i) for i in np.arange(1, self.Nbr_TD + 1)],out_path=dat_file,name='TYPICAL_DAYS', comment='# typical days')
         # printing set T_H_TD
         dp.newline(dat_file,['set T_H_TD := 		'])
         t_h_td.to_csv(dat_file, sep='\t', header=False, index=False, mode='a', quoting=csv.QUOTE_NONE)
@@ -233,6 +253,8 @@ class Esmc:
         # printing parameters depending on TD
         # printing interlude
         dp.newline(dat_file,['# -----------------------------','# PARAMETERS DEPENDING ON NUMBER OF TYPICAL DAYS : ','# -----------------------------',''])
+        # printing nbr_tds
+        dp.print_param(param=self.Nbr_TD, out_path=dat_file, name='nbr_tds')
         # printing peak_sh_factor
         dp.print_df(df=dp.ampl_syntax(peak_sh_factor),out_path=dat_file,name='param ')
 
