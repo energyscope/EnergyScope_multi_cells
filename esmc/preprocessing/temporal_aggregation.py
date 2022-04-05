@@ -238,6 +238,7 @@ class TemporalAggregation:
         td_of_days = pd.DataFrame(cm.mul(np.arange(1, 366), axis=0).sum(axis=0), index=np.arange(1,366),
                                   columns=['TD_of_days']).astype(int)
         td_of_days.to_csv(self.dat_dir/('TD_of_days_'+str(self.Nbr_TD)+'.out'), header=False, index=False, sep='\t')
+        my_optimizer.ampl.close() # closing ampl object
         return td_of_days
 
     def generate_t_h_td(self):
