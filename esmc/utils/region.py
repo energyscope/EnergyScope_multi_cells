@@ -173,7 +173,7 @@ class Region:
         self.ts_td = ts_td
         return
 
-    def compute_peak_sh(self):
+    def compute_peak_sh_and_sc(self):
         """Computes the peak_sh_factor
         Computes the ratio between the peak space heating demand over the year and over the typical days (peak_sh_factor)
         and stores it into the attribute
@@ -184,6 +184,10 @@ class Region:
         max_sh_td = self.ts_td.loc[('Space Heating (%_sh)', slice(None)),:].max().max()
         max_sh_yr = self.data['Time_series'].loc[:,'Space Heating (%_sh)'].max()
         self.peak_sh_factor = max_sh_yr/max_sh_td
+
+        max_sc_td = self.ts_td.loc[('Space Cooling (%_sc)', slice(None)), :].max().max()
+        max_sc_yr = self.data['Time_series'].loc[:, 'Space Cooling (%_sc)'].max()
+        self.peak_sc_factor = max_sc_yr / max_sc_td
         return
 
     @staticmethod

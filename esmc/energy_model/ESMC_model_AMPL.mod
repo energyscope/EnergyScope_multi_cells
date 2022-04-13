@@ -121,6 +121,7 @@ param c_op_local {COUNTRIES, RESOURCES} >= 0; # cost of resources in the differe
 param c_op_exterior {RESOURCES} >= 0; 
 param vehicule_capacity {TECHNOLOGIES} >=0, default 0; #  veh_capa [capacity/vehicles] Average capacity (pass-km/h or t-km/h) per vehicle. It makes the link between F and the number of vehicles
 param peak_sh_factor{COUNTRIES} >= 0;   # %_Peak_sh [-]: ratio between highest yearly demand and highest TDs demand
+param peak_sc_factor{COUNTRIES} >= 0;   # %_Peak_sc [-]: ratio between highest yearly demand and highest TDs deman
 param layers_in_out {RESOURCES union TECHNOLOGIES diff STORAGE_TECH , LAYERS}; # f: input/output Resources/Technologies to Layers. Reference is one unit ([GW] or [Mpkm/h] or [Mtkm/h]) of (main) output of the resource/technology. input to layer (output of technology) > 0.
 param c_inv {COUNTRIES, TECHNOLOGIES} >= 0; # Specific investment cost [MCHF/GW].[MCHF/GWh] for STORAGE_TECH
 param c_maint {COUNTRIES, TECHNOLOGIES} >= 0; # O&M cost [MCHF/GW/year]: O&M cost does not include resource (fuel) cost. [MCHF/GWh/year] for STORAGE_TECH
@@ -482,6 +483,9 @@ subject to max_dhn_heat_demand {c in COUNTRIES, h in HOURS, td in TYPICAL_DAYS}:
 subject to peak_lowT_dhn {c in COUNTRIES}:
 	sum {j in TECHNOLOGIES_OF_END_USES_TYPE ["HEAT_LOW_T_DHN"], i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"]} (F [c,j] + F[c,i]/storage_discharge_time[c,i]) >= peak_sh_factor[c] * Max_Heat_Demand[c];
 	
+# [Eq. 34] Peak in space cooling
+subject to peak_space_cooling {c in COUNTRIES, j in TECHNOLOGIES_OF_END_USES_TYPE["SPACE_COOLING"], h in HOURS, td in TYPICAL_DAYS}:
+	F [c,j] >= peak_sc_factor[c] * F_t [c, j, h, td] ;
 
 ## Adaptation for the case study: Constraints needed for the application to Switzerland (not needed in standard LP formulation)
 #-----------------------------------------------------------------------------------------------------------------------

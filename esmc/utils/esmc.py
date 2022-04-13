@@ -18,6 +18,18 @@ import csv
 from pathlib import Path
 from datetime import datetime
 
+#TODO
+# add logging and time different steps
+# dat_files not on github -> extern person cannot use them...
+# add error when no ampl license
+# check error DHN into sankey
+# to compute yearly exchanges -> sum over the year positive and negative part of each link
+# try approach of exchanges more on the link point of view
+# add into .mod some variables to have general results (ex: total prod over year:
+# Tech_wnd [y,l,tech] = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} layers_in_out [y,tech,l] * F_t [y,tech, h, td];))
+
+# TODO check 18TDs
+
 
 class Esmc:
     """
@@ -223,10 +235,12 @@ class Esmc:
         # and compute rescaled typical days ts and peak_sh_factor for each region
         self.ta.generate_t_h_td()
         peak_sh_factor = pd.DataFrame(0, index=self.regions_names, columns=['peak_sh_factor'])
+        peak_sc_factor = pd.DataFrame(0, index=self.regions_names, columns=['peak_sc_factor'])
         for r in self.regions:
             self.regions[r].rescale_td_ts(self.ta.td_count)
-            self.regions[r].compute_peak_sh()
+            self.regions[r].compute_peak_sh_and_sc()
             peak_sh_factor.loc[r, 'peak_sh_factor'] = self.regions[r].peak_sh_factor
+            peak_sc_factor.loc[r, 'peak_sc_factor'] = self.regions[r].peak_sc_factor
 
         t_h_td = self.ta.t_h_td.copy()
         t_h_td['par_l'] = '('
@@ -255,8 +269,10 @@ class Esmc:
         dp.newline(dat_file,['# -----------------------------','# PARAMETERS DEPENDING ON NUMBER OF TYPICAL DAYS : ','# -----------------------------',''])
         # printing nbr_tds
         dp.print_param(param=self.Nbr_TD, out_path=dat_file, name='nbr_tds')
-        # printing peak_sh_factor
+        # printing peak_sh_factor and peak_sc_factor
         dp.print_df(df=dp.ampl_syntax(peak_sh_factor),out_path=dat_file,name='param ')
+        dp.print_df(df=dp.ampl_syntax(peak_sc_factor),out_path=dat_file,name='param ')
+
 
         # Default name of timeseries in DATA.xlsx and corresponding name in ESTD data file
         if EUD_params is None:
