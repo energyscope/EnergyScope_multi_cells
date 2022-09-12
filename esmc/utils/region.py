@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
+import esmc.postprocessing.amplpy2pd as a2p
+
+
 
 class Region:
     """TODO update doc
@@ -19,14 +22,17 @@ class Region:
 
     """
 
-    def __init__(self, nuts, data_dir):
+    def __init__(self, nuts, data_dir, ref_region=False):
         # instantiate different attributes
         self.nuts = nuts
+        self.ref_region = ref_region # whether it is the reference region or not
         #TODO add geographical management
         # self.name =
         # self.geo =
-        self.data_path = data_dir/('DATA_'+nuts+'.xlsx')
-        self.data = dict()
+        self.data_path = data_dir/nuts
+        #('DATA_'+nuts+'.xlsx')
+        if ref_region:
+            self.data = dict()
         self.read_data()
 
         self.n_daily_ts = pd.DataFrame() # normalized (sum over the year=1) daily time series (shape=(365x(24*n_ts))
@@ -39,39 +45,25 @@ class Region:
 
     def read_ts(self):
         """
-        Reads the time series defining the hourly data of the region
+        Reads the time series defining the hourly data of the region and stores it in the data attribute as a dataframe
         (demands and intermittent renewable energies production)
 
         """
-        self.data['Time_series'] = pd.read_excel(self.data_path, sheet_name='1.1 Time Series', header=[1], index_col=0,
-                                                 nrows=8760, engine='openpyxl')
-        self.data['Time_series'].drop(labels='period_duration [h]', axis=1, inplace=True)
-        self.data['Time_series'].dropna(axis=1, how='all', inplace=True)
+        # The time series are redefined fully without considering the data of the ref_region
+        # read the csv
+        self.data['Time_series'] = pd.read_csv(self.data_path/'Time_series.csv', sep=';', header=[0], index_col=0)
         self.data['Time_series'] = self.clean_indexes(self.data['Time_series'])
-
         return
 
-    def read_eud(self):
-        self.data['Demand'] = pd.read_excel(self.data_path, sheet_name='2.3 EUD', header=[1], index_col=0,
-                                             nrows=10,usecols=[0, 1, 2, 3, 4], engine='openpyxl')
-        self.data['Demand'].index.rename('EUD', inplace=True)
-        self.data['Demand'] = self.clean_indexes(self.data['Demand'])
-        return
+    def read_weights(self):
+        """Read the weights of the time series of this region and stores it in the data attribute as a dataframe
 
-    def read_tech(self):
-        self.data['Technologies'] = pd.read_excel(self.data_path, sheet_name='3.2 TECH', header=[0], index_col=0,
-                                            usecols=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], engine='openpyxl').dropna(how='any')
-        self.data['Technologies'].index.rename('TECH', inplace=True)
-        self.data['Technologies'] = self.clean_indexes(self.data['Technologies'])
+        Returns
+        -------
 
-        return
-
-    def read_weights(self, N_ts=9):
-        self.data['Weights'] = pd.read_excel(self.data_path, sheet_name='2.2 User defined', header=[4], index_col=0,
-                                             nrows=N_ts,usecols=[0, 1, 2],
-                                             engine='openpyxl').rename(columns={'Unnamed: 1': 'Weights',
-                                                                                'Cell importance': 'Cell_w'})\
-            .dropna(axis=0, how='any')
+        """
+        # the Weights are redefined fully without considering the ref_region
+        self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=';', header=[0], index_col=[0]).rename(columns={'Unnamed: 1': 'Weights','Cell importance': 'Cell_w'}).dropna(axis=0, how='any')
         self.data['Weights'].index.rename('Category', inplace=True)
         self.data['Weights'] = self.clean_indexes(self.data['Weights'])
 
@@ -79,16 +71,127 @@ class Region:
         self.data['Weights'] = self.data['Weights'].reindex(self.data['Time_series'].columns, method=None, fill_value=np.nan)
         return
 
-    def read_data(self):
+    def read_eud(self):
+        """Read the End-uses demands of the region and stores it in the data attribute as a dataframe
+
+        Returns
+        -------
+
+        """
+        # the Demand is redefined fully without considering the ref_region
+        self.data['Demand'] = pd.read_csv(self.data_path/'Demand.csv', sep=';', header=[0], index_col=[2])
+        self.data['Demand'] = self.clean_indexes(self.data['Demand'])
+        return
+
+    def read_resources(self):
+        """Reads the resources data of the region and stores it in the data attribute as a dataframe
+
+        Returns
+        -------
+
+        """
+        r_path = self.data_path / 'Resources.csv'
+        # if the file exist, update the data
+        if r_path.is_file():
+            # read csv and clean df
+            df = pd.read_csv(r_path, sep=';', header=[2], index_col=[2])
+            df = self.clean_indexes(df)
+
+            # put df into attribute data
+            if self.ref_region:
+                self.data['Resources'] = df
+            else:
+                # using combine_first method to replace only the data redefined in the csv of the region
+                ref_index = self.data['Resources'].index
+                self.data['Resources'] = df.combine_first(self.data['Resources'])
+                self.data['Resources'] = self.data['Resources'].reindex(ref_index)
+
+        return
+
+    def read_tech(self):
+        """Reads the technologies data of the region and stores it in the data attribute as a dataframe
+
+        Returns
+        -------
+
+        """
+        r_path = self.data_path / 'Technologies.csv'
+        # if the file exist, update the data
+        if r_path.is_file():
+            # read csv and clean df
+            df = pd.read_csv(r_path, sep=';', header=[0], index_col=[3], skiprows=[1])
+            df = self.clean_indexes(df)
+
+            # put df into attribute data
+            if self.ref_region:
+                self.data['Technologies'] = df
+            else:
+                # using combine_first method to replace only the data redefined in the csv of the region
+                ref_index = self.data['Technologies'].index
+                self.data['Technologies'] = df.combine_first(self.data['Technologies'])
+                self.data['Technologies'] = self.data['Technologies'].reindex(ref_index)
+        return
+
+    def read_storage_power_to_energy(self):
+        """Reads the storage power to energy ratio of the region and stores it in the data attribute as a dataframe
+
+
+        Returns
+        -------
+
+        """
+        r_path = self.data_path / 'Storage_power_to_energy.csv'
+        # if the file exist, update the data
+        if r_path.is_file():
+            # read csv and clean df
+            df = pd.read_csv(r_path, sep=';', header=[0], index_col=[0])
+            df = self.clean_indexes(df)
+
+            # put df into attribute data
+            if self.ref_region:
+                self.data['Storage_power_to_energy'] = df
+            else:
+                # using combine_first method to replace only the data redefined in the csv of the region
+                ref_index = self.data['Storage_power_to_energy'].index
+                self.data['Storage_power_to_energy'] = df.combine_first(self.data['Storage_power_to_energy'])
+                self.data['Storage_power_to_energy'] = self.data['Storage_power_to_energy'].reindex(ref_index)
+        return
+
+    def read_misc(self):
+        """Reads the miscellaneous data of the region and store it in the data attribute as a dictionary
+
+
+        Returns
+        -------
+
+        """
+        r_path = (self.data_path/'Misc.json')
+        # if the file exist, update the data
+        if r_path.is_file():
+             d = a2p.read_json(r_path)
+             if self.ref_region:
+                 self.data['Misc'] = d
+             else:
+                 # if not ref_region replace edited values
+                for key, value in d:
+                    self.data['Misc'][key] = value
+
+        return
+
+
+    def read_data(self, all=True, ):
         """
 
-        Reads the weights of the different time series for the typical days selection step
+        Reads the data related to this region
 
         """
         self.read_ts()
-        self.read_eud()
-        self.read_tech()
         self.read_weights()
+        self.read_eud()
+        self.read_resources()
+        self.read_tech()
+        self.read_storage_power_to_energy()
+        self.read_misc()
         return
 
     def norm_ts(self, ts=None):
@@ -167,7 +270,7 @@ class Region:
         ts = self.pivot_ts(ts).transpose() # pivotting the ts in a daily format
         ts_td = ts.loc[:,td_count['TD_of_days']] # selecting only the ts of TDs
         # computing the total over the year by multiplying the total of each TD by the number of days it represents
-        tot_td = ts_td.sum(axis=0,level=0).mul(td_count.set_index('TD_of_days').loc[:,'#days'],axis=1).sum(axis=1)
+        tot_td = ts_td.groupby(level=0).sum(axis=0).mul(td_count.set_index('TD_of_days').loc[:,'#days'],axis=1).sum(axis=1)
         ts_td = ts_td.mul(tot_yr/tot_td,axis=0, level=0).fillna(value=1e-4) # rescaling the ts of the TDs to have the same total over the year
         ts_td.columns = td_count['TD_number'] # set index to TD_number
         self.ts_td = ts_td
