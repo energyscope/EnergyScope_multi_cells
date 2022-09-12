@@ -1,4 +1,4 @@
-param :;storage_charge_time;storage_discharge_time
+Storage;storage_charge_time;storage_discharge_time
 DAM_STORAGE;1;1
 PHS;78.36739462;78.36739462
 BATT_LI;4;4

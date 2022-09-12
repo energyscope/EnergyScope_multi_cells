@@ -1,0 +1,10 @@
+Weights;;Cell importance
+Electricity (%_elec);2;227016.12
+Space Heating (%_sh);2;94437.07
+Space Cooling (%_sc);2;3565.22
+PV;1;1156068.16
+Wind_onshore;1;712817.50
+Wind_offshore;1;385120.13
+Hydro_dam;1;26987.11
+Hydro_river;1;24832.27
+Tidal;1;8342.88
