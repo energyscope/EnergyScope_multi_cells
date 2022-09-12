@@ -75,7 +75,44 @@ set EXCHANGE_NETWORK_BIDIRECTIONAL within EXCHANGE_NETWORK_R; # Exchange network
 #################################
 ### PARAMETERS [Tables 1-2]   ###
 #################################
+### Parameters independant from COUNTRIES set
+## Parameters added to define scenarios and technologies [Table 2]
+param i_rate > 0; # discount rate [-]: real discount rate
+param gwp_limit_overall >=0; # [ktCO2-eq./year] maximum gwp emissions allowed for global system
+param t_op {HOURS, TYPICAL_DAYS} default 1;# [h]: operating time 
 
+# Attributes of TECHNOLOGIES and RESOURCES
+param c_op_exterior {RESOURCES} >= 0; 
+param layers_in_out {RESOURCES union TECHNOLOGIES diff STORAGE_TECH , LAYERS}; # f: input/output Resources/Technologies to Layers. Reference is one unit ([GW] or [Mpkm/h] or [Mtkm/h]) of (main) output of the resource/technology. input to layer (output of technology) > 0.
+param gwp_op_exterior {RESOURCES} >= 0;
+param co2_net {RESOURCES} >= 0;
+
+# Attribute of electric vehicles
+param batt_per_car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
+param state_of_charge_EV {V2G,HOURS} >= 0; # Minimum state of charge of the EV during the day.
+
+# Attributes of STORAGE_TECH
+param storage_eff_in {STORAGE_TECH , LAYERS} >= 0, <= 1; # eta_sto_in [-]: efficiency of input to storage from layers.  If 0 storage_tech/layer are incompatible
+param storage_eff_out {STORAGE_TECH , LAYERS} >= 0, <= 1; # eta_sto_out [-]: efficiency of output from storage to layers. If 0 storage_tech/layer are incompatible
+param storage_losses {STORAGE_TECH} >= 0, <= 1; # %_sto_loss [-]: Self losses in storage (required for Li-ion batteries). Value = self discharge in 1 hour.
+param storage_availability {STORAGE_TECH} >=0, default 1;# %_sto_avail [-]: Storage technology availability to charge/discharge. Used for EVs 
+
+# Attributes of solar technologies
+param power_density_pv >=0 default 0;# Maximum power irradiance for PV.
+param power_density_solar_thermal >=0 default 0;# Maximum power irradiance for solar thermal.
+
+# Networks attributes
+param loss_network {END_USES_TYPES} >= 0 default 0; # %_net_loss: Losses coefficient [0; 1] in the networks (grid and DHN)
+param c_grid_extra >=0, default 359; # Cost to reinforce the grid due to IRE penetration [M€2015/GW_intermittentRE].
+
+# Attributes of exchanges
+param exchange_losses {RESOURCES} >=0 default 0; #losses on network for exchanges [%]
+param  lhv{FREIGHT_RESOURCES}>=0; #lhv of fuels transported by freight
+
+##Additional parameter (not presented in the paper)
+param total_time := sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (t_op [h, td]); # [h]. added just to simplify equations
+
+### Parameters depending on COUNTRIES set
 ## Parameters added to include time series in the model [Table 1]
 param electricity_time_series {COUNTRIES, HOURS, TYPICAL_DAYS} >= 0, <= 1; # %_elec [-]: factor for sharing lighting across typical days (adding up to 1)
 param heating_time_series {COUNTRIES, HOURS, TYPICAL_DAYS} >= 0, <= 1; # %_sh [-]: factor for sharing space heating across typical days (adding up to 1)
@@ -87,10 +124,8 @@ param c_p_t {TECHNOLOGIES, COUNTRIES, HOURS, TYPICAL_DAYS} default 1; #Hourly ca
 ## Parameters added to define scenarios and technologies [Table 2]
 param end_uses_demand_year {COUNTRIES, END_USES_INPUT, SECTORS} >= 0 default 0; # end_uses_year [GWh]: table end-uses demand vs sectors (input to the model). Yearly values. [Mpkm] or [Mtkm] for passenger or freight mobility.
 param end_uses_input {c in COUNTRIES, i in END_USES_INPUT} := sum {s in SECTORS} (end_uses_demand_year [c,i,s]); # end_uses_input (Figure 1.4) [GWh]: total demand for each type of end-uses across sectors (yearly energy) as input from the demand-side model. [Mpkm] or [Mtkm] for passenger or freight mobility.
-param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary {COUNTRIES} >= 0; # re_share [-]: minimum share of primary energy coming from RE
 param gwp_limit {COUNTRIES} >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
-param gwp_limit_global >=0; # [ktCO2-eq./year] maximum gwp emissions allowed for global system
 
 # Share public vs private mobility
 param share_mobility_public_min{COUNTRIES} >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
@@ -103,14 +138,15 @@ param share_freight_boat_min{COUNTRIES}  >= 0, <= 1; # %_boat,min [-]: min limit
 param share_freight_boat_max{COUNTRIES}  >= 0, <= 1; # %_boat,min [-]: max limit for penetration of boat in freight transportation
 param share_freight_road_min{COUNTRIES}  >= 0, <= 1; # %_road,min [-]: min limit for penetration of truck in freight transportation
 param share_freight_road_max{COUNTRIES}  >= 0, <= 3; # %_road,min [-]: max limit for penetration of truck in freight transportation
+param share_ned {COUNTRIES, END_USES_TYPES_OF_CATEGORY["NON_ENERGY"]} >= 0, <= 1; # %_ned [-] share of non-energy demand per type of feedstocks.
+
 
 # Share dhn vs decentralized for low-T heating
 param share_heat_dhn_min{COUNTRIES} >= 0, <= 1; # %_dhn,min [-]: min limit for penetration of dhn in low-T heating
 param share_heat_dhn_max{COUNTRIES} >= 0, <= 1; # %_dhn,max [-]: max limit for penetration of dhn in low-T heating
 
-param t_op {HOURS, TYPICAL_DAYS} default 1;# [h]: operating time 
 
-# Attributes of TECHNOLOGIES
+# Attributes of TECHNOLOGIES and RESOURCES
 param f_max {COUNTRIES, TECHNOLOGIES} >= 0; # Maximum feasible installed capacity [GW], refers to main output. storage level [GWh] for STORAGE_TECH
 param f_min {COUNTRIES, TECHNOLOGIES} >= 0; # Minimum feasible installed capacity [GW], refers to main output. storage level [GWh] for STORAGE_TECH
 param fmax_perc {COUNTRIES, TECHNOLOGIES} >= 0, <= 1 default 1; # value in [0,1]: this is to fix that a technology can at max produce a certain % of the total output of its sector over the entire year
@@ -118,52 +154,32 @@ param fmin_perc {COUNTRIES, TECHNOLOGIES} >= 0, <= 1 default 0; # value in [0,1]
 param avail_local {COUNTRIES, RESOURCES} >= 0; # Yearly availability of resources [GWh/y]
 param avail_exterior {COUNTRIES, RESOURCES} >= 0;
 param c_op_local {COUNTRIES, RESOURCES} >= 0; # cost of resources in the different periods [MCHF/GWh]
-param c_op_exterior {RESOURCES} >= 0; 
 param vehicule_capacity {TECHNOLOGIES} >=0, default 0; #  veh_capa [capacity/vehicles] Average capacity (pass-km/h or t-km/h) per vehicle. It makes the link between F and the number of vehicles
 param peak_sh_factor{COUNTRIES} >= 0;   # %_Peak_sh [-]: ratio between highest yearly demand and highest TDs demand
 param peak_sc_factor{COUNTRIES} >= 0;   # %_Peak_sc [-]: ratio between highest yearly demand and highest TDs deman
-param layers_in_out {RESOURCES union TECHNOLOGIES diff STORAGE_TECH , LAYERS}; # f: input/output Resources/Technologies to Layers. Reference is one unit ([GW] or [Mpkm/h] or [Mtkm/h]) of (main) output of the resource/technology. input to layer (output of technology) > 0.
 param c_inv {COUNTRIES, TECHNOLOGIES} >= 0; # Specific investment cost [MCHF/GW].[MCHF/GWh] for STORAGE_TECH
 param c_maint {COUNTRIES, TECHNOLOGIES} >= 0; # O&M cost [MCHF/GW/year]: O&M cost does not include resource (fuel) cost. [MCHF/GWh/year] for STORAGE_TECH
 param lifetime {COUNTRIES, TECHNOLOGIES} >= 0; # n: lifetime [years]
 param tau {c in COUNTRIES, i in TECHNOLOGIES} := i_rate * (1 + i_rate)^lifetime [c,i] / (((1 + i_rate)^lifetime [c,i]) - 1); # Annualisation factor ([-]) for each different technology [Eq. 2]
 param gwp_constr {COUNTRIES, TECHNOLOGIES} >= 0; # GWP emissions associated to the construction of technologies [ktCO2-eq./GW]. Refers to [GW] of main output
-param gwp_op_local {RESOURCES} >= 0; # GWP emissions associated to the use of resources [ktCO2-eq./GWh]. Includes extraction/production/transportation and combustion
-param gwp_op_exterior {RESOURCES} >= 0;
-param co2_net {RESOURCES} >= 0;
+param gwp_op_local {COUNTRIES, RESOURCES} >= 0; # GWP emissions associated to the use of resources [ktCO2-eq./GWh]. Includes extraction/production/transportation and combustion
 param c_p {COUNTRIES, TECHNOLOGIES} >= 0, <= 1 default 1; # yearly capacity factor of each technology [-], defined on annual basis. Different than 1 if sum {t in PERIODS} F_t (t) <= c_p * F
 param tc_min {COUNTRIES, COUNTRIES, RESOURCES} default 0; #minimal transfer capacity of each resource between countries [GW]
 param tc_max {COUNTRIES, COUNTRIES, RESOURCES} default 0; #maximal transfer capacity of each resource between countries [GW]
-param exchange_losses {RESOURCES} >=0 default 0; #losses on network for exchanges [%]
-
 
 # Attributes of STORAGE_TECH
-param storage_eff_in {STORAGE_TECH , LAYERS} >= 0, <= 1; # eta_sto_in [-]: efficiency of input to storage from layers.  If 0 storage_tech/layer are incompatible
-param storage_eff_out {STORAGE_TECH , LAYERS} >= 0, <= 1; # eta_sto_out [-]: efficiency of output from storage to layers. If 0 storage_tech/layer are incompatible
-param storage_losses {STORAGE_TECH} >= 0, <= 1; # %_sto_loss [-]: Self losses in storage (required for Li-ion batteries). Value = self discharge in 1 hour.
 param storage_charge_time    {COUNTRIES, STORAGE_TECH} >= 0; # t_sto_in [h]: Time to charge storage (Energy to Power ratio). If value =  5 <=>  5h for a full charge.
 param storage_discharge_time {COUNTRIES, STORAGE_TECH} >= 0; # t_sto_out [h]: Time to discharge storage (Energy to Power ratio). If value =  5 <=>  5h for a full discharge.
-param storage_availability {STORAGE_TECH} >=0, default 1;# %_sto_avail [-]: Storage technology availability to charge/discharge. Used for EVs 
 
-# Losses in the networks
-param loss_network {END_USES_TYPES} >= 0 default 0; # %_net_loss: Losses coefficient [0; 1] in the networks (grid and DHN)
-
-param batt_per_car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
-param c_grid_extra >=0, default 359; # Cost to reinforce the grid due to IRE penetration [M€2015/GW_intermittentRE].
+# Other attributes
 param import_capacity{COUNTRIES} >= 0; # Maximum electricity import capacity [GW]
 param solar_area{COUNTRIES} >= 0; # Maximum land available for PV deployement [km2]
-param power_density_pv{COUNTRIES} >=0 default 0;# Maximum power irradiance for PV.
-param power_density_solar_thermal{COUNTRIES} >=0 default 0;# Maximum power irradiance for solar thermal.
 
-##Additional parameter (not presented in the paper)
-param total_time := sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (t_op [h, td]); # [h]. added just to simplify equations
 
 # Parameters for additional freight due to exchanges calcultations
-param  lhv{FREIGHT_RESOURCES}>=0; #lhv of fuels transported by freight
 param  dist{COUNTRIES}>=0; #travelled distance by fuels exchanged in each country
 param  c_exch_network{COUNTRIES,COUNTRIES,EXCHANGE_NETWORK_R} >= 0; # Investment cost of network connections between cells
 
-param state_of_charge_EV {V2G,HOURS} >= 0; # Minimum state of charge of the EV during the day.
 
 
 #################################
@@ -245,10 +261,14 @@ subject to end_uses_t {c in COUNTRIES, l in LAYERS, h in HOURS, td in TYPICAL_DA
 			end_uses_input[c,l] * cooling_time_series [c, h, td] / t_op [h, td]
 		else (if l == "PROCESS_COOLING" then
 			end_uses_input[c,l] / total_time
-		else (if l == "NON_ENERGY" then
-			end_uses_input[c,l] / total_time
+		else (if l == "HVC" then
+			end_uses_input[c,"NON_ENERGY"] * share_ned [c, "HVC"] / total_time
+		else (if l == "AMMONIA" then
+			end_uses_input[c, "NON_ENERGY"] * share_ned [c, "AMMONIA"] / total_time
+		else (if l == "METHANOL" then
+			end_uses_input[c, "NON_ENERGY"] * share_ned [c, "METHANOL"] / total_time
 		else 
-			0 )))))))))))); # For all layers which don't have an end-use demand
+			0 )))))))))))))); # For all layers which don't have an end-use demand
 
 
 ## Cost
@@ -308,7 +328,7 @@ subject to gwp_constr_calc {c in COUNTRIES, j in TECHNOLOGIES}:
 
 # [Eq. 8]
 subject to gwp_op_calc {c in COUNTRIES, i in RESOURCES}:
-	GWP_op [c,i] = sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (R_t_local [c, i, h, td] * gwp_op_local [i] * t_op [h, td] + R_t_exterior [c, i, h, td] * gwp_op_exterior [i] * t_op [h, td] );	
+	GWP_op [c,i] = sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (R_t_local [c, i, h, td] * gwp_op_local [c, i] * t_op [h, td] + R_t_exterior [c, i, h, td] * gwp_op_exterior [i] * t_op [h, td] );	
 
 # Direct emissions of the fuels, to match GWP historical data
 subject to co2_net_calc {c in COUNTRIES, i in RESOURCES}:
@@ -497,8 +517,8 @@ subject to Minimum_GWP_reduction {c in COUNTRIES}:
 # [Eq. 36]  constraint to reduce the GWP subject to Minimum_gwp_reduction :
 # Macro-cells: modified to account for direct emissions only
 subject to Minimum_GWP_reduction_global :
-	sum{c in COUNTRIES, r in RESOURCES} (CO2_net [c,r]) <= gwp_limit_global;
-	#sum{c in COUNTRIES} TotalGWP[c] <= gwp_limit_global;
+	sum{c in COUNTRIES, r in RESOURCES} (CO2_net [c,r]) <= gwp_limit_overall;
+	#sum{c in COUNTRIES} TotalGWP[c] <= gwp_limit_overall;
 
 # [Eq. 37] Minimum share of RE in primary energy supply
 subject to Minimum_RE_share {c in COUNTRIES} :
@@ -541,7 +561,7 @@ subject to limit_hydro_dams_output {c in COUNTRIES, h in HOURS, td in TYPICAL_DA
 
 # [Eq. 39] Limit surface area for solar
 subject to solar_area_limited250km2 {c in COUNTRIES} :
-	F[c,"PV"]/power_density_pv [c]+(F[c,"DEC_SOLAR"]+F[c,"DHN_SOLAR"])/power_density_solar_thermal[c] <= solar_area [c];
+	F[c,"PV"]/power_density_pv +(F[c,"DEC_SOLAR"]+F[c,"DHN_SOLAR"])/power_density_solar_thermal <= solar_area [c];
 
 
 
