@@ -272,6 +272,26 @@ class TemporalAggregation:
         self.td_count = td_count
         return
 
+    def from_td_to_year(self, ts_td):
+        """Converts time series on TDs to yearly time series
+
+        Parameters
+        ----------
+        ts_td: pandas.DataFrame
+        Multiindex dataframe of hourly data for each hour of each TD.
+        The index should be of the form (TD_number, hour_of_the_day).
+
+        t_h_td: pandas.DataFrame
+
+
+        """
+        if self.t_h_td is None:
+            self.generate_t_h_td()
+
+        td_h = self.t_h_td.loc[:, ['TD_number', 'H_of_D']]
+        ts_yr = td_h.merge(ts_td, left_on=['TD_number', 'H_of_D'], right_index=True).sort_index()
+        return ts_yr.drop(columns=['TD_number', 'H_of_D'])
+
 
 
     @staticmethod
