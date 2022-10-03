@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import pandas as pd
 import csv
 from pathlib import Path
@@ -49,12 +50,15 @@ class OptiProbl:
                """
         try:
             self.ampl.solve()
+            # reinitialize log printing options to have no log prints after solving
+            self.ampl.setOption('show_stats',0)
+            self.ampl.setOption('times',0)
+            self.ampl.setOption('gentimes',0)
+            # display general info on the optimization
             self.ampl.eval('display solve_result;')
             self.ampl.eval('display solve_result_num;')
             self.ampl.eval('display _solve_elapsed_time;')
-            self.t = self.ampl.getData('_solve_elapsed_time;').toList()[0]
-
-
+            self.get_solve_time()
         except Exception as e:
             print(e)
             raise
@@ -66,7 +70,9 @@ class OptiProbl:
        Get the solving time for ampl and stores it into t attribute
 
         """
-        self.t = self.ampl.getData('_solve_elapsed_time;').toList()[0]
+        self.t = list()
+        self.t.append(self.ampl.getData('_ampl_elapsed_time;').toList()[0])
+        self.t.append(self.ampl.getData('_solve_elapsed_time;').toList()[0])
         # TODO understand why doesn't work with kmedoid_clustering
         return
 
@@ -153,6 +159,40 @@ class OptiProbl:
         for name, var in amplpy_sol:
             self.outputs[name] = self.to_pd(var.getValues())
 
+    def get_var(self, var_name:str):
+        """Function to extract the mentioned variable and store it into self.outputs
+
+        Parameters
+        ----------
+        var_name: str
+        Name of the variable to extract from the optimisation problem results. Should be written as in the .mod file
+
+        Returns
+        -------
+        var: pd.DataFrame()
+        DataFrame containing the values of the different elements of the variable.
+        The n first columns give the n sets on which it is indexed
+        and the last column give the value obtained from the optimization.
+
+        """
+        ampl_var = self.ampl.getVariable(var_name)
+        # Getting the names of the sets
+        indexing_sets = [s.capitalize() for s in ampl_var.getIndexingSets()]
+        # Getting the data of the variable into a pandas dataframe
+        amplpy_df = ampl_var.getValues()
+        var = amplpy_df.toPandas()
+        # getting the number of indices. If var has more then 1 index, we set it as a MultiIndex
+        n_indices = amplpy_df.getNumIndices()
+        if n_indices>1:
+            var.index = pd.MultiIndex.from_tuples(var.index, names=indexing_sets)
+        else:
+            var.index = pd.Index(var.index, name=indexing_sets[0])
+        # getting rid of '.val' (4 trailing characters of the string) into columns names such that the name of the columns correspond to the variable
+        var.rename(columns=lambda x: x[:-4], inplace=True)
+        #self.to_pd(ampl_var.getValues()).rename(columns={(var_name+'.val'):var_name})
+        self.outputs[var_name] = var
+        return var
+
 
     def print_outputs(self, directory=None, solve_time=False):
         """
@@ -183,7 +223,8 @@ class OptiProbl:
             with open(directory / 'Solve_time.csv', mode='w', newline='\n') as file:
                 writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
                                        lineterminator="\n")
-                writer.writerow(['solve_elapsed_time', self.t])
+                writer.writerow(['ampl_elapsed_time', self.t[0]])
+                writer.writerow(['solve_elapsed_time', self.t[1]])
         return
 
     def read_outputs(self, directory=None):
@@ -203,7 +244,10 @@ class OptiProbl:
 
         with open(directory/'outputs.p', 'rb') as handle:
             self.outputs = pickle.load(handle)
-        # # if vars is an empty list, get vars
+
+        # # To save as csv
+
+        # #if vars is an empty list, get vars
         # if not self.vars:
         #     self.get_vars()
         # # read outputs
@@ -212,6 +256,13 @@ class OptiProbl:
         #     self.outputs[v] = pd.read_csv(directory / (v + '.csv'), index_col=0)
 
 
+    # def remove_outputs(self, directory):
+    #     for v in self.vars:
+    #         filename = directory / (v + '.csv')
+    #         try:
+    #             os.remove(filename)
+    #         except OSError:
+    #             print('Could not erase previous log file ' + filename)
 
     #############################
     #       STATIC METHODS      #
@@ -286,6 +337,7 @@ class OptiProbl:
 
     @staticmethod
     def to_pd(amplpy_df):
+        # TODO check if name of indexes can be nasme of corresponding sets
         """
 
                Function to transform an amplpy.DataFrame into pandas.DataFrame for easier manipulation
