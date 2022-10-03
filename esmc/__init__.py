@@ -70,6 +70,7 @@ from .preprocessing.dat_print import *
 from esmc.utils.region import Region
 from esmc.utils.opti_probl import OptiProbl
 from esmc.utils.esmc import Esmc
+from esmc.utils.df_utils import *
 from .postprocessing.amplpy2pd import print_json, read_json
 from  .postprocessing.postprocessing import get_used, get_var_cases, subgroup, subgroup_on_max, compute_convergence
 from .postprocessing.draw_sankey.ESSankey import drawSankey

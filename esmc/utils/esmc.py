@@ -4,14 +4,13 @@ This file contains a class to define an energy system
 """
 import logging
 import copy
-
 import numpy as np
-
 from esmc.utils.region import Region
 from esmc.utils.opti_probl import OptiProbl
 from esmc.preprocessing.temporal_aggregation import TemporalAggregation
 import esmc.preprocessing.dat_print as dp
 import esmc.postprocessing.amplpy2pd as a2p
+from esmc.utils.df_utils import clean_indices
 import shutil
 import git
 import pandas as pd
@@ -19,7 +18,8 @@ import csv
 from pathlib import Path
 from datetime import datetime
 
-#TODO
+
+# TODO
 # add logging and time different steps
 # dat_files not on github -> extern person cannot use them...
 # add error when no ampl license
@@ -28,7 +28,7 @@ from datetime import datetime
 # try approach of exchanges more on the link point of view
 # add into .mod some variables to have general results (ex: total prod over year:
 # Tech_wnd [y,l,tech] = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} layers_in_out [y,tech,l] * F_t [y,tech, h, td];))
-# /!\ data into xlsx not the same as in indep.dat and countries.dat (at least for layers_in_out)
+# /!\ data into xlsx not the same as in indep.dat and regions.dat (at least for layers_in_out)
 
 
 # TODO check 18TDs
@@ -45,47 +45,51 @@ class Esmc:
 
     """
 
-    def __init__(self, config, Nbr_TD=10):
+    def __init__(self, config, nbr_td=10):
         # identification of case study
         self.case_study = config['case_study']
         self.comment = config['comment']
         self.regions_names = config['regions_names']
         self.regions_names.sort()
         self.space_id = '_'.join(self.regions_names)  # identification of the spatial case study in one string
-        self.Nbr_TD = Nbr_TD
+        self.nbr_td = nbr_td
         self.gwp_limit_overall = config['gwp_limit_overall']
         self.year = config['year']
 
         # path definition
         self.project_dir = Path(__file__).parents[2]
-        self.dat_dir = self.project_dir/'case_studies'/'dat_files'/self.space_id
-        self.cs_dir = self.project_dir/'case_studies'/self.space_id/self.case_study
+        self.dat_dir = self.project_dir / 'case_studies' / 'dat_files' / self.space_id
+        self.cs_dir = self.project_dir / 'case_studies' / self.space_id / self.case_study
         # create directories
         self.dat_dir.mkdir(parents=True, exist_ok=True)
         self.cs_dir.mkdir(parents=True, exist_ok=True)
 
         # create and initialize regions
         self.ref_region = config['ref_region']
-        self.regions = dict()
+        self.regions = dict.fromkeys(self.regions_names,[])
+        self.data_indep = dict()
         self.data_exch = dict()
 
-
         # initialize TemporalAggregation object
+        self.ta = None
         # TODO self.spatial_aggreg = object spatial_aggreg
         #
 
         # create energy system optimization problem (esom)
         self.esom = None
 
+        # create empty dictionnary to be filled with main results
+        self.results = dict()
+
         return
 
-# TODO add an automated initialization for specific pipeline
+    # TODO add an automated initialization for specific pipeline
 
     def init_regions(self):
-        data_dir = self.project_dir/'Data'/str(self.year)
+        data_dir = self.project_dir / 'Data' / str(self.year)
         self.regions[self.ref_region] = Region(nuts=self.ref_region, data_dir=data_dir, ref_region=True)
         for r in self.regions_names:
-            if r!=self.ref_region:
+            if r != self.ref_region:
                 self.regions[r] = copy.deepcopy(self.regions[self.ref_region])
                 self.regions[r].__init__(nuts=r, data_dir=data_dir, ref_region=False)
 
@@ -95,7 +99,7 @@ class Esmc:
         """Initialize the temporal aggregator
 
         """
-        self.ta = TemporalAggregation(self.regions, self.dat_dir, Nbr_TD=self.Nbr_TD, algo=algo)
+        self.ta = TemporalAggregation(self.regions, self.dat_dir, Nbr_TD=self.nbr_td, algo=algo)
         return
 
     def update_version(self):
@@ -105,7 +109,7 @@ class Esmc:
 
         """
         # path of case_studies dir
-        cs_versions = self.cs_dir.parent/'versions.json'
+        cs_versions = self.cs_dir.parent / 'versions.json'
 
         # get git commit used
         repo = git.Repo(search_parent_directories=True)
@@ -117,7 +121,7 @@ class Esmc:
         # read versions dict
         try:
             versions = a2p.read_json(cs_versions)
-        except:
+        except FileNotFoundError:
             versions = dict()
 
         # update the key for this case_study
@@ -134,7 +138,21 @@ class Esmc:
         a2p.print_json(versions, cs_versions)
         return
 
-    def print_data(config, case='deter'):
+    def read_data_indep(self):
+        """Read the End-uses demands of the region and stores it in the data attribute as a dataframe
+
+        Returns
+        -------
+
+        """
+        data_path = self.project_dir / 'Data' / str(self.year) / '00_INDEP'
+        # the Demand is redefined fully without considering the ref_region
+        self.data_indep['Layers_in_out'] = pd.read_csv(data_path / 'Layers_in_out.csv', sep=';', header=[0],
+                                                       index_col=[0])
+        self.data_indep['Layers_in_out'] = clean_indices(self.data_indep['Layers_in_out'])
+        return
+
+    def print_data(self, config, case='deter'):
         """
         TODO adapt to multi-cells
 
@@ -467,7 +485,7 @@ class Esmc:
         #         writer.writerow(['# [A.6]'])
         #     print_df('param loss_network ', loss_network_df, out_path)
 
-    def print_td_data(self, EUD_params=None, RES_params=None, RES_mult_params=None):
+    def print_td_data(self, eud_params=None, res_params=None, res_mult_params=None):
         """
 
 
@@ -496,7 +514,7 @@ class Esmc:
         t_h_td = t_h_td[['par_l', 'H_of_Y', 'comma1', 'H_of_D', 'comma2', 'TD_number', 'par_r']]  # reordering columns
 
         # file to print to
-        dat_file = self.dat_dir / ('ESMC_' + str(self.Nbr_TD) + 'TD.dat')
+        dat_file = self.dat_dir / ('ESMC_' + str(self.nbr_td) + 'TD.dat')
 
         # PRINTING
         # printing signature of data file
@@ -515,31 +533,31 @@ class Esmc:
         dp.newline(dat_file, ['# -----------------------------', '# PARAMETERS DEPENDING ON NUMBER OF TYPICAL DAYS : ',
                               '# -----------------------------', ''])
         # printing nbr_tds
-        dp.print_param(param=self.Nbr_TD, out_path=dat_file, name='nbr_tds')
+        dp.print_param(param=self.nbr_td, out_path=dat_file, name='nbr_tds')
         # printing peak_sh_factor and peak_sc_factor
         dp.print_df(df=dp.ampl_syntax(peak_sh_factor), out_path=dat_file, name='param ')
         dp.print_df(df=dp.ampl_syntax(peak_sc_factor), out_path=dat_file, name='param ')
 
         # Default name of timeseries in DATA.xlsx and corresponding name in ESTD data file
-        if EUD_params is None:
+        if eud_params is None:
             # for EUD timeseries
-            EUD_params = {'Electricity (%_elec)': 'param electricity_time_series :=',
+            eud_params = {'Electricity (%_elec)': 'param electricity_time_series :=',
                           'Space Heating (%_sh)': 'param heating_time_series :=',
                           'Space Cooling (%_sc)': 'param cooling_time_series :=',
                           'Passanger mobility (%_pass)': 'param mob_pass_time_series :=',
                           'Freight mobility (%_freight)': 'param mob_freight_time_series :='}
-        if RES_params is None:
+        if res_params is None:
             # for resources timeseries that have only 1 tech linked to it
-            RES_params = {'PV': 'PV', 'Wind_offshore': 'WIND_OFFSHORE', 'Wind_onshore': 'WIND_ONSHORE'}
-        if RES_mult_params is None:
+            res_params = {'PV': 'PV', 'Wind_offshore': 'WIND_OFFSHORE', 'Wind_onshore': 'WIND_ONSHORE'}
+        if res_mult_params is None:
             # for resources timeseries that have several techs linked to it
-            RES_mult_params = {'Tidal': ['TIDAL_STREAM', 'TIDAL_RANGE'], 'Hydro_dam': ['HYDRO_DAM'],
+            res_mult_params = {'Tidal': ['TIDAL_STREAM', 'TIDAL_RANGE'], 'Hydro_dam': ['HYDRO_DAM'],
                                'Hydro_river': ['HYDRO_RIVER'],
                                'Solar': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
 
         # if only 1 country
-        N_c = 2  # TODO check if need adaptation for 1 region
-        if N_c == 1:
+        n_c = 2  # TODO check if need adaptation for 1 region
+        if n_c == 1:
             logging.warning('Only one region defined')
             # # printing EUD timeseries param
             # for l in EUD_params.keys():
@@ -596,11 +614,11 @@ class Esmc:
             #     TD_writer.writerow([';'])
         else:
             # printing EUD timeseries param
-            for l in EUD_params.keys():
-                dp.newline(out_path=dat_file, comment=[EUD_params[l]])
+            for i in eud_params.keys():
+                dp.newline(out_path=dat_file, comment=[eud_params[i]])
                 for r in self.regions:
                     # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the name of the time series, put it into ampl syntax and print it
-                    dp.print_df(df=dp.ampl_syntax(self.regions[r].ts_td.loc[(l, slice(None)), :].droplevel(level=0)),
+                    dp.print_df(df=dp.ampl_syntax(self.regions[r].ts_td.loc[(i, slice(None)), :].droplevel(level=0)),
                                 out_path=dat_file,
                                 name='["' + r + '",*,*] : ', end_table=False)
                 dp.end_table(out_path=dat_file)
@@ -608,26 +626,26 @@ class Esmc:
             # printing c_p_t param #
             dp.newline(out_path=dat_file, comment=['param c_p_t:='])
             # printing c_p_t part where 1 ts => 1 tech
-            for l in RES_params.keys():
+            for i in res_params.keys():
                 for r in self.regions:
                     # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the name of the time series, put it into ampl syntax and print it
-                    dp.print_df(df=dp.ampl_syntax(self.regions[r].ts_td.loc[(l, slice(None)), :].droplevel(level=0)),
+                    dp.print_df(df=dp.ampl_syntax(self.regions[r].ts_td.loc[(i, slice(None)), :].droplevel(level=0)),
                                 out_path=dat_file,
-                                name='["' + RES_params[l] + '","' + r + '",*,*] :', end_table=False)
+                                name='["' + res_params[i] + '","' + r + '",*,*] :', end_table=False)
 
             # printing c_p_t part where 1 ts => more then 1 tech
-            for l in RES_mult_params.keys():
-                for j in RES_mult_params[l]:
+            for i in res_mult_params.keys():
+                for j in res_mult_params[i]:
                     for r in self.regions:
                         # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the name of the time series, put it into ampl syntax and print it
                         dp.print_df(
-                            df=dp.ampl_syntax(self.regions[r].ts_td.loc[(l, slice(None)), :].droplevel(level=0)),
+                            df=dp.ampl_syntax(self.regions[r].ts_td.loc[(i, slice(None)), :].droplevel(level=0)),
                             out_path=dat_file, name='["' + j + '","' + r + '",*,*] :', end_table=False)
 
             dp.end_table(out_path=dat_file)
         return
 
-    def set_esom(self, ref_dir=None, ampl_options=None, copy=True):
+    def set_esom(self, ref_dir=None, ampl_options=None, copy_from_ref=True):
         """
 
         Set the energy system optimisation model (esom) with the mod and dat files from ref_dir that are copied into the
@@ -635,22 +653,22 @@ class Esmc:
         """
 
         # path where to copy them for this case study
-        mod_path =  self.cs_dir/'ESMC_model_AMPL.mod'
-        data_path = [self.cs_dir/('ESMC_' + str(self.Nbr_TD) + 'TD.dat'),
+        mod_path = self.cs_dir / 'ESMC_model_AMPL.mod'
+        data_path = [self.cs_dir / ('ESMC_' + str(self.nbr_td) + 'TD.dat'),
                      self.cs_dir / 'ESMC_indep.dat',
-                     self.cs_dir / 'ESMC_countries.dat']
+                     self.cs_dir / 'ESMC_regions.dat']
 
-        # TODO adapt for the case where we print countries.dat and indep.dat from data
+        # TODO adapt for the case where we print regions.dat and indep.dat from data
         # if new case study, we copy ref files if not, we keep the ones that exist
-        if copy:
+        if copy_from_ref:
             # path of the reference files for ampl
             if ref_dir is None:
                 ref_dir = self.project_dir / 'case_studies' / 'dat_files'
 
             mod_ref = self.project_dir / 'esmc' / 'energy_model' / 'ESMC_model_AMPL.mod'
-            data_ref = [ref_dir / self.space_id / ('ESMC_' + str(self.Nbr_TD) + 'TD.dat'),
+            data_ref = [ref_dir / self.space_id / ('ESMC_' + str(self.nbr_td) + 'TD.dat'),
                         ref_dir / 'ESMC_indep.dat',
-                        ref_dir / self.space_id / 'ESMC_countries.dat']
+                        ref_dir / self.space_id / 'ESMC_regions.dat']
 
             # copy the files from ref_dir to case_study directory
             shutil.copyfile(mod_ref, mod_path)
@@ -670,7 +688,7 @@ class Esmc:
                              'display=0']
             cplex_options_str = ' '.join(cplex_options)
             ampl_options = {'show_stats': 3,
-                            'log_file': str(self.cs_dir/'log.txt'),
+                            'log_file': str(self.cs_dir / 'log.txt'),
                             'presolve': 0,
                             'times': 0,
                             'gentimes': 0,
@@ -680,7 +698,7 @@ class Esmc:
         self.esom = OptiProbl(mod_path=mod_path, data_path=data_path, options=ampl_options)
         return
 
-    def solve_esom(self, run=True, outputs=True):
+    def solve_esom(self, run=True, outputs=False):
         """Solves the esom wih ampl
 
         Parameters
@@ -692,7 +710,7 @@ class Esmc:
         -------
 
         """
-        #TODO
+        # TODO
         # Add possibility to choose options
         # Add possibility to print things into the log
 
@@ -704,13 +722,13 @@ class Esmc:
 
         if run:
             self.esom.run_ampl()
+            logging.info('Finished run')
             self.esom.get_solve_time()
             # print in log main outputs
-            self.esom.ampl.eval('print "TotalGWP_global", sum{c in COUNTRIES} (TotalGWP[c]);')
-            self.esom.ampl.eval('print "GWP_op_global", sum{c in COUNTRIES, r in RESOURCES} (GWP_op[c,r]);')
-            self.esom.ampl.eval('print "CO2_net_global", sum{c in COUNTRIES, r in RESOURCES} (CO2_net[c,r]);')
-            self.esom.ampl.eval('print "TotalCost_global", sum{c in COUNTRIES} (TotalCost[c]);')
-
+            self.esom.ampl.eval('print "TotalGWP_global", sum{c in REGIONS} (TotalGWP[c]);')
+            self.esom.ampl.eval('print "GWP_op_global", sum{c in REGIONS, r in RESOURCES} (GWP_op[c,r]);')
+            self.esom.ampl.eval('print "CO2_net_global", sum{c in REGIONS, r in RESOURCES} (CO2_net[c,r]);')
+            self.esom.ampl.eval('print "TotalCost_global", sum{c in REGIONS} (TotalCost[c]);')
 
         if outputs:
             self.esom.get_outputs()
@@ -719,11 +737,381 @@ class Esmc:
     def prints_esom(self, inputs=True, outputs=True, solve_time=False):
         if inputs:
             self.esom.print_inputs()
+
+        directory = self.cs_dir / 'outputs'
         if outputs:
-            self.esom.print_outputs(solve_time=solve_time)
+            directory.mkdir(parents=True, exist_ok=True)
+
+            for key,df in self.results.items():
+                df.to_csv(directory/(key+'.csv'))
+            # self.esom.print_outputs(solve_time=solve_time)
+        # TODO here, some part has dissapeared...
+        if solve_time:
+            s=1
         return
 
+    def get_year_results(self):
+        """Wrapper function to get the year summary results"""
+        self.get_total_cost()
+        self.get_cost_breakdown()
+        self.get_gwp_breakdown()
+        self.get_resources()
+        self.get_assets()
+        self.get_sto_assets()
+        self.get_exchanges()
+        self.get_year_balance()
+        self.get_curt()
+        return
 
+    def get_total_cost(self):
+        """Get the total annualized cost of the energy system of the different regions
+            It is stored into self.esom.outputs['TotalCost'] and into self.results['TotalCost']
+        """
+        total_cost = self.esom.get_var('TotalCost').reset_index()#.rename(columns={'index0':'Region'})
+        # TotalCost.index = pd.CategoricalIndex(TotalCost.index, categories=self.regions_names, ordered=True)
+        total_cost['Regions'] = pd.Categorical(total_cost['Regions'], self.regions_names)
+        total_cost = total_cost.set_index(['Regions'])
+        total_cost.sort_index(inplace=True)
+        self.results['TotalCost'] = total_cost
 
+    def get_cost_breakdown(self):
+        """Gets the cost breakdown and stores it into the results"""
 
+        # Get the different costs variables
+        c_inv = self.esom.get_var('C_inv')#.rename(columns={'index0':'Region', 'index1':'Element'})
+        c_maint = self.esom.get_var('C_maint')#.rename(columns={'index0':'Region', 'index1':'Element'})
+        c_op = self.esom.get_var('C_op')#.rename(columns={'index0':'Region', 'index1':'Element'})
 
+        # set index names (for later merging)
+        index_names = ['Regions', 'Elements']
+        c_inv.index.names = index_names
+        c_maint.index.names = index_names
+        c_op.index.names = index_names
+
+        # Annualize the investiments
+        # create frames for concatenation (list of df to concat)
+        frames = list()
+        for n, r in self.regions.items():
+            r.compute_tau()
+            frames.append(r.data['tau'].copy())
+
+        all_tau = pd.concat(frames, axis=0, keys=self.regions_names)
+        all_tau.index.names = index_names
+        c_inv_ann = c_inv.mul(all_tau, axis=0)
+
+        # Merge costs into cost breakdown
+        cost_breakdown = c_inv_ann.merge(c_maint, left_index=True, right_index=True, how='outer') \
+            .merge(c_op, left_index=True, right_index=True, how='outer')
+        # Set regions and technologies/resources as categorical data for sorting
+        cost_breakdown = cost_breakdown.reset_index()
+        cost_breakdown['Regions'] = pd.Categorical(cost_breakdown['Regions'], self.regions_names)
+        self.categorical_esmc(df=cost_breakdown,col_name='Elements', el_name='Elements')
+        cost_breakdown.sort_values(by=['Regions', 'Elements'], axis=0, ignore_index=True, inplace=True)
+        cost_breakdown.set_index(['Regions', 'Elements'], inplace=True)
+
+        # put very small values as nan
+        treshold = 1e-2
+        cost_breakdown = cost_breakdown.mask((cost_breakdown > -treshold) & (cost_breakdown < treshold), np.nan)
+
+        # Store into results
+        self.results['Cost_breakdown'] = cost_breakdown
+        return
+
+    def get_gwp_breakdown(self):
+        """Get the gwp breakdown [ktCO2e/y] of the technologies and resources"""
+        # Get GWP_constr and GWP_op
+        gwp_constr = self.esom.get_var('GWP_constr')#.rename(columns={'index0':'Region', 'index1':'Element'})
+        gwp_op = self.esom.get_var('GWP_op')#.rename(columns={'index0':'Region', 'index1':'Element'})
+        co2_net = self.esom.get_var('CO2_net')#.rename(columns={'index0':'Region', 'index1':'Element'})
+
+        # set index names (for later merging)
+        index_names = ['Regions', 'Elements']
+        gwp_constr.index.names = index_names
+        gwp_op.index.names = index_names
+        co2_net.index.names = index_names
+
+        # Get lifetime of technologies from input data
+        # create frames for concatenation (list of df to concat)
+        frames = list()
+        for n, r in self.regions.items():
+            frames.append(r.data['Technologies'].loc[:, 'lifetime'].copy())
+        lifetime = pd.concat(frames, axis=0, keys=self.regions_names)
+
+        # annualize GWP_constr by dividing by lifetime
+        lifetime.index.names = index_names
+        gwp_constr_ann = pd.DataFrame(gwp_constr['GWP_constr'] / lifetime[0],
+                                      columns=['GWP_constr'])#.reset_index()
+
+        # merging emissions into gwp_breakdown
+        gwp_breakdown = gwp_constr_ann.merge(gwp_op \
+                                             .merge(co2_net,left_index=True, right_index=True),
+                                             left_index=True, right_index=True, how='outer').reset_index()
+
+        # Set regions and technologies/resources as categorical data for sorting
+        gwp_breakdown['Regions'] = pd.Categorical(gwp_breakdown['Regions'], self.regions_names)
+        self.categorical_esmc(df=gwp_breakdown,col_name='Elements', el_name='Elements')
+        gwp_breakdown.sort_values(by=['Regions', 'Elements'], axis=0, ignore_index=True, inplace=True)
+        gwp_breakdown.set_index(['Regions', 'Elements'], inplace=True)
+
+        # put very small values as nan
+        treshold = 1e-2
+        gwp_breakdown = gwp_breakdown.mask((gwp_breakdown>-treshold) & (gwp_breakdown<treshold), np.nan)
+
+        # store into results
+        self.results['Gwp_breakdown'] = gwp_breakdown
+        return
+
+    def get_resources(self):
+        """Get the Resources yearly local and exterior production, and import and exports"""
+        # Get results related to Resources and sum over all layers
+        r_year_local = self.esom.get_var('R_year_local').groupby(by=['Regions', 'Resources']).sum()
+        r_year_exterior = self.esom.get_var('R_year_exterior').groupby(by=['Regions', 'Resources']).sum()
+        r_year_import = self.esom.get_var('R_year_import').groupby(by=['Regions', 'Resources']).sum()
+        r_year_export = self.esom.get_var('R_year_export').groupby(by=['Regions', 'Resources']).sum()
+
+        # Get availabilities from input data
+        # create frames for concatenation (list of df to concat)
+        frames = list()
+        for n, r in self.regions.items():
+            frames.append(r.data['Resources'].loc[:, ['avail_local', 'avail_exterior']].copy())
+        resources = pd.concat(frames, axis=0, keys=self.regions_names)
+        resources.index.set_names(r_year_local.index.names, inplace=True)  # set proper name to index
+        # merge availabilities with uses of Resources
+        resources = resources.merge(r_year_local, left_index=True, right_index=True) \
+            .merge(r_year_exterior, left_index=True, right_index=True) \
+            .merge(r_year_import, left_index=True, right_index=True) \
+            .merge(r_year_export, left_index=True, right_index=True).reset_index()
+
+        # Set regions and resources as categorical data for sorting
+        resources['Regions'] = pd.Categorical(resources['Regions'], self.regions_names)
+        self.categorical_esmc(df=resources, col_name='Resources', el_name='Resources')
+        resources.sort_values(by=['Regions', 'Resources'], axis=0, ignore_index=True, inplace=True)
+        resources.set_index(['Regions', 'Resources'], inplace=True)
+
+        # put very small values as nan
+        treshold = 1e-2
+        resources = resources.mask((resources > -treshold) & (resources < treshold), np.nan)
+
+        # store into results
+        self.results['Resources'] = resources
+        return
+
+    def get_assets(self):
+        """Gets the assets and stores it into the results
+        Each assets is defined by its installed capacity (F) [GW], the bound on it (f_min,f_max) [GW] and its production on its main output layer (F_year) [GWh]
+        It has the following columns: ['index0', 'index1', 'F', 'f_min', 'f_max', 'F_year']
+        containing the following information:
+        [region,
+        technology,
+        installed capacity [GW] (or [GWh] for storage technologies),
+        lower bound on installed capacity [GW] (or [GWh] for storage technologies),
+        upper bound on installed capacity [GW] (or [GWh] for storage technologies),
+        year production]"""
+        # Get the assets
+        f = self.esom.get_var('F')  # installed capacity
+        f_year = self.esom.get_var('F_year')  # energy produced by the technology
+
+        # Get the bounds on F (f_min,f_max)
+        # create frames for concatenation (list of df to concat)
+        frames = list()
+        for n, r in self.regions.items():
+            frames.append(r.data['Technologies'].loc[:, ['f_min', 'f_max']].copy())
+        assets = f.merge(pd.concat(frames, axis=0, keys=self.regions_names)
+                         , left_on=['Regions', 'Technologies'], right_index=True) \
+            .merge(f_year, left_on=['Regions', 'Technologies'], right_on=['Regions', 'Technologies']).reset_index()
+        # set Regions and Technologies as categorical data and sort it
+        assets['Regions'] = pd.Categorical(assets['Regions'], self.regions_names)
+        self.categorical_esmc(df=assets, col_name='Technologies', el_name='Technologies')
+        assets.sort_values(by=['Regions', 'Technologies'], axis=0, ignore_index=True, inplace=True)
+        assets.set_index(['Regions', 'Technologies'], inplace=True)
+
+        # put very small values as nan
+        treshold = 1e-2
+        assets = assets.mask((assets > -treshold) & (assets < treshold), np.nan)
+        treshold = 1e-1
+        assets['F_year'] = assets['F_year'].mask((assets['F_year'] > -treshold) & (assets['F_year'] < treshold), np.nan)
+
+        # store assets into results
+        self.results['Assets'] = assets
+        return
+
+    def get_sto_assets(self):
+        """Get storage results
+        The installed capacity and yearly losses are already into assets"""
+        # assuming get assets is already run
+        # Get Storage_power (power balance at each hour)
+        storage_power = self.esom.get_var('Storage_power').reset_index().rename(
+            columns={'Storage_tech': 'Technologies'})
+
+        # Map TD time series into year time series
+        storage_power_yr_t = self.ta.from_td_to_year(ts_td=storage_power.set_index(['Typical_days', 'Hours']))
+
+        # compute the yearly flux of energy flowing into the storage technology
+        sto_flux_year = storage_power_yr_t[storage_power_yr_t['Storage_power'] < 1e-8] \
+            .groupby(['Regions', 'Technologies']).sum().reset_index().rename(
+            columns={'Storage_power': 'Year_energy_flux'})
+        sto_flux_year['Year_energy_flux'] = -sto_flux_year['Year_energy_flux']
+
+        # create sto_assets from copy() of assets
+        sto_assets = self.results['Assets'].copy()
+        sto_assets.rename(columns={'F_year': 'Losses'}, inplace=True)
+        # merge it with sto_flux_year
+        sto_assets = sto_assets.merge(sto_flux_year, left_index=True, right_on=['Regions', 'Technologies'],
+                                      how='right')
+
+        # Get storage_charge_time and storage_discharge_time from input data and compute maximum input and output power of the storage technology
+        # create frames for concatenation (list of df to concat)
+        frames = list()
+        for n, r in self.regions.items():
+            frames.append(r.data['Storage_power_to_energy'].copy())
+        sto_assets = sto_assets.merge(pd.concat(frames, axis=0, keys=self.regions_names)
+                                      , left_on=['Regions', 'Technologies'], right_index=True)
+        sto_assets['Storage_in_max'] = sto_assets['F'] / sto_assets['storage_charge_time']
+        sto_assets['Storage_out_max'] = sto_assets['F'] / sto_assets['storage_discharge_time']
+        sto_assets.drop(columns=['storage_charge_time', 'storage_discharge_time'], inplace=True)
+
+        # set Region and Technology as categorical data and sort it
+        sto_assets['Regions'] = pd.Categorical(sto_assets['Regions'], self.regions_names)
+        self.categorical_esmc(df=sto_assets, col_name='Technologies', el_name='Technologies')
+        sto_assets.sort_values(by=['Regions', 'Technologies'], axis=0, ignore_index=True, inplace=True)
+        sto_assets.set_index(['Regions', 'Technologies'], inplace=True)
+
+        # put very small values as nan
+        treshold = 1
+        sto_assets = sto_assets.mask((sto_assets > -treshold) & (sto_assets < treshold), np.nan)
+
+        # Store into results
+        self.results['Sto_assets'] = sto_assets
+        return
+
+    def get_exchanges(self):
+        """Gets the year exchanges and stores it into results"""
+        # Get the year exchanges
+        exchanges_year = self.esom.get_var('Exchanges_year')
+        transfer_capacity = self.esom.get_var('Transfer_capacity')
+        # set names of indices
+        exchanges_year.index.names = ['From', 'To', 'Resources']
+        transfer_capacity.index.names = ['To', 'From', 'Resources']
+
+        # compute utilization factor of lines
+        exchanges_year['Transfer_capacity'] = transfer_capacity['Transfer_capacity']
+        exchanges_year['Utilization_factor'] = \
+            exchanges_year['Exchanges_year'] / (transfer_capacity['Transfer_capacity'] * 8760)
+
+        # Set regions and resources as categorical data for sorting
+        exchanges_year = exchanges_year.reset_index()
+        exchanges_year['From'] = pd.Categorical(exchanges_year['From'], self.regions_names)
+        exchanges_year['To'] = pd.Categorical(exchanges_year['To'], self.regions_names)
+        self.categorical_esmc(df=exchanges_year, col_name='Resources', el_name='Resources')
+        exchanges_year.sort_values(by=['From', 'To', 'Resources'], axis=0, ignore_index=True, inplace=True)
+        exchanges_year.set_index(['From', 'To', 'Resources'], inplace=True)
+
+        # put very small values as nan
+        treshold = 1e-3
+        exchanges_year = exchanges_year.mask((exchanges_year > -treshold) & (exchanges_year < treshold), np.nan)
+
+        # store into results
+        self.results['Exchanges_year'] = exchanges_year
+        return
+
+    def get_year_balance(self):
+        """Get the year energy balance of each layer"""
+        # Get inputs/outputs of technologies, resources and demand on each layer and prepare names of columns for latter merging
+        f_year_layers = self.esom.get_var('F_year_layers').reset_index() \
+            .rename(columns={'Technologies': 'Elements', 'F_year_layers': 'Year_balance'})
+        r_year_local = self.esom.get_var('R_year_local').reset_index() \
+            .rename(columns={'Resources': 'Elements'})
+        r_year_exterior = self.esom.get_var('R_year_exterior').reset_index() \
+            .rename(columns={'Resources': 'Elements'})
+        r_year_import = self.esom.get_var('R_year_import').reset_index() \
+            .rename(columns={'Resources': 'Elements'})
+        r_year_export = self.esom.get_var('R_year_export').reset_index() \
+            .rename(columns={'Resources': 'Elements'})
+        end_uses_year = self.esom.get_var('End_uses_year').reset_index() \
+            .rename(columns={'End_uses_year': 'Year_balance'})
+
+        # Add a column to End_uses_year for compatibility with other df
+        end_uses_year['Elements'] = 'End_uses'
+        # End-uses should be negative
+        end_uses_year['Year_balance'] = -end_uses_year['Year_balance']
+
+        # compute balance of resources
+        r_year = r_year_local.copy().rename(columns={'R_year_local': 'Year_balance'})
+        r_year['Year_balance'] = r_year_local['R_year_local'] + r_year_exterior['R_year_exterior'] \
+                                 + r_year_import['R_year_import'] - r_year_export['R_year_export']
+
+        # concat dataframe to have the year balance
+        year_balance = pd.concat([r_year, f_year_layers, end_uses_year], axis=0)
+
+        # Set regions, elements and layers as categorical data for sorting
+        year_balance['Regions'] = pd.Categorical(year_balance['Regions'], self.regions_names)
+        ordered_tech = list(self.regions[self.ref_region].data['Technologies'].index)
+        ordered_res = list(self.regions[self.ref_region].data['Resources'].index)
+        ordered_list = ordered_tech.copy()
+        ordered_list.extend(ordered_res)
+        ordered_list.append('End_uses')
+        year_balance['Elements'] = pd.Categorical(year_balance['Elements'], ordered_list)
+        self.categorical_esmc(df=year_balance, col_name='Layers', el_name='Layers')
+        year_balance.sort_values(by=['Regions', 'Elements', 'Layers'], axis=0, ignore_index=True, inplace=True)
+
+        # Pivot in the form [(Regions,Elements),Layers]
+        year_balance = year_balance.pivot(index=['Regions', 'Elements'], columns=['Layers'])
+        year_balance = year_balance.droplevel(level=0, axis=1)  # get rid of 'Year_balance' as a column index level
+
+        # put very small values as nan
+        treshold = 1e-1
+        year_balance = year_balance.mask((year_balance.min(axis=1) > -treshold) & (year_balance.max(axis=1) < treshold),
+                                         np.nan)
+
+        # Store into results
+        self.results['Year_balance'] = year_balance
+        return
+
+    def get_curt(self):
+        """Gets the yearly curtailment of renewables"""
+        # Get curtailment
+        curt = self.esom.get_var('Curt').reset_index()
+        # Set regions as categorical data
+        curt['Regions'] = pd.Categorical(curt['Regions'], self.regions_names)
+        curt = curt.set_index(['Regions'])
+        curt.sort_index(inplace=True)
+        # Store Curt into results
+        self.results['Curt'] = curt
+        return
+
+    def categorical_esmc(self, df: pd.DataFrame, col_name: str, el_name: str):
+        """Transform the column (col_name) of the dataframe (df) into categorical data of the type el_name
+        df is modified by the function.
+
+        Parameters
+        __________
+        df: pd.DataFrame()
+        DataFrame to modify
+
+        col_name: str
+        Name of the column to transform into categorical data
+
+        el_name: {'Layers', 'Elements', 'Technologies', 'Resources'}
+        Type of element to consider. The order of the categorical data is taken from the input data.
+        Layers are taken as the column names of Layers_in_out
+        Elements are taken as the concatenation of the index of the Technologies and Resources dataframes of the ref_region
+        Technologies are taken as the index of the Technologies dataframe of the ref_region
+        Resources are taken as the index of the Resources dataframe of the ref_region
+        """
+        if el_name == 'Layers':
+            ordered_list = list(self.data_indep['Layers_in_out'].columns)
+        elif el_name == 'Elements':
+            ordered_tech = list(self.regions[self.ref_region].data['Technologies'].index)
+            ordered_res = list(self.regions[self.ref_region].data['Resources'].index)
+            ordered_list = ordered_tech.copy()
+            ordered_list.extend(ordered_res)
+        else:
+            # if el_name is Technologies or Resources
+            ordered_list = list(self.regions[self.ref_region].data[el_name].index)
+
+        df[col_name] = pd.Categorical(df[col_name], ordered_list)
+        return
+
+    # TODO here test
+    #  Add a function to get hourly data of layer balance and SOC of storages
+    #

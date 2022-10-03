@@ -5,6 +5,7 @@ import numpy as np
 from pathlib import Path
 
 import esmc.postprocessing.amplpy2pd as a2p
+from esmc.utils.df_utils import clean_indices
 
 
 
@@ -52,7 +53,7 @@ class Region:
         # The time series are redefined fully without considering the data of the ref_region
         # read the csv
         self.data['Time_series'] = pd.read_csv(self.data_path/'Time_series.csv', sep=';', header=[0], index_col=0)
-        self.data['Time_series'] = self.clean_indexes(self.data['Time_series'])
+        self.data['Time_series'] = clean_indices(self.data['Time_series'])
         return
 
     def read_weights(self):
@@ -65,7 +66,7 @@ class Region:
         # the Weights are redefined fully without considering the ref_region
         self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=';', header=[0], index_col=[0]).rename(columns={'Unnamed: 1': 'Weights','Cell importance': 'Cell_w'}).dropna(axis=0, how='any')
         self.data['Weights'].index.rename('Category', inplace=True)
-        self.data['Weights'] = self.clean_indexes(self.data['Weights'])
+        self.data['Weights'] = clean_indices(self.data['Weights'])
 
         # The time series without weight into data have NaN as Weight and Cell_w
         self.data['Weights'] = self.data['Weights'].reindex(self.data['Time_series'].columns, method=None, fill_value=np.nan)
@@ -80,7 +81,7 @@ class Region:
         """
         # the Demand is redefined fully without considering the ref_region
         self.data['Demand'] = pd.read_csv(self.data_path/'Demand.csv', sep=';', header=[0], index_col=[2])
-        self.data['Demand'] = self.clean_indexes(self.data['Demand'])
+        self.data['Demand'] = clean_indices(self.data['Demand'])
         return
 
     def read_resources(self):
@@ -90,12 +91,13 @@ class Region:
         -------
 
         """
+        # TODO change infinity to 1e15 and only back to infinity when printing
         r_path = self.data_path / 'Resources.csv'
         # if the file exist, update the data
         if r_path.is_file():
             # read csv and clean df
             df = pd.read_csv(r_path, sep=';', header=[2], index_col=[2])
-            df = self.clean_indexes(df)
+            df = clean_indices(df)
 
             # put df into attribute data
             if self.ref_region:
@@ -120,7 +122,7 @@ class Region:
         if r_path.is_file():
             # read csv and clean df
             df = pd.read_csv(r_path, sep=';', header=[0], index_col=[3], skiprows=[1])
-            df = self.clean_indexes(df)
+            df = clean_indices(df)
 
             # put df into attribute data
             if self.ref_region:
@@ -145,7 +147,7 @@ class Region:
         if r_path.is_file():
             # read csv and clean df
             df = pd.read_csv(r_path, sep=';', header=[0], index_col=[0])
-            df = self.clean_indexes(df)
+            df = clean_indices(df)
 
             # put df into attribute data
             if self.ref_region:
@@ -270,7 +272,7 @@ class Region:
         ts = self.pivot_ts(ts).transpose() # pivotting the ts in a daily format
         ts_td = ts.loc[:,td_count['TD_of_days']] # selecting only the ts of TDs
         # computing the total over the year by multiplying the total of each TD by the number of days it represents
-        tot_td = ts_td.groupby(level=0).sum(axis=0).mul(td_count.set_index('TD_of_days').loc[:,'#days'],axis=1).sum(axis=1)
+        tot_td = ts_td.groupby(level=0).sum().mul(td_count.set_index('TD_of_days').loc[:,'#days'],axis=1).sum(axis=1)
         ts_td = ts_td.mul(tot_yr/tot_td,axis=0, level=0).fillna(value=1e-4) # rescaling the ts of the TDs to have the same total over the year
         ts_td.columns = td_count['TD_number'] # set index to TD_number
         self.ts_td = ts_td
@@ -293,26 +295,19 @@ class Region:
         self.peak_sc_factor = max_sc_yr / max_sc_td
         return
 
-    @staticmethod
-    def clean_indexes(df):
-        """Cleans the leading and trailing spaces in the index and columns names
+    def compute_tau(self, i_rate=0.015):
+        """Compute the annualisation factor for each technology
 
         Parameters
-        ----------
-        df: pd.DataFrame
-        DataFrame to clean
-
-        Returns
-        -------
-        df: pd.DataFrame
-        Cleaned dataframe
-
+        ---------
+        i_rate : float
+        Discount rate
         """
-        if type(df.index[0]) == str:
-            df.index = df.index.str.strip()
-        if type(df.columns[0]) == str:
-            df.columns = df.columns.str.strip()
-
-        return df
+        # create a series i_rate with technologies names as index
+        tech = self.data['Technologies']
+        i_rate_s = pd.Series(i_rate, index=tech.index)
+        tau = i_rate_s * (1 + i_rate_s) ** tech['lifetime'] / (((1 + i_rate_s) ** tech['lifetime']) - 1)
+        self.data['tau'] = tau
+        return
 
 #TODO generate synthetic time series

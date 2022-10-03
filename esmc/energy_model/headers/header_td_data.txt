@@ -1,5 +1,5 @@
 #  -------------------------------------------------------------------------------------------------------------------------	 
-#	EnergyScope  TD  is  an  open-source  energy  model  suitable  for  country  scale  analysis.  It  is  a  simplified  representation  of  an  urban  or  national  energy  system  accounting  for  the  energy  flows 
+#	EnergyScope  TD  is  an  open-source  energy  model  suitable  for  regional  scale  analysis.  It  is  a  simplified  representation  of  an  urban  or  national  energy  system  accounting  for  the  energy  flows 
 #	within  its  boundaries.  Based  on  a  hourly  resolution,  it  optimises  the  design  and  operation  of  the  energy  system  while  minimizing  the  cost  of  the  system. 
 #	 
 #	Copyright  (C)  <2018-2019>  <Ecole  Polytechnique  F�d�rale  de  Lausanne  (EPFL),  Switzerland  and  Universit�  catholique  de  Louvain  (UCLouvain),  Belgium> 
@@ -21,7 +21,7 @@
 #  -------------------------------------------------------------------------------------------------------------------------	 
 
 # --------------------------
-# Data depending on TD, (and on COUNTRIES)
+# Data depending on TD, (and on REGIONS)
 # --------------------------
 
 #  SETS  depending  on  TD
