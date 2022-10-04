@@ -3,6 +3,8 @@
 This class defines the object TemporalAggregation and its methods
 to perform temporal aggregation on time series of multi-regional energy systems
 """
+import logging
+
 import numpy as np
 import pandas as pd
 import csv
@@ -76,8 +78,12 @@ class TemporalAggregation:
         By default, reads the following path : self.dat_dir / ('TD_of_days_' + str(self.Nbr_TD) + '.out')
         Stores the data into the attribute td_of_days as a pd.DataFrame()
         """
+        # default value of td_file
         if td_file is None:
             td_file = self.dat_dir / ('TD_of_days_' + str(self.Nbr_TD) + '.out')
+        # logging info
+        logging.info('Reading typical days from ' + str(td_file))
+        # reading td_of_days
         td_of_days = pd.read_csv(td_file, header=None)
         td_of_days.columns = ['TD_of_days']
         td_of_days.index = np.arange(1,366)
@@ -214,6 +220,10 @@ class TemporalAggregation:
         data_path = self.dat_dir/('data_'+str(self.Nbr_TD)+'.dat')
         log_file = self.dat_dir/('log_'+str(self.Nbr_TD)+'.txt')
 
+        # logging info
+        logging.info('Starting kmedoid clustering of typical days based on '+ str(data_path))
+
+
         # print .dat file
         self.print_dat(dat_file=data_path)
 
@@ -239,6 +249,9 @@ class TemporalAggregation:
                                   columns=['TD_of_days']).astype(int)
         td_of_days.to_csv(self.dat_dir/('TD_of_days_'+str(self.Nbr_TD)+'.out'), header=False, index=False, sep='\t')
         my_optimizer.ampl.close() # closing ampl object
+
+        # logging info
+        logging.info('End of typical days clustering')
         return td_of_days
 
     def generate_t_h_td(self):
@@ -270,6 +283,9 @@ class TemporalAggregation:
         # save into TemporalAggregation object
         self.t_h_td = t_h_td
         self.td_count = td_count
+
+        #logging info
+        logging.info('t_h_td and td_count generated')
         return
 
     def from_td_to_year(self, ts_td):

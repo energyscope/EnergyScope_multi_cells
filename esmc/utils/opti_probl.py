@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import logging
 import pandas as pd
 import csv
 from pathlib import Path
@@ -57,6 +58,7 @@ class OptiProbl:
             # display general info on the optimization
             self.ampl.eval('display solve_result;')
             self.ampl.eval('display solve_result_num;')
+            self.ampl.eval('display _ampl_elapsed_time;')
             self.ampl.eval('display _solve_elapsed_time;')
             self.get_solve_time()
         except Exception as e:
@@ -70,6 +72,7 @@ class OptiProbl:
        Get the solving time for ampl and stores it into t attribute
 
         """
+        logging.info('Getting _ampl_elapsed_time and _solve_elapsed_time')
         self.t = list()
         self.t.append(self.ampl.getData('_ampl_elapsed_time;').toList()[0])
         self.t.append(self.ampl.getData('_solve_elapsed_time;').toList()[0])

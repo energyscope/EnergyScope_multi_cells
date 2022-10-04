@@ -86,6 +86,7 @@ class Esmc:
     # TODO add an automated initialization for specific pipeline
 
     def init_regions(self):
+        logging.info('Initialising regions: ' + ', '.join(self.regions_names))
         data_dir = self.project_dir / 'Data' / str(self.year)
         self.regions[self.ref_region] = Region(nuts=self.ref_region, data_dir=data_dir, ref_region=True)
         for r in self.regions_names:
@@ -99,6 +100,7 @@ class Esmc:
         """Initialize the temporal aggregator
 
         """
+        logging.info('Initializing TemporalAggregation with '+algo+' algorithm')
         self.ta = TemporalAggregation(self.regions, self.dat_dir, Nbr_TD=self.nbr_td, algo=algo)
         return
 
@@ -110,6 +112,9 @@ class Esmc:
         """
         # path of case_studies dir
         cs_versions = self.cs_dir.parent / 'versions.json'
+
+        # logging info
+        logging.info('Updating '+str(cs_versions))
 
         # get git commit used
         repo = git.Repo(search_parent_directories=True)
@@ -146,6 +151,8 @@ class Esmc:
 
         """
         data_path = self.project_dir / 'Data' / str(self.year) / '00_INDEP'
+        # loggin info
+        logging.info('Read indep data from '+str(data_path))
         # the Demand is redefined fully without considering the ref_region
         self.data_indep['Layers_in_out'] = pd.read_csv(data_path / 'Layers_in_out.csv', sep=';', header=[0],
                                                        index_col=[0])
@@ -494,6 +501,13 @@ class Esmc:
 
         """
 
+        # file to print to
+        dat_file = self.dat_dir / ('ESMC_' + str(self.nbr_td) + 'TD.dat')
+
+        # logging info
+        logging.info('Printing TD data into ' + str(dat_file))
+
+
         # PRELIMINARY COMPUTATIONS
         # From temporal aggregation results (td_of_days): generate t_h_td and td_count
         # and compute rescaled typical days ts and peak_sh_factor for each region
@@ -513,8 +527,7 @@ class Esmc:
         t_h_td['comma2'] = ','
         t_h_td = t_h_td[['par_l', 'H_of_Y', 'comma1', 'H_of_D', 'comma2', 'TD_number', 'par_r']]  # reordering columns
 
-        # file to print to
-        dat_file = self.dat_dir / ('ESMC_' + str(self.nbr_td) + 'TD.dat')
+
 
         # PRINTING
         # printing signature of data file
@@ -665,10 +678,15 @@ class Esmc:
             if ref_dir is None:
                 ref_dir = self.project_dir / 'case_studies' / 'dat_files'
 
+            # logging
+            logging.info('Copying mod and dat files from '+str(ref_dir)+' to '+str(self.cs_dir))
+
+            # mod and data files ref path
             mod_ref = self.project_dir / 'esmc' / 'energy_model' / 'ESMC_model_AMPL.mod'
             data_ref = [ref_dir / self.space_id / ('ESMC_' + str(self.nbr_td) + 'TD.dat'),
                         ref_dir / 'ESMC_indep.dat',
                         ref_dir / self.space_id / 'ESMC_regions.dat']
+
 
             # copy the files from ref_dir to case_study directory
             shutil.copyfile(mod_ref, mod_path)
@@ -678,23 +696,25 @@ class Esmc:
 
         # default ampl_options
         if ampl_options is None:
+            logging.info('Using default ampl_options')
             cplex_options = ['baropt',
                              'predual=-1',
                              'barstart=4',
                              'crossover=0'
                              'timelimit 64800',
                              'bardisplay=1',
-                             'prestats=0',
-                             'display=0']
+                             'prestats=1',
+                             'display=2']
             cplex_options_str = ' '.join(cplex_options)
             ampl_options = {'show_stats': 3,
                             'log_file': str(self.cs_dir / 'log.txt'),
                             'presolve': 0,
-                            'times': 0,
-                            'gentimes': 0,
+                            'times': 1,
+                            'gentimes': 1,
                             'cplex_options': cplex_options_str}
 
         # set ampl for step_2
+        logging.info('Setting esom into '+str(self.cs_dir))
         self.esom = OptiProbl(mod_path=mod_path, data_path=data_path, options=ampl_options)
         return
 
@@ -721,8 +741,13 @@ class Esmc:
         self.esom.ampl.eval('print "Number of TDs", last(TYPICAL_DAYS);	')
 
         if run:
+            # logging info
+            logging.info('Solving optimisation problem')
+            # running esom
             self.esom.run_ampl()
+            # logging info
             logging.info('Finished run')
+            # get solve time
             self.esom.get_solve_time()
             # print in log main outputs
             self.esom.ampl.eval('print "TotalGWP_global", sum{c in REGIONS} (TotalGWP[c]);')
@@ -731,27 +756,39 @@ class Esmc:
             self.esom.ampl.eval('print "TotalCost_global", sum{c in REGIONS} (TotalCost[c]);')
 
         if outputs:
+            # TODO update
             self.esom.get_outputs()
         return
 
     def prints_esom(self, inputs=True, outputs=True, solve_time=False):
         if inputs:
+            # Printing input sets and parameters variables names
+            logging.info('Printing inputs')
             self.esom.print_inputs()
 
         directory = self.cs_dir / 'outputs'
         if outputs:
+            # Printing self.results into outputs
+            logging.info('Printing results into outputs')
             directory.mkdir(parents=True, exist_ok=True)
 
             for key,df in self.results.items():
                 df.to_csv(directory/(key+'.csv'))
-            # self.esom.print_outputs(solve_time=solve_time)
-        # TODO here, some part has dissapeared...
+
         if solve_time:
-            s=1
+            # Getting and printing solve time
+            if self.esom.t is None:
+                self.esom.get_solve_time()
+            with open(directory / 'Solve_time.csv', mode='w', newline='\n') as file:
+                writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
+                                    lineterminator="\n")
+                writer.writerow(['ampl_elapsed_time', self.esom.t[0]])
+                writer.writerow(['solve_elapsed_time', self.esom.t[1]])
         return
 
     def get_year_results(self):
         """Wrapper function to get the year summary results"""
+        logging.info('Getting year summary')
         self.get_total_cost()
         self.get_cost_breakdown()
         self.get_gwp_breakdown()
@@ -767,6 +804,7 @@ class Esmc:
         """Get the total annualized cost of the energy system of the different regions
             It is stored into self.esom.outputs['TotalCost'] and into self.results['TotalCost']
         """
+        logging.info('Getting TotalCost')
         total_cost = self.esom.get_var('TotalCost').reset_index()#.rename(columns={'index0':'Region'})
         # TotalCost.index = pd.CategoricalIndex(TotalCost.index, categories=self.regions_names, ordered=True)
         total_cost['Regions'] = pd.Categorical(total_cost['Regions'], self.regions_names)
@@ -776,6 +814,7 @@ class Esmc:
 
     def get_cost_breakdown(self):
         """Gets the cost breakdown and stores it into the results"""
+        logging.info('Getting Cost_breakdown')
 
         # Get the different costs variables
         c_inv = self.esom.get_var('C_inv')#.rename(columns={'index0':'Region', 'index1':'Element'})
@@ -819,6 +858,8 @@ class Esmc:
 
     def get_gwp_breakdown(self):
         """Get the gwp breakdown [ktCO2e/y] of the technologies and resources"""
+        logging.info('Getting Gwp_breakdown')
+
         # Get GWP_constr and GWP_op
         gwp_constr = self.esom.get_var('GWP_constr')#.rename(columns={'index0':'Region', 'index1':'Element'})
         gwp_op = self.esom.get_var('GWP_op')#.rename(columns={'index0':'Region', 'index1':'Element'})
@@ -863,6 +904,8 @@ class Esmc:
 
     def get_resources(self):
         """Get the Resources yearly local and exterior production, and import and exports"""
+        logging.info('Getting Yearly resources')
+
         # Get results related to Resources and sum over all layers
         r_year_local = self.esom.get_var('R_year_local').groupby(by=['Regions', 'Resources']).sum()
         r_year_exterior = self.esom.get_var('R_year_exterior').groupby(by=['Regions', 'Resources']).sum()
@@ -907,6 +950,8 @@ class Esmc:
         lower bound on installed capacity [GW] (or [GWh] for storage technologies),
         upper bound on installed capacity [GW] (or [GWh] for storage technologies),
         year production]"""
+        logging.info('Getting Assets')
+
         # Get the assets
         f = self.esom.get_var('F')  # installed capacity
         f_year = self.esom.get_var('F_year')  # energy produced by the technology
@@ -938,6 +983,8 @@ class Esmc:
     def get_sto_assets(self):
         """Get storage results
         The installed capacity and yearly losses are already into assets"""
+        logging.info('Getting Storage assets')
+
         # assuming get assets is already run
         # Get Storage_power (power balance at each hour)
         storage_power = self.esom.get_var('Storage_power').reset_index().rename(
@@ -986,6 +1033,8 @@ class Esmc:
 
     def get_exchanges(self):
         """Gets the year exchanges and stores it into results"""
+        logging.info('Getting Exchanges')
+
         # Get the year exchanges
         exchanges_year = self.esom.get_var('Exchanges_year')
         transfer_capacity = self.esom.get_var('Transfer_capacity')
@@ -1016,6 +1065,8 @@ class Esmc:
 
     def get_year_balance(self):
         """Get the year energy balance of each layer"""
+        logging.info('Getting Year_balance')
+
         # Get inputs/outputs of technologies, resources and demand on each layer and prepare names of columns for latter merging
         f_year_layers = self.esom.get_var('F_year_layers').reset_index() \
             .rename(columns={'Technologies': 'Elements', 'F_year_layers': 'Year_balance'})
@@ -1069,6 +1120,8 @@ class Esmc:
 
     def get_curt(self):
         """Gets the yearly curtailment of renewables"""
+        logging.info('Getting Curt')
+
         # Get curtailment
         curt = self.esom.get_var('Curt').reset_index()
         # Set regions as categorical data

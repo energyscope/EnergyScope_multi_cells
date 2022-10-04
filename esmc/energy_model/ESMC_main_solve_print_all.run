@@ -33,7 +33,6 @@ option times 1; # show time
 option gentimes 1; # show time
 option presolve 0;
 
-#option cplex_options  'mipdisplay 5 mipinterval 1000'; 
 option log_file 'output/log.txt';   #write the log in a .txt file. Create the file before running.
 
 option cplex_options $cplex_options 'timelimit 129600 '; 

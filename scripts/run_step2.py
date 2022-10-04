@@ -3,9 +3,6 @@ import sys
 sys.path.append('C:\\Users\\pathiran\\Documents\\Energy_system_modelling\\EnergyScope_multi_cells')
 from esmc import Esmc
 
-
-# TODO add logging
-
 tds = [38]#[12,36]#np.arange(36,38,4)#[2,4,6,8,10,12]#,16,20,24,28,32,36,40,44,48]
 
 for t in tds:
@@ -42,20 +39,11 @@ for t in tds:
     # Set the Energy Sytem Optimization Model (ESOM) as an ampl formulated problem
     my_model.set_esom()
 
-    # # Read the outputs from previously solved proble
-    # my_model.esom.read_outputs(directory=directory)
-    # # Print as pickle
-    # my_model.esom.print_outputs(directory=directory, solve_time=True)
-
-
     # Solving the ESOM
     my_model.solve_esom()
-    # Printing the results
-    # my_model.prints_esom(solve_time=True)
 
     # Getting and printing year results
     my_model.get_year_results()
-
     my_model.prints_esom(inputs=True, outputs=True, solve_time=True)
 
     # delete ampl object to free resources

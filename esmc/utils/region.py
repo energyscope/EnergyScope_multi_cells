@@ -187,6 +187,7 @@ class Region:
         Reads the data related to this region
 
         """
+        logging.info('Read data from '+str(self.data_path))
         self.read_ts()
         self.read_weights()
         self.read_eud()
