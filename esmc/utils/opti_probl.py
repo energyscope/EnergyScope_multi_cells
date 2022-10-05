@@ -111,15 +111,20 @@ class OptiProbl:
             self.params.append(n)
 
     def get_sets(self):
+        #TODO update to a more robust version
         """
 
                Function to sets of the LP optimization problem
 
-                      """
+        """
         self.sets = dict()
         for name, obj in self.ampl.getSets():
             if len(obj.instances()) <= 1:
-                self.sets[name] = obj.getValues().toList()
+                try:
+                    self.sets[name] = obj.getValues().toList()
+                except Exception as e:
+                    logging.warning(str(name) + ' set not working, replacing it by a empty list')
+                    self.sets [name] = list()
             else:
                 self.sets[name] = self.get_subset(obj)
 
@@ -335,6 +340,7 @@ class OptiProbl:
             try:
                 d[n] = o.getValues().toList()
             except Exception as e:
+                logging.warning(str(n) + ' subset not working, , replacing it by a empty list')
                 d[n] = list()
         return d
 

@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------------
-#	EnergyScope MC is an open-source energy model suitable for multi-country scale analysis. It is a simplified representation of a multi-regional energy system accounting for the energy flows
+#	EnergyScope MC is an open-source energy model suitable for multi-regional scale analysis. It is a simplified representation of a multi-regional energy system accounting for the energy flows
 #	within their boundaries. Based on a hourly resolution, it optimises the design and operation of the energy system while minimizing the cost of the system.
 #
 #	Copyright (C) <2018-2019> <Ecole Polytechnique Fédérale de Lausanne (EPFL), Switzerland and Université catholique de Louvain (UCLouvain), Belgium>
@@ -27,5 +27,5 @@
 # References based on Supplementary material
 
 # --------------------------
-# Data depending on COUNTRIES but not on TD
+# Data depending on REGIONS but not on TD
 # --------------------------

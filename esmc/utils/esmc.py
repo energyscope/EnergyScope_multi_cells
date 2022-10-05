@@ -814,6 +814,7 @@ class Esmc:
 
     def get_cost_breakdown(self):
         """Gets the cost breakdown and stores it into the results"""
+        # TODO add C_exch_network
         logging.info('Getting Cost_breakdown')
 
         # Get the different costs variables
