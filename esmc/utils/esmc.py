@@ -103,7 +103,7 @@ class Esmc:
 
         """
         logging.info('Initializing TemporalAggregation with '+algo+' algorithm')
-        self.ta = TemporalAggregation(self.regions, self.dat_dir, Nbr_TD=self.nbr_td, algo=algo)
+        self.ta = TemporalAggregation(self.regions, self.dat_dir/'td_dat', Nbr_TD=self.nbr_td, algo=algo)
         return
 
     def update_version(self):

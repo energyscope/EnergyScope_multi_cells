@@ -53,6 +53,7 @@ class TemporalAggregation:
         self.Nbr_TD = Nbr_TD
         self.regions = regions
         self.dat_dir = dat_dir
+        self.dat_dir.mkdir(parents=True, exist_ok=True)
         # pivot ts in each region to have (365x(24*N_ts))
         self.pivot_ts()
 
@@ -255,7 +256,7 @@ class TemporalAggregation:
 
         # get the clustering error and printong it
         self.e_ts = my_optimizer.ampl.get_objective('Euclidean_distance').value()
-        with open(self.dat_dir/'e_ts'+str(self.Nbr_TD)+'.txt', mode='w', newline='') as file:
+        with open(self.dat_dir/('e_ts'+str(self.Nbr_TD)+'.txt'), mode='w', newline='') as file:
             writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL)
             writer.writerow([str(self.e_ts)])
 
