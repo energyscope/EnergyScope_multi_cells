@@ -64,11 +64,11 @@ class Region:
 
         """
         # the Weights are redefined fully without considering the ref_region
-        self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=';', header=[0], index_col=[0]).rename(columns={'Unnamed: 1': 'Weights','Cell importance': 'Cell_w'}).dropna(axis=0, how='any')
+        self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=';', header=[0], index_col=[0]).dropna(axis=0, how='any')
         self.data['Weights'].index.rename('Category', inplace=True)
         self.data['Weights'] = clean_indices(self.data['Weights'])
 
-        # The time series without weight into data have NaN as Weight and Cell_w
+        # The time series without weight into data have NaN as Weight
         self.data['Weights'] = self.data['Weights'].reindex(self.data['Time_series'].columns, method=None, fill_value=np.nan)
         return
 
@@ -188,13 +188,61 @@ class Region:
 
         """
         logging.info('Read data from '+str(self.data_path))
-        self.read_ts()
-        self.read_weights()
+
         self.read_eud()
         self.read_resources()
         self.read_tech()
         self.read_storage_power_to_energy()
+        self.read_ts()
+        self.read_weights()
         self.read_misc()
+        return
+
+    def compute_cell_w(self, demand_ts=None, prod_ts=None):
+        """Compute the weight of each time series in the region (Cell_w)
+            
+        Parameters
+        ----------
+        demand_ts: list
+            List of demand time series. It should use the same nomenclature as time series data.
+        prod_ts : list
+            List of production time series. It should use the same nomenclature as time series data.
+        """
+        # Instantiate tot_ts and tot_yr
+        tot_ts = self.data['Time_series'].sum(axis=0)
+
+        # TODO automatise this
+        # default name of demand and prod ts if not given
+        if demand_ts is None:
+            demand_ts = ['ELECTRICITY', 'HEAT_LOW_T_SH', 'SPACE_COOLING']
+        if prod_ts is None:
+            prod_ts = ['PV', 'WIND_ONSHORE', 'WIND_OFFSHORE', 'HYDRO_DAM', 'HYDRO_RIVER', 'TIDAL', 'SOLAR']
+
+        # dictionnary for time series linking with multiple entries
+        demand_map = {'ELECTRICITY':['LIGHTING']}
+        res_mult_params = {'TIDAL': ['TIDAL_STREAM', 'TIDAL_RANGE'],
+                           'SOLAR': ['PT_POWER_BLOCK', 'ST_POWER_BLOCK', 'STIRLING_DISH']} # not putting DHN_SOLAR and DEC_SOLAR because f_max is infinite...
+            # TODO improve integration of solar_area and limits and adapt
+
+        # select only simple demand and prod ts
+        demand_simple = [t for t in demand_ts if t not in demand_map.keys()]
+        prod_simple = [t for t in prod_ts if t not in res_mult_params.keys()]
+
+        # multiply demand time series sum by the year consumption
+        tot_ts[demand_simple] = tot_ts[demand_simple]*self.data['Demand'].loc[demand_simple,:].sum(axis=1,numeric_only=True)
+        for t,l in demand_map.items():
+            tot_ts[t] = tot_ts[t]*self.data['Demand'].loc[l,:].sum(axis=1, numeric_only=True).sum(axis=0)
+        # multiply the sum of the production time series by the maximum potential (f_max in GW) of the corresponding technologies
+        tot_ts[prod_simple] = tot_ts[prod_simple]*self.data['Technologies'].loc[prod_simple,'f_max']
+        for t,l in res_mult_params.items():
+            tot_ts[t] = tot_ts[t]*self.data['Technologies'].loc[l,'f_max'].sum()
+
+        # Add Cell_w to the Weights data
+        self.data['Weights'].loc[:,'Cell_w'] = tot_ts*self.data['Weights'].loc[:,'Weights']
+
+        # TODO should be working
+        # 1. test it with Atlantic EU full temporal_agg
+        # 2. change weight info giving, give 1 if matters and nothing if not
         return
 
     def norm_ts(self, ts=None):
@@ -286,13 +334,13 @@ class Region:
         """
         if self.ts_td is None:
             logging.error('Call first rescale_td_ts to compute td_ts')
-
-        max_sh_td = self.ts_td.loc[('Space Heating (%_sh)', slice(None)),:].max().max()
-        max_sh_yr = self.data['Time_series'].loc[:,'Space Heating (%_sh)'].max()
+        # TODO this should be linked with the inputs for the names of the ts
+        max_sh_td = self.ts_td.loc[('HEAT_LOW_T_SH', slice(None)),:].max().max()
+        max_sh_yr = self.data['Time_series'].loc[:,'HEAT_LOW_T_SH'].max()
         self.peak_sh_factor = max_sh_yr/max_sh_td
 
-        max_sc_td = self.ts_td.loc[('Space Cooling (%_sc)', slice(None)), :].max().max()
-        max_sc_yr = self.data['Time_series'].loc[:, 'Space Cooling (%_sc)'].max()
+        max_sc_td = self.ts_td.loc[('SPACE_COOLING', slice(None)), :].max().max()
+        max_sc_yr = self.data['Time_series'].loc[:, 'SPACE_COOLING'].max()
         self.peak_sc_factor = max_sc_yr / max_sc_td
         return
 

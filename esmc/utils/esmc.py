@@ -554,19 +554,19 @@ class Esmc:
         # Default name of timeseries in DATA.xlsx and corresponding name in ESTD data file
         if eud_params is None:
             # for EUD timeseries
-            eud_params = {'Electricity (%_elec)': 'param electricity_time_series :=',
-                          'Space Heating (%_sh)': 'param heating_time_series :=',
-                          'Space Cooling (%_sc)': 'param cooling_time_series :=',
-                          'Passanger mobility (%_pass)': 'param mob_pass_time_series :=',
-                          'Freight mobility (%_freight)': 'param mob_freight_time_series :='}
+            eud_params = {'ELECTRICITY': 'param electricity_time_series :=',
+                          'HEAT_LOW_T_SH': 'param heating_time_series :=',
+                          'SPACE_COOLING': 'param cooling_time_series :=',
+                          'MOBILITY_PASSENGER': 'param mob_pass_time_series :=',
+                          'MOBILITY_FREIGHT': 'param mob_freight_time_series :='}
         if res_params is None:
             # for resources timeseries that have only 1 tech linked to it
-            res_params = {'PV': 'PV', 'Wind_offshore': 'WIND_OFFSHORE', 'Wind_onshore': 'WIND_ONSHORE'}
+            res_params = {'PV': 'PV', 'WIND_OFFSHORE': 'WIND_OFFSHORE', 'WIND_ONSHORE': 'WIND_ONSHORE',
+                          'HYDRO_DAM': 'HYDRO_DAM', 'HYDRO_RIVER': 'HYDRO_RIVER'}
         if res_mult_params is None:
             # for resources timeseries that have several techs linked to it
-            res_mult_params = {'Tidal': ['TIDAL_STREAM', 'TIDAL_RANGE'], 'Hydro_dam': ['HYDRO_DAM'],
-                               'Hydro_river': ['HYDRO_RIVER'],
-                               'Solar': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
+            res_mult_params = {'TIDAL': ['TIDAL_STREAM', 'TIDAL_RANGE'],
+                               'SOLAR': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
 
         # if only 1 country
         n_c = 2  # TODO check if need adaptation for 1 region

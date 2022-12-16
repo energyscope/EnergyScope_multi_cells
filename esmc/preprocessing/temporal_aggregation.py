@@ -105,6 +105,9 @@ class TemporalAggregation:
          and store them into the attributes n_daily_ts and weights
          The weights are normalized across regions according to the Cell_w
         """
+        # compute Cell_w in each region
+        for r in self.regions_names:
+            self.regions[r].compute_cell_w()
 
         # create frames for concatenation (list of df to concat)
         frames = list()
@@ -116,6 +119,8 @@ class TemporalAggregation:
         # concatenating and storing results into attributes
         self.n_daily_ts = pd.concat(frames, axis=1, keys=self.regions_names)
         self.weights = pd.concat(frames_w, keys=self.regions_names)
+
+
 
         # normalizing the weights accross regions
         self.normalize_weights()
@@ -131,9 +136,8 @@ class TemporalAggregation:
 
         """
         # demand and production time series names
-        prod_ts = ['PV', 'Wind_onshore', 'Wind_offshore', 'Hydro_dam', 'Hydro_river', 'Tidal', 'Solar']
-        demand_ts = ['Electricity (%_elec)', 'Space Heating (%_sh)', 'Space Cooling (%_sc)',
-                     'Passanger mobility (%_pass)', 'Freight mobility (%_freight)']
+        prod_ts = ['PV', 'WIND_ONSHORE', 'WIND_OFFSHORE', 'HYDRO_DAM', 'HYDRO_RIVER', 'TIDAL', 'SOLAR']
+        demand_ts = ['ELECTRICITY','HEAT_LOW_T_SH','SPACE_COOLING']
 
         self.weights.loc[:,'Weights_n'] = 0 # initialize normalized weights column
         # NORMALIZING WEIGHTS ACCROSS COUNTRIES #
@@ -141,7 +145,7 @@ class TemporalAggregation:
         regions_total[demand_ts] = self.weights.loc[(slice(None),demand_ts), 'Cell_w'].sum(axis=0) # total of demand ts weights
         regions_total[prod_ts] = self.weights.loc[(slice(None),prod_ts), 'Cell_w'].sum(axis=0) # total of production ts weights
 
-        #TODO automatize this (everything should happen in python code, prod and demand ts classification should be an input, set a treshold on cell_w and/or weight_n to neglect a ts, names should coincide with model's names)
+        # TODO automatize this (everything should happen in python code, prod and demand ts classification should be an input, set a treshold on cell_w and/or weight_n to neglect a ts, names should coincide with model's names)
         # replacing regions_total by the sum of demands for demands and the sum of potential productions for productions
 
         # first normalization
@@ -248,7 +252,16 @@ class TemporalAggregation:
         td_of_days = pd.DataFrame(cm.mul(np.arange(1, 366), axis=0).sum(axis=0), index=np.arange(1,366),
                                   columns=['TD_of_days']).astype(int)
         td_of_days.to_csv(self.dat_dir/('TD_of_days_'+str(self.Nbr_TD)+'.out'), header=False, index=False, sep='\t')
-        my_optimizer.ampl.close() # closing ampl object
+
+        # get the clustering error and printong it
+        self.e_ts = my_optimizer.ampl.get_objective('Euclidean_distance').value()
+        with open(self.dat_dir/'e_ts.txt', mode='w', newline='') as file:
+            writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow([str(self.e_ts)])
+
+        # closing ampl object
+        my_optimizer.ampl.close()
+
 
         # logging info
         logging.info('End of typical days clustering')
