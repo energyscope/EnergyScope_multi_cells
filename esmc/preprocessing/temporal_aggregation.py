@@ -151,7 +151,7 @@ class TemporalAggregation:
         # first normalization
         self.weights.loc[:,'Weights_n'] = (self.weights.loc[:,'Cell_w']).div(regions_total, axis=0, level=1)
         # sort out the ts with Weights_n < 0.02 and renormalize the Weights_n
-        self.weights.loc[self.weights['Weights_n']<0.001,'Weights_n'] = 0
+        self.weights.loc[self.weights['Weights_n']<0.001,'Weights_n'] = np.nan
         regions_total[demand_ts] = self.weights.loc[(slice(None), demand_ts), 'Weights_n'].sum(axis=0)  # total of demand ts weights
         regions_total[prod_ts] = self.weights.loc[(slice(None), prod_ts), 'Weights_n'].sum(axis=0)  # total of production ts weights
         # second normalization to have sum=1
@@ -169,9 +169,9 @@ class TemporalAggregation:
         """
         # use numpy broadcasting to multiply each time series by its weight
         self.n_data = self.numpy_broadcasting(self.weights.loc[:,'Weights_n'],self.n_daily_ts.transpose())
-        self.n_data.dropna(axis=0, how='any', inplace=True) # drop ts without weight
+        # drop ts without weight
+        self.n_data.dropna(axis=0, how='any', inplace=True)
         self.n_data = self.n_data.transpose() # transpose to the form (365x(n_ts*n_regions*24))
-
 
         return
 

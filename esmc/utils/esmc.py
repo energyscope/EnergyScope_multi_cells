@@ -65,7 +65,7 @@ class Esmc:
         self.cs_dir.mkdir(parents=True, exist_ok=True)
 
         # create and initialize regions
-        self.ref_region = config['ref_region']
+        self.ref_region_name = config['ref_region']
         self.regions = dict.fromkeys(self.regions_names,[])
         self.data_indep = dict()
         self.data_exch = dict()
@@ -88,11 +88,13 @@ class Esmc:
     def init_regions(self):
         logging.info('Initialising regions: ' + ', '.join(self.regions_names))
         data_dir = self.project_dir / 'Data' / str(self.year)
-        self.regions[self.ref_region] = Region(nuts=self.ref_region, data_dir=data_dir, ref_region=True)
+        self.ref_region = Region(nuts=self.ref_region_name, data_dir=data_dir, ref_region=True)
         for r in self.regions_names:
-            if r != self.ref_region:
-                self.regions[r] = copy.deepcopy(self.regions[self.ref_region])
+            if r != self.ref_region_name:
+                self.regions[r] = copy.deepcopy(self.ref_region)
                 self.regions[r].__init__(nuts=r, data_dir=data_dir, ref_region=False)
+            else:
+                self.regions[r] = self.ref_region
 
         return
 
@@ -153,7 +155,7 @@ class Esmc:
         data_path = self.project_dir / 'Data' / str(self.year) / '00_INDEP'
         # loggin info
         logging.info('Read indep data from '+str(data_path))
-        # the Demand is redefined fully without considering the ref_region
+        # reading layers_in_out
         self.data_indep['Layers_in_out'] = pd.read_csv(data_path / 'Layers_in_out.csv', sep=';', header=[0],
                                                        index_col=[0])
         self.data_indep['Layers_in_out'] = clean_indices(self.data_indep['Layers_in_out'])
@@ -1097,8 +1099,8 @@ class Esmc:
 
         # Set regions, elements and layers as categorical data for sorting
         year_balance['Regions'] = pd.Categorical(year_balance['Regions'], self.regions_names)
-        ordered_tech = list(self.regions[self.ref_region].data['Technologies'].index)
-        ordered_res = list(self.regions[self.ref_region].data['Resources'].index)
+        ordered_tech = list(self.ref_region.data['Technologies'].index)
+        ordered_res = list(self.ref_region.data['Resources'].index)
         ordered_list = ordered_tech.copy()
         ordered_list.extend(ordered_res)
         ordered_list.append('End_uses')
@@ -1155,13 +1157,13 @@ class Esmc:
         if el_name == 'Layers':
             ordered_list = list(self.data_indep['Layers_in_out'].columns)
         elif el_name == 'Elements':
-            ordered_tech = list(self.regions[self.ref_region].data['Technologies'].index)
-            ordered_res = list(self.regions[self.ref_region].data['Resources'].index)
+            ordered_tech = list(self.ref_region.data['Technologies'].index)
+            ordered_res = list(self.ref_region.data['Resources'].index)
             ordered_list = ordered_tech.copy()
             ordered_list.extend(ordered_res)
         else:
             # if el_name is Technologies or Resources
-            ordered_list = list(self.regions[self.ref_region].data[el_name].index)
+            ordered_list = list(self.ref_region.data[el_name].index)
 
         df[col_name] = pd.Categorical(df[col_name], ordered_list)
         return
