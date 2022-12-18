@@ -177,8 +177,8 @@ param solar_area{REGIONS} >= 0; # Maximum land available for PV deployement [km2
 
 
 # Parameters for additional freight due to exchanges calcultations
-param  dist{REGIONS}>=0; #travelled distance by fuels exchanged in each region
-param  c_exch_network{REGIONS,REGIONS,EXCHANGE_NETWORK_R} >= 0; # Investment cost of network connections between cells
+param  dist{REGIONS}>=0 default 0; #travelled distance by fuels exchanged in each region
+param  c_exch_network{REGIONS,REGIONS,EXCHANGE_NETWORK_R} >= 0 default 0; # Investment cost of network connections between cells
 
 
 
