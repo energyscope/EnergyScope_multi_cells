@@ -156,7 +156,7 @@ class TemporalAggregation:
         regions_total[demand_ts] = self.weights.loc[(slice(None), demand_ts), 'Weights_n'].sum(axis=0)  # total of demand ts weights
         regions_total[prod_ts] = self.weights.loc[(slice(None), prod_ts), 'Weights_n'].sum(axis=0)  # total of production ts weights
         # second normalization to have sum=1
-        self.weights.loc[:,'Weights_n'] = (self.weights.loc[:,'Weights_n']).div(regions_total, axis=0, level=1)
+        self.weights.loc[:,'Weights_n'] = (self.weights.loc[:,'Weights_n']).div(regions_total, axis=0, level=1)/2
         return
 
 
