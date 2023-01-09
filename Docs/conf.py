@@ -17,12 +17,12 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'EnergyScope_documentation'
-copyright = '2021, G. Limpens'
-author = 'G. Limpens'
+project = 'EnergyScope_Multi-Cells_documentation'
+copyright = '2023, P. Thiran'
+author = 'P. Thiran'
 
 # The full version, including alpha/beta/rc tags
-release = '2.2'
+release = '1.3'
 
 
 # -- General configuration ---------------------------------------------------

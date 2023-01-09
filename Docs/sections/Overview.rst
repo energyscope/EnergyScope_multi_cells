@@ -8,8 +8,8 @@ Overview
 
 :Version: |version| (|release|)
 :Date: |today|
-:Version main developer: Gauthier Limpens (UCLouvain)
-:Short summary: One cell *whole*-energy system with an hourly resolution and data for the Belgian energy system in 2035.
+:Version main developer: Paolo Thiran (UCLouvain)
+:Short summary: Mulit-regional *whole*-energy system with an hourly resolution and data for the European energy system in 2035.
 
 The EnergyScope model optimises the design and operation of all the energy sectors, with the same level of details. The energy sectors are defined as electricity, heat, mobility and non-energy demand. 
 
