@@ -702,7 +702,8 @@ class Esmc:
             cplex_options = ['baropt',
                              'predual=-1',
                              'barstart=4',
-                             'crossover=0'
+                             'comptol=1e-5',
+                             'crossover=0',
                              'timelimit 64800',
                              'bardisplay=1',
                              'prestats=1',
@@ -710,7 +711,7 @@ class Esmc:
             cplex_options_str = ' '.join(cplex_options)
             ampl_options = {'show_stats': 3,
                             'log_file': str(self.cs_dir / 'log.txt'),
-                            'presolve': 0,
+                            'presolve': 200,
                             'times': 1,
                             'gentimes': 1,
                             'cplex_options': cplex_options_str}

@@ -29,23 +29,16 @@ setup(
         'version_scheme': 'post-release',
         'local_scheme': lambda version: version.format_choice("" if version.exact else "+{node}", "+dirty"),
         'fallback_version': FINAL_RELEASE,
+        'normalize': False
     },
     python_requires='>=3.7',
     setup_requires=["setuptools_scm"],
     install_requires=[
         'numpy',
-        'matplotlib',
         'pandas',
-        'openpyxl',
-        'csv',
-        'json',
-        'os',
-        'shutil',
-        'pathlib',
-        'logging',
-        'git',
-        'datetime',
-        'amplpy'
+        'pyyaml',
+        'matplotlib',
+        'plotly'
     ],
     keywords=[]
 )
