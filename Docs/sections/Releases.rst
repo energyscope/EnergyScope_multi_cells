@@ -1,6 +1,9 @@
 Releases
 ++++++++
 
+.. caution ::
+   TO BE UPDATED TO MULTI-CELLS version
+
 How to cite
 ===========
 

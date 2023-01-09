@@ -3,6 +3,9 @@ Overview
 .. _label_sec_overview:
 
 
+.. caution ::
+   TO BE UPDATED TO MULTI-CELLS version
+
 :Version: |version| (|release|)
 :Date: |today|
 :Version main developer: Gauthier Limpens (UCLouvain)

@@ -1,6 +1,9 @@
 Getting started
 +++++++++++++++
 
+.. caution ::
+   TO BE UPDATED TO MULTI-CELLS version
+
 The model is a mathematical formulation of a linear programming. Ith can be solved with different solvers: CPLEX, Gurobi, GLPSOL, etc. 
 The model was originally developed in AMPL. Running the model in AMPL requires the licences of AMPL and of at least one LP solver.  
 

@@ -3,6 +3,9 @@
 Model formulation
 =================
 
+.. caution ::
+   TO BE UPDATED TO MULTI-CELLS version
+
 .. role:: raw-latex(raw)
    :format: latex
 ..

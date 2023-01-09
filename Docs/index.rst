@@ -1,11 +1,16 @@
-.. EnergyScope_documentation documentation master file, created by
+.. EnergyScope_Multi-Cells_documentation documentation master file, created by
    sphinx-quickstart on Thu Sep 30 10:32:01 2021.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-The EnergyScope model
+.. caution ::
+   UNDER CONSTRUCTION FROM THE ENERGYSCOPE_TD DoCUMENTATION
+   The latest documentation can be found in the github repository at https://github.com/energyscope/EnergyScope_multi_cells/tree/master/Documentation
+
+
+The EnergyScope Multi-Cells model
 =====================
-The EnergyScope project is an open-source whole-energy system for regional energy system. The model optimises the design and hourly operation over a year for a target year.
+The EnergyScope Multi-Cells project is an open-source multi-regional whole-energy system  model. It optimises the design and hourly operation of multiple interconnected regions over a year for a target year. It is build as an extension of the regional model `EnergyScope <https://github.com/energyscope/EnergyScope/>`_
 
 
 .. .. figure:: /images/estd_graphical_abstract.png
@@ -23,8 +28,11 @@ The public version of EnergyScope can be downloaded in the Releases section or f
 Main contributors
 =================
 
-* Stefano **Moret** (`website <https://www.stefanomoret.com/>`_): moret.stefano@gmail.com
+* Paolo **Thiran**: paolo.thiran@gmail.com
+* Aurélia **Hernandez**
 * Gauthier **Limpens** : gauthierLimpens@gmail.com
+* Stefano **Moret** (`website <https://www.stefanomoret.com/>`_): moret.stefano@gmail.com
+
 
 
 Contents
