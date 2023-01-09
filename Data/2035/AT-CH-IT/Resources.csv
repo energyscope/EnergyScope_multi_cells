@@ -1,0 +1,6 @@
+;;;Local availability;Exterior availability;Direct and indirect emissions for local resource;Price for local resource;
+;;units;[GWh/y];[GWh/y];[ktCO2-eq./GWh];[Meuro/GWh];
+Category;Subcategory;parameter name;avail_local;avail_exterior;gwp_op_local;c_op_local;Comment
+Renewable;Biomass;WOOD;180053.38;0;0.0118;0.032815086;
+Renewable;Biomass;WET_BIOMASS;159873.41;0;0.0118;0.00575743;
+Non-renewable;Other non-renewable;WASTE;73362.5;0;0.1501;0.023080857;
