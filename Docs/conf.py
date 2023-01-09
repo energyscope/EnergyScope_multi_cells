@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'EnergyScope_Multi-Cells_documentation'
+project = 'EnergyScopeMC documentation'
 copyright = '2023, P. Thiran'
 author = 'P. Thiran'
 
