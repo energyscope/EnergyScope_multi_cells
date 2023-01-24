@@ -230,18 +230,6 @@ var Exch_Freight{REGIONS}>=0; # yearly additional freight due to exchanges
 var Transfer_capacity{c1 in REGIONS, c2 in REGIONS, i in RESOURCES} >= tc_min[c1, c2, i], <= 2*tc_max[c1, c2, i]; # Optimal transer capacity from c2 to c1
 var Curt{REGIONS} >=0;
 
-# Additional variables to compute yearly outputs
-var F_year {REGIONS, TECHNOLOGIES} ; # Yearly production of a technology on its main layer, or yearly losses if STORAGE_TECH
-var F_year_layers {REGIONS, TECHNOLOGIES, LAYERS}; # Yearly production/consumption of a technology on a layer, or yearly losses if STORAGE_TECH
-var R_year_local {REGIONS, RESOURCES, LAYERS} ; # Yearly local production of a resource on a layer
-var R_year_exterior {REGIONS, RESOURCES, LAYERS} ; # Yearly exterior production of a resource on a layer
-var R_year_import {REGIONS, RESOURCES, LAYERS} ; # Yearly import of a resource on a layer
-var R_year_export {REGIONS, RESOURCES, LAYERS} ; # Yearly export of a resource on a layer, including losses of exchanges
-var End_uses_year {REGIONS, LAYERS} ; # Year end-uses demand on each layer
-var Storage_power_layers {REGIONS, STORAGE_TECH, LAYERS, HOURS, TYPICAL_DAYS}; # Balance of power from storage technology to layer on each hour of each typical day. If it is negative, the storage is charging and positive discharging.
-var Storage_power {REGIONS, STORAGE_TECH, HOURS, TYPICAL_DAYS}; # Balance of power from storage technology on its main layer layer on each hour of each typical day. If it is negative, the storage is charging and positive discharging.
-var Exchanges_year {REGIONS, REGIONS, RESOURCES} ; # Yearly exchanges of resources between regions
-
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
 #########################################
@@ -536,11 +524,22 @@ subject to Minimum_RE_share {c in REGIONS} :
 	sum {j in RE_RESOURCES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (R_t_local [c, j, h, td]+ R_t_exterior [c, j, h, td] + R_t_import [c, j, h, td]) * t_op [h, td] 
 	>=	re_share_primary[c] *
 	sum {j in RESOURCES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (R_t_local [c, j, h, td]+ R_t_exterior [c, j, h, td] + R_t_import [c, j, h, td]) * t_op [h, td]	;
-		
-# [Eq. 38] Definition of min/max output of each technology as % of total output in a given layer. 
+
+
+## Those 2 equations or the 2 after must be activated but not both	
+# [Eq. 38] Definition of min/max output of each technology as % of total output in a given layer.
+subject to f_max_perc_train_pub {c in REGIONS}:
+	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,"TRAIN_PUB",h,td] * t_op[h,td]) 
+	<= fmax_perc [c,"TRAIN_PUB"] * sum {j in TECHNOLOGIES_OF_END_USES_TYPE["MOB_PUBLIC"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c, j, h, td] * t_op[h,td]);
+	
+# [Eq. 38] Definition of min/max output of each technology as % of total output in a given layer.
+subject to f_max_perc_tramway {c in REGIONS}:
+	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,"TRAMWAY_TROLLEY",h,td] * t_op[h,td]) 
+	<= fmax_perc [c,"TRAMWAY_TROLLEY"] * sum {j in TECHNOLOGIES_OF_END_USES_TYPE["MOB_PUBLIC"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c, j, h, td] * t_op[h,td]);
+
 subject to f_max_perc {c in REGIONS, eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE[eut]}:
-	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,j,h,td] * t_op[h,td]) <= fmax_perc [c,j] * 
-	(sum {j2 in TECHNOLOGIES_OF_END_USES_TYPE[eut], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c, j2, h, td] * t_op[h,td])
+	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,j,h,td] * t_op[h,td])
+	<= fmax_perc [c,j] *(sum {j2 in TECHNOLOGIES_OF_END_USES_TYPE[eut], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c, j2, h, td] * t_op[h,td])
 	+ sum {r in RESOURCES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out [r, eut] * (R_t_local [c, r, h, td] + R_t_exterior [c, r, h, td] + R_t_import [c, r, h, td] - (1 + exchange_losses[r])* R_t_export [c, r, h, td])));
 subject to f_min_perc {c in REGIONS, eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE[eut]}:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,j,h,td] * t_op[h,td]) >= fmin_perc [c,j] * 
@@ -603,47 +602,6 @@ subject to exportation {c1 in REGIONS, i in RESOURCES, h in HOURS, td in TYPICAL
 	R_t_export[c1, i, h, td]  = sum{c2 in REGIONS} Exch_exp[c1,c2,i,h,td];
 
 
-
-# Additional equation to compute summary variables for post-processing
-#---------------------------------------------------------------------
-subject to tech_year_summary {c in REGIONS, i in TECHNOLOGIES diff STORAGE_TECH}:
-	F_year[c, i] = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} F_t [c, i, h, td];
-	
-subject to tech_year_summary_layers {c in REGIONS, i in TECHNOLOGIES diff STORAGE_TECH, l in LAYERS}:
-	F_year_layers[c, i, l] = layers_in_out[i, l] * F_year [c, i];
-	
-subject to resources_local_year {c in REGIONS, r in RESOURCES, l in LAYERS}:
-	R_year_local[c, r, l] = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} layers_in_out[r, l] * R_t_local [c, r, h, td];
-	
-subject to resources_exterior_year {c in REGIONS, r in RESOURCES, l in LAYERS}:
-	R_year_exterior[c, r, l] = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} layers_in_out[r, l] * R_t_exterior [c, r, h, td];
-	
-subject to resources_import_year {c in REGIONS, r in RESOURCES, l in LAYERS}:
-	R_year_import[c, r, l] = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} layers_in_out[r, l] * R_t_import [c, r, h, td];
-	
-subject to resources_export_year {c in REGIONS, r in RESOURCES, l in LAYERS}:
-	R_year_export[c, r, l] = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} layers_in_out[r, l] * (1+exchange_losses[r]) * R_t_export [c, r, h, td];
-
-subject to end_uses_year {c in REGIONS, l in LAYERS}:
-	End_uses_year[c, l] = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} End_uses [c, l, h, td];
-
-# computing balance of storage power at each hour of each td
-subject to storage_power_balance_layers {c in REGIONS, j in STORAGE_TECH, l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
-	Storage_power_layers [c, j, l, h, td] = (Storage_out [c, j, l, h, td] - Storage_in [c, j, l, h, td]);
-	
-subject to storage_power_balance {c in REGIONS, j in STORAGE_TECH, h in HOURS, td in TYPICAL_DAYS}:
-	Storage_power [c, j, h, td] = sum{l in LAYERS} Storage_power_layers [c, j, l, h, td];
-	
-subject to storage_losses_year_layers {c in REGIONS, j in STORAGE_TECH, l in LAYERS}:
-	F_year_layers [c, j, l] = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} Storage_power_layers [c, j, l, h, td];
-	
-subject to storage_losses_year {c in REGIONS, j in STORAGE_TECH}:
-	F_year [c, j] = sum {l in LAYERS} F_year_layers [c, j, l] ;
-
-subject to exchanges_year {c1 in REGIONS, c2 in REGIONS, r in RESOURCES diff NOEXCHANGES}:
-	Exchanges_year [c1, c2, r] = sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}  (Exch_exp[c1, c2, r, h, td]);
-
-
 ##########################
 ### OBJECTIVE FUNCTION ###
 ##########################
@@ -654,6 +612,3 @@ minimize obj:  sum{c in REGIONS} (TotalCost[c] - Curt[c]*0.000001);
 ## formula for GWP_op optimization
 # sum{c in REGIONS, r in RESOURCES} (GWP_op [c,r]);
 # 
-
-
-
