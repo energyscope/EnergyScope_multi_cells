@@ -1,19 +1,21 @@
+from esmc import Esmc
+import numpy as np
+
 # additional line for VS studio
 import sys
 sys.path.append('C:\\Users\\pathiran\\Documents\\Energy_system_modelling\\EnergyScope_multi_cells')
-from esmc import Esmc
 
-tds = np.concatenate((np.arange(2,62,2),np.arange(62,112,4),np.array([120,140,160,180,365])))
+tds = np.concatenate((np.arange(2, 62, 2), np.arange(62, 112, 4), np.array([120, 140, 160, 180, 365])))
 all_regions = [['AT-CH-IT'], ['BE-DE-LU-NL'], ['DK-SE'], ['ES-PT'], ['FR'], ['IE-UK'],
                ['BE-DE-LU-NL', 'FR'],
                ['ES-PT', 'FR', 'IE-UK'],
-               ['AT-CH-IT','BE-DE-LU-NL','DK-SE','ES-PT', 'FR', 'IE-UK']
+               ['AT-CH-IT', 'BE-DE-LU-NL', 'DK-SE', 'ES-PT', 'FR', 'IE-UK']
                ]
 
 for r in all_regions:
-    print ('Region: ', r)
+    print('Region: ', r)
     for t in tds:
-        print('Nbr_TDs: ',t)
+        print('Nbr_TDs: ', t)
 
         gwp_limit_overall = None
         re_share_primary = None

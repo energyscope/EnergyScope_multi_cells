@@ -1,12 +1,14 @@
+from esmc import Esmc
+import numpy as np
+
 # additional line for VS studio
 import sys
 sys.path.append('C:\\Users\\pathiran\\Documents\\Energy_system_modelling\\EnergyScope_multi_cells')
-from esmc import Esmc
 
-tds = [14]#np.concatenate((np.arange(2,62,2),np.arange(62,112,4),np.array([120,140,160,180,365])))
+tds = [14]  # np.concatenate((np.arange(2,62,2),np.arange(62,112,4),np.array([120,140,160,180,365])))
 
 for t in tds:
-    print('Nbr_TDs',t)
+    print('Nbr_TDs', t)
 
     gwp_limit_overall = None
     re_share_primary = None
