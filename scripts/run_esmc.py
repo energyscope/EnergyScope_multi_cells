@@ -3,7 +3,7 @@ import sys
 sys.path.append('C:\\Users\\pathiran\\Documents\\Energy_system_modelling\\EnergyScope_multi_cells')
 from esmc import Esmc
 
-tds = [14]#[12,36]#np.arange(36,38,4)#[2,4,6,8,10,12]#,16,20,24,28,32,36,40,44,48]
+tds = [14]#np.concatenate((np.arange(2,62,2),np.arange(62,112,4),np.array([120,140,160,180,365])))
 
 for t in tds:
     print('Nbr_TDs',t)
@@ -48,7 +48,5 @@ for t in tds:
     my_model.get_year_results()
     my_model.prints_esom(inputs=True, outputs=True, solve_time=True)
 
-    tot = my_model.results['Year_balance'].groupby('Regions').sum()
-    print('N unbalanced layer: ', tot[tot>1].sum().sum())
     # delete ampl object to free resources
     my_model.esom.ampl.close()
