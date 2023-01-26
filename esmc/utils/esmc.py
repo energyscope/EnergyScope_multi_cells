@@ -72,7 +72,7 @@ class Esmc:
 
         # create and initialize regions
         self.ref_region_name = config['ref_region']
-        self.regions = dict.fromkeys(self.regions_names,[])
+        self.regions = dict.fromkeys(self.regions_names,None)
         self.data_indep = dict.fromkeys(['END_USES_CATEGORIES', 'Layers_in_out', 'Resources_indep',
                                          'Storage_characteristics', 'Storage_eff_in', 'Storage_eff_out',
                                          'user_defined_indep'
@@ -172,7 +172,7 @@ class Esmc:
         # reading storage_eff_in
         self.data_indep['Storage_eff_in'] = clean_indices(pd.read_csv(data_path / 'Storage_eff_in.csv',
                                                                       sep=';', header=[0], index_col=[0]))\
-            .dropna(axis=0,how='all')
+            .dropna(axis=0, how='all')
         return
 
     def print_data(self, config, case='deter'):
@@ -1258,20 +1258,25 @@ class Esmc:
             self.get_resources_and_exchanges()
 
         # get previously computed results, year fluxes of resources and technologies
-        f_year = self.results['Assets']['F_year']
-        r_year = self.results['Resources']['R_year_local'].fillna(0)\
-                 + self.results['Resources']['R_year_exterior'].fillna(0)\
-                 + self.results['Resources']['R_year_import'].fillna(0)\
-                 - self.results['Resources']['R_year_export'].fillna(0)
-        year_fluxes  = pd.concat([r_year,f_year], axis=0)
-        year_fluxes.index.set_names(['Regions', 'Elements'], inplace=True)
+        f_year = self.results['Assets']['F_year'].reset_index()\
+            .rename(columns={'Technologies': 'Elements'}).astype({'Elements': str})
+        r_year = (self.results['Resources']['R_year_local'].fillna(0)
+                  + self.results['Resources']['R_year_exterior'].fillna(0)
+                  + self.results['Resources']['R_year_import'].fillna(0)
+                  - self.results['Resources']['R_year_export'].fillna(0))\
+            .reset_index().rename(columns={'Resources': 'Elements', 0: 'R_year'}).astype({'Elements': str})
 
-        # Get storage_charge_time and storage_discharge_time from input data and compute maximum input and output power of the storage technology
+        year_fluxes  = pd.concat([r_year.set_index(['Regions', 'Elements'])['R_year'],
+                                  f_year.set_index(['Regions', 'Elements'])['F_year']
+                                  ], axis=0)
+
+        # Get storage_charge_time and storage_discharge_time from input data
+        # and compute maximum input and output power of the storage technology
         # create frames for concatenation (list of df to concat)
         frames = list()
         lio = self.data_indep['Layers_in_out'].copy()
         sto_eff = self.data_indep['Storage_eff_in'].copy()
-        sto_eff = sto_eff.mask(sto_eff > 0.001, 1) # storage efficiency only used to know on which layer it has an impact losses are already computed
+        sto_eff = sto_eff.mask(sto_eff > 0.001, 1) # storage eff only used to know on which layer it has an impact
         all_eff = pd.concat([lio,sto_eff], axis=0)
         for n, r in self.regions.items():
             frames.append(all_eff.copy())

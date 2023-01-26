@@ -1,9 +1,10 @@
-from esmc import Esmc
 import numpy as np
 
 # additional line for VS studio
 import sys
 sys.path.append('C:\\Users\\pathiran\\Documents\\Energy_system_modelling\\EnergyScope_multi_cells')
+from esmc import Esmc
+
 
 tds = [14]  # np.concatenate((np.arange(2,62,2),np.arange(62,112,4),np.array([120,140,160,180,365])))
 
@@ -15,8 +16,8 @@ for t in tds:
     f_perc = False
 
     # define configuration
-    config = {'case_study': 'test',
-              'comment': 'no comment',
+    config = {'case_study': 'test2',
+              'comment': 'debug concat with categories',
               'regions_names': ['ES-PT', 'FR', 'IE-UK'],
               'ref_region': 'FR',
               'gwp_limit_overall': gwp_limit_overall,

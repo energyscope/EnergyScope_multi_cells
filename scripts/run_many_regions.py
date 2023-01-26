@@ -1,9 +1,9 @@
-from esmc import Esmc
 import numpy as np
 
 # additional line for VS studio
 import sys
 sys.path.append('C:\\Users\\pathiran\\Documents\\Energy_system_modelling\\EnergyScope_multi_cells')
+from esmc import Esmc
 
 tds = np.concatenate((np.arange(2, 62, 2), np.arange(62, 112, 4), np.array([120, 140, 160, 180, 365])))
 all_regions = [['AT-CH-IT'], ['BE-DE-LU-NL'], ['DK-SE'], ['ES-PT'], ['FR'], ['IE-UK'],
