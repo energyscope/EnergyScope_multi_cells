@@ -511,7 +511,7 @@ subject to peak_space_cooling {c in REGIONS, j in TECHNOLOGIES_OF_END_USES_TYPE[
 
 # [Eq. 36]  constraint to reduce the GWP subject to Minimum_gwp_reduction :
 subject to Minimum_GWP_reduction {c in REGIONS}:
-	TotalGWP[c] <= gwp_limit[c];
+	sum{r in RESOURCES} (CO2_net [c,r]) <= gwp_limit[c];
 	
 # [Eq. 36]  constraint to reduce the GWP subject to Minimum_gwp_reduction :
 # Macro-cells: modified to account for direct emissions only
