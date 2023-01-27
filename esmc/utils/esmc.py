@@ -20,6 +20,7 @@ from datetime import datetime
 
 
 # TODO
+# adapt exchanges modelling by using this syntax (Borasio's wmodels): var ship {LAYERS, HOURS, TYPICAL_DAYS, r in REGIONS, r2 in REGIONS:r <> r2}; # resources transfer from one region (r) to another (r2)
 # add logging and time different steps
 # dat_files not on github -> extern person cannot use them...
 # add error when no ampl license
@@ -1235,6 +1236,7 @@ class Esmc:
         ordered_list = ordered_tech.copy()
         ordered_list.extend(ordered_res)
         ordered_list.append('END_USES')
+        year_balance['Elements'] = pd.Categorical(year_balance['Elements'], ordered_list)
         year_balance.sort_values(by=['Regions', 'Elements'], axis=0, ignore_index=True, inplace=True)
         year_balance.set_index(['Regions', 'Elements'], inplace=True)
 
