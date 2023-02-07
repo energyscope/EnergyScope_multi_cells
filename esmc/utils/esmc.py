@@ -640,7 +640,7 @@ class Esmc:
         if copy_from_ref:
             # path of the reference files for ampl
             if ref_dir is None:
-                ref_dir = self.project_dir / 'case_studies' / 'dat_files'
+                ref_dir = self.project_dir / 'esmc' / 'energy_model' / 'dat_files'
 
             # logging
             logging.info('Copying mod and dat files from ' + str(ref_dir) + ' to ' + str(self.cs_dir))
