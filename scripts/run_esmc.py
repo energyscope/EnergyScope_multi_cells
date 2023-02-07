@@ -2,7 +2,7 @@ import numpy as np
 
 # additional line for VS studio
 import sys
-sys.path.append('C:\\Users\\pathiran\\Documents\\Energy_system_modelling\\EnergyScope_multi_cells')
+sys.path.append('/home/pthiran/EnergyScope_multi_cells/')
 from esmc import Esmc
 
 
@@ -16,8 +16,8 @@ for t in tds:
     f_perc = False
 
     # define configuration
-    config = {'case_study': 'test2',
-              'comment': 'debug concat with categories',
+    config = {'case_study': 'test',
+              'comment': 'none',
               'regions_names': ['ES-PT', 'FR', 'IE-UK'],
               'ref_region': 'FR',
               'gwp_limit_overall': gwp_limit_overall,
@@ -36,7 +36,7 @@ for t in tds:
     # Initialize and solve the temporal aggregation algorithm:
     # if already run, set algo='read' to read the solution of the clustering
     # else, set algo='kmedoid' to run kmedoid clustering algorithm to choose typical days (TDs)
-    my_model.init_ta(algo='read')
+    my_model.init_ta(algo='kmedoid')
 
     # Print the time related data of the energy system optimization model using the TDs to represent it
     my_model.print_td_data()
@@ -49,7 +49,7 @@ for t in tds:
 
     # Getting and printing year results
     my_model.get_year_results()
-    my_model.prints_esom(inputs=True, outputs=True, solve_time=True)
+    my_model.prints_esom(inputs=True, outputs=True, solve_info=True)
 
     # delete ampl object to free resources
     my_model.esom.ampl.close()

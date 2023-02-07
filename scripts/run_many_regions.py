@@ -55,7 +55,7 @@ for r in all_regions:
 
         # Getting and printing year results
         my_model.get_year_results()
-        my_model.prints_esom(inputs=True, outputs=True, solve_time=True)
+        my_model.prints_esom(inputs=True, outputs=True, solve_info=True)
 
         # delete ampl object to free resources
         my_model.esom.ampl.close()
