@@ -586,100 +586,40 @@ class Esmc:
             res_mult_params = {'TIDAL': ['TIDAL_STREAM', 'TIDAL_RANGE'],
                                'SOLAR': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
 
-        # if only 1 country
-        n_c = 2  # TODO check if need adaptation for 1 region
-        if n_c == 1:
-            logging.warning('Only one region defined')
-            # # printing EUD timeseries param
-            # for l in EUD_params.keys():
-            #     with open(out_path, mode='a', newline='\n') as TD_file:
-            #         TD_writer = csv.writer(TD_file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
-            #                                lineterminator="\n")
-            #         TD_writer.writerow([EUD_params[l][0:-1]])
-            #     for c in countries:
-            #         name = l + '_' + c
-            #         ts = all_TD_ts[name]
-            #         ts.columns = np.arange(1, Nbr_TD + 1)
-            #         ts = ts * norm[name] / norm_TD[name]
-            #         ts.fillna(0, inplace=True)
-            #         ts.rename(columns={ts.shape[1]: str(ts.shape[1]) + ' ' + ':='}, inplace=True)
-            #         ts.to_csv(out_path, sep='\t', header=True, index=True, index_label='', mode='a',
-            #         quoting=csv.QUOTE_NONE)
-            #     with open(out_path, mode='a', newline='\n') as TD_file:
-            #         TD_writer = csv.writer(TD_file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
-            #                                lineterminator="\n")
-            #         TD_writer.writerow(';')
-            #         TD_writer.writerow([''])
-            #
-            # # printing c_p_t param #
-            # with open(out_path, mode='a', newline='\n') as TD_file:
-            #     TD_writer = csv.writer(TD_file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
-            #                            lineterminator="\n")
-            #     TD_writer.writerow(['param c_p_t:='])
-            #     # printing c_p_t part where 1 ts => 1 tech
-            # for l in RES_params.keys():
-            #     for c in countries:
-            #         name = l + '_' + c
-            #         ts = all_TD_ts[name]
-            #         ts.columns = np.arange(1, Nbr_TD + 1)
-            #         ts = ts * norm[name] / norm_TD[name]
-            #         ts.fillna(0, inplace=True)
-            #         ts.rename(columns={ts.shape[1]: str(ts.shape[1]) + ' ' + ':='}, inplace=True)
-            #         ts.to_csv(out_path, sep='\t', header=True, index=True, index_label='["' + RES_params[l] + '",*,*]
-            #         :',
-            #                   mode='a', quoting=csv.QUOTE_NONE)
-            # # printing c_p_t part where 1 ts => more then 1 tech
-            # for l in RES_mult_params.keys():
-            #     for j in RES_mult_params[l]:
-            #         for c in countries:
-            #             name = l + '_' + c
-            #             ts = all_TD_ts[name]
-            #             ts.columns = np.arange(1, Nbr_TD + 1)
-            #             ts = ts * norm[name] / norm_TD[name]
-            #             ts.fillna(0, inplace=True)
-            #             ts.rename(columns={ts.shape[1]: str(ts.shape[1]) + ' ' + ':='}, inplace=True)
-            #             ts.to_csv(out_path, sep='\t', header=True, index=True, index_label='["' + j + '",*,*] :',
-            #             mode='a',
-            #                       quoting=csv.QUOTE_NONE)
-            #
-            # with open(out_path, mode='a', newline='\n') as TD_file:
-            #     TD_writer = csv.writer(TD_file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
-            #                            lineterminator="\n")
-            #     TD_writer.writerow([';'])
-        else:
-            # printing EUD timeseries param
-            for i in eud_params.keys():
-                dp.newline(out_path=dat_file, comment=[eud_params[i]])
-                for r in self.regions:
-                    # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the
-                    # name of the time series, put it into ampl syntax and print it
-                    dp.print_df(df=dp.ampl_syntax(self.regions[r].ts_td.loc[(i, slice(None)), :].droplevel(level=0)),
-                                out_path=dat_file,
-                                name='["' + r + '",*,*] : ', end_table=False)
-                dp.end_table(out_path=dat_file)
 
-            # printing c_p_t param #
-            dp.newline(out_path=dat_file, comment=['param c_p_t:='])
-            # printing c_p_t part where 1 ts => 1 tech
-            for i in res_params.keys():
-                for r in self.regions:
-                    # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the
-                    # name of the time series, put it into ampl syntax and print it
-                    dp.print_df(df=dp.ampl_syntax(self.regions[r].ts_td.loc[(i, slice(None)), :].droplevel(level=0)),
-                                out_path=dat_file,
-                                name='["' + res_params[i] + '","' + r + '",*,*] :', end_table=False)
-
-            # printing c_p_t part where 1 ts => more than 1 tech
-            for i in res_mult_params.keys():
-                for j in res_mult_params[i]:
-                    for r in self.regions:
-                        # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index
-                        # with the name of the time series, put it into ampl syntax and print it
-                        dp.print_df(
-                            df=dp.ampl_syntax(self.regions[r].ts_td.loc[(i, slice(None)), :].droplevel(level=0)),
-                            out_path=dat_file, name='["' + j + '","' + r + '",*,*] :', end_table=False)
-
+        # printing EUD timeseries param
+        for i in eud_params.keys():
+            dp.newline(out_path=dat_file, comment=[eud_params[i]])
+            for r in self.regions:
+                # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the
+                # name of the time series, put it into ampl syntax and print it
+                dp.print_df(df=dp.ampl_syntax(self.regions[r].ts_td.loc[(i, slice(None)), :].droplevel(level=0)),
+                            out_path=dat_file,
+                            name='["' + r + '",*,*] : ', end_table=False)
             dp.end_table(out_path=dat_file)
+
+        # printing c_p_t param #
+        dp.newline(out_path=dat_file, comment=['param c_p_t:='])
+        # printing c_p_t part where 1 ts => 1 tech
+        for i in res_params.keys():
+            for r in self.regions:
+                # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the
+                # name of the time series, put it into ampl syntax and print it
+                dp.print_df(df=dp.ampl_syntax(self.regions[r].ts_td.loc[(i, slice(None)), :].droplevel(level=0)),
+                            out_path=dat_file,
+                            name='["' + res_params[i] + '","' + r + '",*,*] :', end_table=False)
+
+        # printing c_p_t part where 1 ts => more than 1 tech
+        for i in res_mult_params.keys():
+            for j in res_mult_params[i]:
+                for r in self.regions:
+                    # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index
+                    # with the name of the time series, put it into ampl syntax and print it
+                    dp.print_df(
+                        df=dp.ampl_syntax(self.regions[r].ts_td.loc[(i, slice(None)), :].droplevel(level=0)),
+                        out_path=dat_file, name='["' + j + '","' + r + '",*,*] :', end_table=False)
+
+        dp.end_table(out_path=dat_file)
         return
 
     def set_esom(self, ref_dir=None, ampl_options=None, copy_from_ref=True):
@@ -787,7 +727,7 @@ class Esmc:
             # logging info
             logging.info('Finished run')
             # get solve time
-            self.esom.get_solve_time()
+            self.esom.get_solve_info()
             # print in log main outputs
             self.esom.ampl.eval('print "TotalGWP_global", sum{c in REGIONS} (TotalGWP[c]);')
             self.esom.ampl.eval('print "GWP_op_global", sum{c in REGIONS, r in RESOURCES} (GWP_op[c,r]);')
@@ -799,7 +739,7 @@ class Esmc:
             self.esom.get_outputs()
         return
 
-    def prints_esom(self, inputs=True, outputs=True, solve_time=False):
+    def prints_esom(self, inputs=True, outputs=True, solve_info=False):
         if inputs:
             # Printing input sets and parameters variables names
             logging.info('Printing inputs')
@@ -814,15 +754,16 @@ class Esmc:
             for key, df in self.results.items():
                 df.to_csv(directory / (key + '.csv'))
 
-        if solve_time:
+        if solve_info:
             # Getting and printing solve time
             if self.esom.t is None:
-                self.esom.get_solve_time()
-            with open(directory / 'Solve_time.csv', mode='w', newline='\n') as file:
+                self.esom.get_solve_info()
+            with open(directory / 'Solve_info.csv', mode='w', newline='\n') as file:
                 writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
                                     lineterminator="\n")
-                writer.writerow(['ampl_elapsed_time', self.esom.t[0]])
-                writer.writerow(['solve_elapsed_time', self.esom.t[1]])
+                writer.writerow(['ampl_elapsed_time,', self.esom.t[0]])
+                writer.writerow(['solve_elapsed_time,', self.esom.t[1]])
+                writer.writerow(['solve_result_num,', self.esom.t[2]])
         return
 
     # TODO add a if none into results that need other results

@@ -8,7 +8,7 @@ import pickle
 from amplpy import AMPL, DataFrame
 from esmc.postprocessing import amplpy2pd as a2p
 
-
+# todo add possibility to choose solver with options aswell
 class OptiProbl:
     """
 
@@ -34,7 +34,7 @@ class OptiProbl:
         self.mod_path = mod_path
         self.data_path = data_path
         self.options = options
-        self.ampl = self.set_ampl(mod_path, data_path, options)
+        self.ampl = self.set_ampl(mod_path, data_path)
         self.vars = list()
         self.params = list()
         self.sets = dict()
@@ -50,32 +50,37 @@ class OptiProbl:
 
                """
         try:
+            # set options
+            for o in self.options:
+                self.ampl.setOption(o, self.options[o])
+
             self.ampl.solve()
             # reinitialize log printing options to have no log prints after solving
             self.ampl.setOption('show_stats',0)
             self.ampl.setOption('times',0)
             self.ampl.setOption('gentimes',0)
+
             # display general info on the optimization
-            self.ampl.eval('display solve_result;')
-            self.ampl.eval('display solve_result_num;')
-            self.ampl.eval('display _ampl_elapsed_time;')
-            self.ampl.eval('display _solve_elapsed_time;')
-            self.get_solve_time()
+            self.get_solve_info()
+
+            # stop printing into the log
+            self.ampl.setOption('log_file', "")
         except Exception as e:
             print(e)
             raise
         return
 
-    def get_solve_time(self):
+    def get_solve_info(self):
         """
 
-       Get the solving time for ampl and stores it into t attribute
+       Get the solving info (time and result) and stores it into t attribute
 
         """
-        logging.info('Getting _ampl_elapsed_time and _solve_elapsed_time')
+        logging.info('Getting solve_info')
         self.t = list()
         self.t.append(self.ampl.getData('_ampl_elapsed_time;').toList()[0])
         self.t.append(self.ampl.getData('_solve_elapsed_time;').toList()[0])
+        self.t.append(self.ampl.getData('solve_result_num;').toList()[0])
         # TODO understand why doesn't work with kmedoid_clustering
         return
 
@@ -227,7 +232,7 @@ class OptiProbl:
 
         if solve_time:
             if self.t is None:
-                self.get_solve_time()
+                self.get_solve_info()
             with open(directory / 'Solve_time.csv', mode='w', newline='\n') as file:
                 writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
                                        lineterminator="\n")
@@ -277,7 +282,7 @@ class OptiProbl:
     #############################
 
     @staticmethod
-    def set_ampl(mod_path, data_path, options):
+    def set_ampl(mod_path, data_path, solver='cplex'):
         """
 
         Initialize the AMPL() object containing the LP problem
@@ -304,9 +309,7 @@ class OptiProbl:
             ampl = AMPL()
             # define solver
             ampl.setOption('solver', 'cplex')
-            # set options
-            for o in options:
-                ampl.setOption(o, options[o])
+
             # Read the model and data files.
             ampl.read(mod_path)
             for d in data_path:
