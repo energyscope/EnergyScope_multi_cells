@@ -5,7 +5,7 @@ import pandas as pd
 import csv
 from pathlib import Path
 import pickle
-from amplpy import AMPL, DataFrame
+from amplpy import AMPL, Environment, DataFrame
 from esmc.postprocessing import amplpy2pd as a2p
 
 # todo add possibility to choose solver with options aswell
@@ -27,14 +27,14 @@ class OptiProbl:
 
     """
 
-    def __init__(self, mod_path, data_path, options):
+    def __init__(self, mod_path, data_path, options, solver='cplex', ampl_path=None):
         # instantiate different attributes
         self.dir = Path()
         self.dir = mod_path.parent
         self.mod_path = mod_path
         self.data_path = data_path
         self.options = options
-        self.ampl = self.set_ampl(mod_path, data_path)
+        self.ampl = self.set_ampl(mod_path, data_path, solver, ampl_path)
         self.vars = list()
         self.params = list()
         self.sets = dict()
@@ -282,7 +282,7 @@ class OptiProbl:
     #############################
 
     @staticmethod
-    def set_ampl(mod_path, data_path, solver='cplex'):
+    def set_ampl(mod_path, data_path, solver='cplex', ampl_path=None):
         """
 
         Initialize the AMPL() object containing the LP problem
@@ -296,6 +296,13 @@ class OptiProbl:
         List specifying the path of the different .dat files with the data of the LP problem
         in ampl syntax
 
+        solver : str
+        Name of the solver (default='cplex')
+
+        ampl_path : None or pathlib.Path
+        Default None means ampl is a path variable
+        otherwise, give the path to ampl binaries files and solver files
+
         options : dict
         Dictionary of the different options for ampl and the cplex solver
 
@@ -305,10 +312,16 @@ class OptiProbl:
 
         """
         try:
-            # Create an AMPL instance
-            ampl = AMPL()
-            # define solver
-            ampl.setOption('solver', 'cplex')
+            if ampl_path is None:
+                # Create an AMPL instance
+                ampl = AMPL()
+                # define solver
+                ampl.setOption('solver', solver)
+            else:
+                # Create an AMPL instance
+                ampl = AMPL(Environment(binary_directory=str(ampl_path)))#, binary_name='ampl.exe'))
+                # define solver
+                ampl.setOption('solver', str(ampl_path / solver))
 
             # Read the model and data files.
             ampl.read(mod_path)

@@ -1,4 +1,5 @@
 import numpy as np
+from pathlib import Path
 
 # additional line for VS studio
 import sys
@@ -11,6 +12,10 @@ tds = [14]  # np.concatenate((np.arange(2,62,2),np.arange(62,112,4),np.array([12
 for t in tds:
     print('Nbr_TDs', t)
 
+    # specify ampl_path (set None if ampl is in Path environment variable or the path to ampl if not)
+    ampl_path = Path(r'C:\Users\pathiran\ampl_mswin64')
+
+    # info to switch off unused constraints
     gwp_limit_overall = None
     re_share_primary = None
     f_perc = False
@@ -42,7 +47,7 @@ for t in tds:
     my_model.print_td_data()
 
     # Set the Energy System Optimization Model (ESOM) as an ampl formulated problem
-    my_model.set_esom()
+    my_model.set_esom(ampl_path=ampl_path)
 
     # Solving the ESOM
     my_model.solve_esom()

@@ -622,7 +622,7 @@ class Esmc:
         dp.end_table(out_path=dat_file)
         return
 
-    def set_esom(self, ref_dir=None, ampl_options=None, copy_from_ref=True):
+    def set_esom(self, ref_dir=None, ampl_options=None, copy_from_ref=True, solver='cplex', ampl_path=None):
         """
 
         Set the energy system optimisation model (esom) with the mod and dat files from ref_dir that are copied into the
@@ -679,7 +679,7 @@ class Esmc:
 
         # set ampl for step_2
         logging.info('Setting esom into ' + str(self.cs_dir))
-        self.esom = OptiProbl(mod_path=mod_path, data_path=data_path, options=ampl_options)
+        self.esom = OptiProbl(mod_path=mod_path, data_path=data_path, options=ampl_options, solver=solver, ampl_path=ampl_path)
 
         # deactivate some unused constraints
         if self.gwp_limit_overall is None:
