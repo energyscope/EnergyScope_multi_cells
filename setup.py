@@ -38,7 +38,8 @@ setup(
         'pandas',
         'pyyaml',
         'matplotlib',
-        'plotly'
+        'plotly',
+        'GitPython'
     ],
     keywords=[]
 )
