@@ -1,28 +1,19 @@
-Category;Subcategory;Technologies name;Technologies param;c_inv;c_maint;gwp_constr;lifetime;c_p;fmin_perc;fmax_perc;f_min;f_max;Comment
-;;Name (simplified);Name (in model and documents);"[Meuro/GW]
-[Meuro/GWh] 
-[Meuro/(Mkmpass/h)] 
-[Meuro/(Mtonkm/h)]";"[Meuro/GW]
-[Meuro/GWh] 
-[Meuro/(Mkmpass/h)] 
-[Meuro/(Mtonkm/h)]";"[ktonCO2_eq/GW]
-[ktonCO2_eq/GWh]
-[ktonCO2_eq/(Mkmpass/h)]
-[ktonCO2_eq/(Mtonkm/h)]";[years];[];[];[];[GW];[GW];
-Electricity;Electricity;Nuclear;NUCLEAR;4845.734619;102.930986;707.88;60;0.849;0;1;0;0;
-Electricity;Electricity;Photovoltaic;PV;870;10.815;2081.43;25;1;0;1;12.563;616;
-Electricity;Electricity;Parabolic trough power block;PT_POWER_BLOCK;1044.57;62.65;0;25;1;0;1;0;0;
-Electricity;Electricity;Solar tower power block;ST_POWER_BLOCK;50;5;0;25;1;0;1;0;23;
-Electricity;Electricity;Striling dish;STIRLING_DISH;6820;107.18;0;30;1;0;0;0;0;
-Electricity;Electricity;Wind onshore;WIND_ONSHORE;1040;2.89;622.85;30;1;0;1;15.058;152.3;
-Electricity;Electricity;Wind offshore;WIND_OFFSHORE;4974.633942;9.78;622.85;30;1;0;1;0;119;
-Electricity;Electricity;Hydro dam;HYDRO_DAM;4200.6993;21.0018;1692.88;40;1;0;1;0;1.00E-03;
-Electricity;Electricity;Hydro river;HYDRO_RIVER;5044.919936;50.4447982;1262.82;40;1;0;1;2.116;2.12E+00;
-Electricity;Electricity; tidal stream;NEW_TIDAL_STREAM;2769;4;0;20;1;0;0;0;0.00E+00;
-Electricity;Electricity;Tidal stream;TIDAL_STREAM;3752;165;0;20;1;0;1;0;2.88E+01;
-Electricity;Electricity;Tidal range;TIDAL_RANGE;2867;178;0;40;1;0;1;0;2.88E+01;
-Electricity;Electricity;Wave;WAVE;1909;42;0;20;1;0;0;0;0.00E+00;
-Electricity;Electricity;Geothermal power plant;GEOTHERMAL;7488;142.272;24929.09;30;0.86;0;1;0;1.30E+00;
-Heat;Heat low temperature centralised;Geothermal (DHN);DHN_DEEP_GEO;1500;57.04;808.76;30;0.85;0;1;0;0.00E+00;
-Storage;Electricity storage;Hydro dam storage;DAM_STORAGE;0;0;0;1;1;0;1;0;0.00E+00;
-Storage;Electricity storage;Pumped hydro storage;PHS;58.8;0;8.33;50;1;0;1;35;1.78E+03;
+Category;Subcategory;Technologies name;Technologies param;f_min;f_max;Comment
+;;Name (simplified);Name (in model and documents);[GW];[GW];
+Electricity;Electricity;Nuclear;NUCLEAR;0;0;
+Electricity;Electricity;Photovoltaic;PV;12.563;616;
+Electricity;Electricity;Parabolic trough power block;PT_POWER_BLOCK;0;0;
+Electricity;Electricity;Solar tower power block;ST_POWER_BLOCK;0;23;
+Electricity;Electricity;Striling dish;STIRLING_DISH;0;0;
+Electricity;Electricity;Wind onshore;WIND_ONSHORE;15.058;152.3;
+Electricity;Electricity;Wind offshore;WIND_OFFSHORE;0;119;
+Electricity;Electricity;Hydro dam;HYDRO_DAM;0;1.00E-03;
+Electricity;Electricity;Hydro river;HYDRO_RIVER;2.116;2.12E+00;
+Electricity;Electricity; tidal stream;NEW_TIDAL_STREAM;0;0.00E+00;
+Electricity;Electricity;Tidal stream;TIDAL_STREAM;0;2.88E+01;
+Electricity;Electricity;Tidal range;TIDAL_RANGE;0;2.88E+01;
+Electricity;Electricity;Wave;WAVE;0;0.00E+00;
+Electricity;Electricity;Geothermal power plant;GEOTHERMAL;0;1.30E+00;
+Heat;Heat low temperature centralised;Geothermal (DHN);DHN_DEEP_GEO;0;0.00E+00;
+Storage;Electricity storage;Hydro dam storage;DAM_STORAGE;0;0.00E+00;
+Storage;Electricity storage;Pumped hydro storage;PHS;35;1.78E+03;
