@@ -96,7 +96,7 @@ class Region:
         # if the file exist, update the data
         if r_path.is_file():
             # read csv and clean df
-            df = pd.read_csv(r_path, sep=';', header=[2], index_col=[2])
+            df = pd.read_csv(r_path, sep=';', header=[2], index_col=[2]).dropna(axis=1, how='all')
             df = clean_indices(df)
 
             # put df into attribute data
@@ -121,7 +121,7 @@ class Region:
         # if the file exist, update the data
         if r_path.is_file():
             # read csv and clean df
-            df = pd.read_csv(r_path, sep=';', header=[0], index_col=[3], skiprows=[1])
+            df = pd.read_csv(r_path, sep=';', header=[0], index_col=[3], skiprows=[1]).drop(columns=['Comment'])
             df = clean_indices(df)
 
             # put df into attribute data
