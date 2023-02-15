@@ -19,12 +19,19 @@ def init_my_model(t, case, regions_names, add_dir='221219_mdpi_energies'):
     """Initialize Esmc object and reads input data and temporal aggregation related data"""
     # read inputs data
 
+
+    gwp_limit_overall = None
+    re_share_primary = None
+    f_perc = False
+
     # TODO Change this folder
     config = {'case_study': add_dir+'/'+str(t)+'TDs'+case,
               'comment': 'no comment',
               'regions_names': regions_names,
               'ref_region': 'FR',
-              'gwp_limit_overall': 1e15,
+              'gwp_limit_overall': gwp_limit_overall,
+              're_share_primary': re_share_primary,
+              'f_perc': f_perc,
               'year': 2035}
     # initialize EnergyScope Multi-cells framework
     my_model = Esmc(config, nbr_td=t)
@@ -88,7 +95,7 @@ def read_kmedoid_tds(tds, my_model):
 def compute_ts_from_td(td_of_days, ts):
     """Compute the synthetic time series from typical days
 
-    TO BE IMPROVED... too slow"""
+    TO BE IMPROVED... too slow -> use the same methods as for ts_td in regions and from_td_to_year in temporal_aggregation"""
     ts_from_td = ts.copy()
     for day in range(365):
         td = td_of_days.loc[day + 1]
