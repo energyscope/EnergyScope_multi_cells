@@ -38,7 +38,7 @@ class TemporalAggregation:
         Prints the animals name and what sound it makes
     """
 
-    def __init__(self, regions, dat_dir, Nbr_TD=10, algo='kmedoid'):
+    def __init__(self, regions, dat_dir, Nbr_TD=10, algo='kmedoid', ampl_path=None):
         """TODO
         Parameters
         ----------
@@ -67,7 +67,7 @@ class TemporalAggregation:
         self.td_of_days = pd.DataFrame()
         # run clustering algorithm
         if algo=='kmedoid':
-            self.td_of_days = self.kmedoid_clustering()
+            self.td_of_days = self.kmedoid_clustering(ampl_path=ampl_path)
         elif algo=='read':
             self.td_of_days = self.read_td_of_days()
         self.t_h_td = pd.DataFrame()
@@ -212,7 +212,7 @@ class TemporalAggregation:
         dp.print_df(df=dp.ampl_syntax(n_data), out_path=dat_file, name='param Ndata :')
         return
 
-    def kmedoid_clustering(self):
+    def kmedoid_clustering(self, ampl_path=None):
         """
 
         Returns
@@ -244,7 +244,7 @@ class TemporalAggregation:
                          'cplex_options': cplex_options_str}
 
         # create and run optimization problem
-        my_optimizer = OptiProbl(mod_path, [data_path], options)
+        my_optimizer = OptiProbl(mod_path, [data_path], options, ampl_path=ampl_path)
         my_optimizer.run_ampl()
         # get cluster_matrix, compute td_of_days and print it
         my_optimizer.get_outputs()

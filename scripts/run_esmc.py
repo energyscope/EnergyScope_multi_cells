@@ -41,7 +41,7 @@ for t in tds:
     # Initialize and solve the temporal aggregation algorithm:
     # if already run, set algo='read' to read the solution of the clustering
     # else, set algo='kmedoid' to run kmedoid clustering algorithm to choose typical days (TDs)
-    my_model.init_ta(algo='kmedoid')
+    my_model.init_ta(algo='kmedoid', ampl_path=ampl_path)
 
     # Print the time related data of the energy system optimization model using the TDs to represent it
     my_model.print_td_data()

@@ -111,12 +111,13 @@ class Esmc:
 
         return
 
-    def init_ta(self, algo='kmedoid'):
+    def init_ta(self, algo='kmedoid', ampl_path=None):
         """Initialize the temporal aggregator
 
         """
         logging.info('Initializing TemporalAggregation with ' + algo + ' algorithm')
-        self.ta = TemporalAggregation(self.regions, self.dat_dir / 'td_dat', Nbr_TD=self.nbr_td, algo=algo)
+        self.ta = TemporalAggregation(self.regions, self.dat_dir / 'td_dat', Nbr_TD=self.nbr_td, algo=algo
+                                      ,ampl_path=ampl_path)
         return
 
     def update_version(self):
