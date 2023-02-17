@@ -36,10 +36,12 @@ setup(
     install_requires=[
         'numpy',
         'pandas',
+        'scikit-learn',
         'pyyaml',
         'matplotlib',
         'plotly',
-        'GitPython'
+        'GitPython',
+        'amplpy'
     ],
     keywords=[]
 )
