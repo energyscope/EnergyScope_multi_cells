@@ -81,6 +81,8 @@ class OptiProbl:
         self.t.append(self.ampl.getData('_ampl_elapsed_time;').toList()[0])
         self.t.append(self.ampl.getData('_solve_elapsed_time;').toList()[0])
         self.t.append(self.ampl.getData('solve_result_num;').toList()[0])
+        print('[_ampl_elapsed_time, _solve_elapsed_time, solve_result_num]')
+        print(self.t)
         # TODO understand why doesn't work with kmedoid_clustering
         return
 
