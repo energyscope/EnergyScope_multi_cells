@@ -1,6 +1,7 @@
 {
     "re_share_primary" : 0,
 	"gwp_limit": 1e15,
+    "import_capacity" : 0,
     "solar_area" : 1e15,
 	"share_mobility_public_min" : 0.199,
 	"share_mobility_public_max" : 0.5,
@@ -12,6 +13,5 @@
     "share_freight_boat_max" : 0.3,
     "share_heat_dhn_min" : 0.02,
     "share_heat_dhn_max" : 0.37,
-    "share_ned" : {"HVC":0.779, "METHANOL":0.029, "AMMONIA":0.192},
-    "import_capacity" : 0
+    "share_ned" : {"HVC":0.779, "METHANOL":0.029, "AMMONIA":0.192}
 }
