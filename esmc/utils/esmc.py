@@ -66,7 +66,7 @@ class Esmc:
 
         # path definition
         self.project_dir = Path(__file__).parents[2]
-        self.dat_dir = self.project_dir / 'case_studies' / 'dat_files' / self.space_id
+        self.dat_dir = self.project_dir / 'esmc' / 'energy_model' / 'dat_files' / self.space_id
         self.cs_dir = self.project_dir / 'case_studies' / self.space_id / self.case_study
         # create directories
         self.dat_dir.mkdir(parents=True, exist_ok=True)
