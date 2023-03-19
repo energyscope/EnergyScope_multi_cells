@@ -11,6 +11,7 @@ from esmc.preprocessing.temporal_aggregation import TemporalAggregation
 import esmc.preprocessing.dat_print as dp
 import esmc.postprocessing.amplpy2pd as a2p
 from esmc.utils.df_utils import clean_indices
+from esmc.common import CSV_SEPARATOR, AMPL_SEPARATOR
 import shutil
 import git
 import pandas as pd
@@ -82,7 +83,7 @@ class Esmc:
         # create and initialize data dictionnaries
         self.data_indep = dict.fromkeys(['END_USES_CATEGORIES', 'Layers_in_out', 'Resources_indep',
                                          'Storage_characteristics', 'Storage_eff_in', 'Storage_eff_out',
-                                         'user_defined_indep'
+                                         'Misc_indep'
                                          ])  # data independent from regions considered
         self.data_reg = dict()  # data specific to regions considered
 
@@ -173,36 +174,51 @@ class Esmc:
         logging.info('Read exchanges data from ' + str(data_path))
         # read data
         self.data_reg['Exch'] = dict()
-        self.data_reg['Exch']['dist'] = pd.read_csv(data_path / 'dist.csv', sep=';',
+        self.data_reg['Exch']['dist'] = pd.read_csv(data_path / 'dist.csv', sep=CSV_SEPARATOR,
                                                     header=[0], index_col=[0]).loc[self.regions_names, :]
-        self.data_reg['Exch']['tc_min'] = pd.read_csv(data_path / 'tc_min.csv', sep=';',
+        self.data_reg['Exch']['tc_min'] = pd.read_csv(data_path / 'tc_min.csv', sep=CSV_SEPARATOR,
                                                       header=[0], index_col=[0, 1, 2]).loc[
                                           (self.regions_names, self.regions_names, slice(None)), :]
-        self.data_reg['Exch']['tc_max'] = pd.read_csv(data_path / 'tc_max.csv', sep=';',
+        self.data_reg['Exch']['tc_max'] = pd.read_csv(data_path / 'tc_max.csv', sep=CSV_SEPARATOR,
                                                       header=[0], index_col=[0, 1, 2]).loc[
                                           (self.regions_names, self.regions_names, slice(None)), :]
-        self.data_reg['Exch']['c_exch_network'] = pd.read_csv(data_path / 'c_exch_network.csv', sep=';',
+        self.data_reg['Exch']['c_exch_network'] = pd.read_csv(data_path / 'c_exch_network.csv', sep=CSV_SEPARATOR,
                                                               header=[0], index_col=[0, 1, 2]).loc[
                                                   (self.regions_names, self.regions_names, slice(None)), :]
 
     def read_data_indep(self):
-        """Read the End-uses demands of the region and stores it in the data attribute as a dataframe
-
-        Returns
-        -------
+        """Read data independent of the region dimension of the problem
 
         """
         data_path = self.project_dir / 'Data' / str(self.year) / '00_INDEP'
         # logging info
         logging.info('Read indep data from ' + str(data_path))
+        # reading END_USES_CATEGORIES
+        self.data_indep['END_USES_CATEGORIES'] = clean_indices(pd.read_csv(data_path / 'END_USES_CATEGORIES.csv', sep=CSV_SEPARATOR,
+                                                             header=[0]))
         # reading layers_in_out
-        self.data_indep['Layers_in_out'] = pd.read_csv(data_path / 'Layers_in_out.csv', sep=';', header=[0],
+        self.data_indep['Layers_in_out'] = pd.read_csv(data_path / 'Layers_in_out.csv', sep=CSV_SEPARATOR, header=[0],
                                                        index_col=[0])
         self.data_indep['Layers_in_out'] = clean_indices(self.data_indep['Layers_in_out'])
+        # reading misc_indep
+        r_path = (data_path / 'Misc_indep.json')
+        if r_path.is_file(): # if the file exist, update the data
+            self.data_indep['Misc_indep'] = a2p.read_json(r_path)
+        # reading resources_indep
+        self.data_indep['Resources_indep'] = clean_indices(pd.read_csv(data_path / 'Resources_indep.csv',
+                                                                       sep=CSV_SEPARATOR, header=[2], index_col=[2]))\
+            .drop(columns=['Comment'])
+        # reading storage_characteristics
+        self.data_indep['Storage_characteristics'] = clean_indices(pd.read_csv(data_path / 'Storage_characteristics.csv'
+                                                                   ,sep=CSV_SEPARATOR, header=[0], index_col=[0]))
         # reading storage_eff_in
         self.data_indep['Storage_eff_in'] = clean_indices(pd.read_csv(data_path / 'Storage_eff_in.csv',
-                                                                      sep=';', header=[0], index_col=[0])).dropna(
-            axis=0, how='all')
+                                                                      sep=CSV_SEPARATOR, header=[0], index_col=[0]))\
+            .dropna(axis=0, how='all')
+        # reading storage_eff_out
+        self.data_indep['Storage_eff_out'] = clean_indices(pd.read_csv(data_path / 'Storage_eff_out.csv', sep=CSV_SEPARATOR,
+                                                                      header=[0], index_col=[0])) \
+            .dropna(axis=0, how='all')
         return
 
     def concat_reg_data(self, to_concat: []):
@@ -259,7 +275,7 @@ class Esmc:
 
         return out
 
-    def print_data(self, ref_dir=None):
+    def print_data(self, ref_dir=None, indep=False):
         """
         TODO adapt to multi-cells
 
@@ -326,6 +342,86 @@ class Esmc:
             dp.print_df(dp.ampl_syntax(d), out_path=exch_file, name='param ')
 
         # TODO here add indep print
+        # if indep:
+            # TODO update from data structure in ESMC and put all sets into a dictionnary
+            # # Building SETS from data #
+            # SECTORS = list(eud_simple.columns)
+            # END_USES_INPUT = list(eud_simple.index)
+            # END_USES_CATEGORIES = list(end_uses_categories.loc[:, 'END_USES_CATEGORIES'].unique())
+            # RESOURCES = list(resources_simple.index)
+            # BIOFUELS = list(resources[resources.loc[:, 'Subcategory'] == 'Biofuel'].index)
+            # RE_RESOURCES = list(
+            #     resources.loc[(resources['Category'] == 'Renewable'), :].index)
+            # EXPORT = list(resources.loc[resources['Category'] == 'Export', :].index)
+            # # TODO add NOEXCHANGES, FREIGHT_RESOURCES
+            #
+            # END_USES_TYPES_OF_CATEGORY = []
+            # for i in END_USES_CATEGORIES:
+            #     li = list(end_uses_categories.loc[
+            #                   end_uses_categories.loc[:, 'END_USES_CATEGORIES'] == i, 'END_USES_TYPES_OF_CATEGORY'])
+            #     END_USES_TYPES_OF_CATEGORY.append(li)
+            #
+            # # TECHNOLOGIES_OF_END_USES_TYPE -> # METHOD 2 (uses layer_in_out to determine the END_USES_TYPE)
+            # END_USES_TYPES = list(end_uses_categories.loc[:, 'END_USES_TYPES_OF_CATEGORY'])
+            #
+            # ALL_TECHS = list(technologies_simple.index)
+            #
+            # layers_in_out_tech = layers_in_out.loc[~layers_in_out.index.isin(RESOURCES), :]
+            # TECHNOLOGIES_OF_END_USES_TYPE = []
+            # for i in END_USES_TYPES:
+            #     li = list(layers_in_out_tech.loc[layers_in_out_tech.loc[:, i] == 1, :].index)
+            #     TECHNOLOGIES_OF_END_USES_TYPE.append(li)
+            #
+            # # STORAGE and INFRASTRUCTURES
+            # ALL_TECH_OF_EUT = [item for sublist in TECHNOLOGIES_OF_END_USES_TYPE for item in sublist]
+            #
+            # STORAGE_TECH = list(storage_eff_in.index)
+            # INFRASTRUCTURE = [item for item in ALL_TECHS if item not in STORAGE_TECH and item not in ALL_TECH_OF_EUT]
+            #
+            # # EVs
+            # EVs_BATT = list(evs.loc[:, 'EVs_BATT'])
+            # V2G = list(evs.index)
+            # # Storage daily
+            # STORAGE_DAILY = config['all_data']['Misc']['STORAGE_DAILY']
+            #
+            # # STORAGE_OF_END_USES_TYPES ->  #METHOD 2 (using storage_eff_in)
+            # STORAGE_OF_END_USES_TYPES_DHN = []
+            # STORAGE_OF_END_USES_TYPES_DECEN = []
+            # STORAGE_OF_END_USES_TYPES_ELEC = []
+            # STORAGE_OF_END_USES_TYPES_HIGH_T = []
+            #
+            # # TODO add STORAGE_OF_END_USES_TYPES ["SPACE_COOLING"]
+            #
+            # for i in STORAGE_TECH:
+            #     if storage_eff_in.loc[i, 'HEAT_LOW_T_DHN'] > 0:
+            #         STORAGE_OF_END_USES_TYPES_DHN.append(i)
+            #     elif storage_eff_in.loc[i, 'HEAT_LOW_T_DECEN'] > 0:
+            #         STORAGE_OF_END_USES_TYPES_DECEN.append(i)
+            #     elif storage_eff_in.loc[i, 'ELECTRICITY'] > 0:
+            #         STORAGE_OF_END_USES_TYPES_ELEC.append(i)
+            #     elif storage_eff_in.loc[i, 'HEAT_HIGH_T'] > 0:
+            #         STORAGE_OF_END_USES_TYPES_HIGH_T.append(i)
+            #
+            # # TODO automatise
+            # STORAGE_OF_END_USES_TYPES_ELEC.remove('BEV_BATT')
+            # STORAGE_OF_END_USES_TYPES_ELEC.remove('PHEV_BATT')
+            #
+            # # TODO add TS_OF_DEC_TECH and EVs_BATT_OF_VG
+            #
+            # COGEN = []
+            # BOILERS = []
+            #
+            # for i in ALL_TECH_OF_EUT:
+            #     if 'BOILER' in i:
+            #         BOILERS.append(i)
+            #     if 'COGEN' in i:
+            #         COGEN.append(i)
+            #
+            # # TODO add EXCHANGE_NETWORK_R, EXCHANGE_NETWORK_BIDIRECTIONAL
+            #
+            # # TODO print one line header with short description
+            #
+            # # TODO print params
 
         return
 
@@ -376,7 +472,7 @@ class Esmc:
         # comment='# typical days')
         # printing set T_H_TD
         dp.newline(dat_file, ['set T_H_TD := 		'])
-        t_h_td.to_csv(dat_file, sep='\t', header=False, index=False, mode='a', quoting=csv.QUOTE_NONE)
+        t_h_td.to_csv(dat_file, sep=AMPL_SEPARATOR, header=False, index=False, mode='a', quoting=csv.QUOTE_NONE)
         dp.end_table(dat_file)
         # printing parameters depending on TD
         # printing interlude
@@ -532,13 +628,12 @@ class Esmc:
 
         return
 
-    def solve_esom(self, run=True, outputs=False):
+    def solve_esom(self, run=True):
         """Solves the esom wih ampl
 
         Parameters
         ----------
         run
-        outputs
 
         Returns
         -------
@@ -566,17 +661,16 @@ class Esmc:
             self.esom.ampl.eval('print "GWP_op_global", sum{c in REGIONS, r in RESOURCES} (GWP_op[c,r]);')
             self.esom.ampl.eval('print "CO2_net_global", sum{c in REGIONS, r in RESOURCES} (CO2_net[c,r]);')
             self.esom.ampl.eval('print "TotalCost_global", sum{c in REGIONS} (TotalCost[c]);')
-
-        if outputs:
-            # TODO update
-            self.esom.get_outputs()
         return
 
     def prints_esom(self, inputs=True, outputs=True, solve_info=False):
-        if inputs:
-            # Printing input sets and parameters variables names
-            logging.info('Printing inputs')
-            self.esom.print_inputs()
+        # TODO Update
+        # if inputs:
+
+
+            # # Printing input sets and parameters variables names
+            # logging.info('Printing inputs')
+            # self.esom.print_inputs()
 
         directory = self.cs_dir / 'outputs'
         if outputs:
@@ -592,7 +686,7 @@ class Esmc:
             if self.esom.t is None:
                 self.esom.get_solve_info()
             with open(directory / 'Solve_info.csv', mode='w', newline='\n') as file:
-                writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
+                writer = csv.writer(file, delimiter=AMPL_SEPARATOR, quotechar=' ', quoting=csv.QUOTE_MINIMAL,
                                     lineterminator="\n")
                 writer.writerow(['ampl_elapsed_time,', self.esom.t[0]])
                 writer.writerow(['solve_elapsed_time,', self.esom.t[1]])
