@@ -11,6 +11,7 @@ from esmc.preprocessing.temporal_aggregation import TemporalAggregation
 import esmc.preprocessing.dat_print as dp
 import esmc.postprocessing.amplpy2pd as a2p
 from esmc.utils.df_utils import clean_indices
+from esmc.common import CSV_SEPARATOR, AMPL_SEPARATOR
 import shutil
 import git
 import pandas as pd
@@ -80,11 +81,12 @@ class Esmc:
         self.ref_region = None
         self.regions = dict.fromkeys(self.regions_names, None)
         # create and initialize data dictionnaries
-        self.data_indep = dict.fromkeys(['END_USES_CATEGORIES', 'Layers_in_out', 'Resources_indep',
-                                         'Storage_characteristics', 'Storage_eff_in', 'Storage_eff_out',
-                                         'user_defined_indep'
+        self.sets = dict()
+        self.data_indep = dict.fromkeys(['Misc_indep', 'Layers_in_out', 'Resources_indep',
+                                         'Storage_characteristics', 'Storage_eff_in', 'Storage_eff_out'
                                          ])  # data independent from regions considered
-        self.data_reg = dict()  # data specific to regions considered
+        self.data_reg = dict.fromkeys(['Exch', 'Demands', 'Technologies',
+                                       'Storage_power_to_energy', 'Misc'])  # data specific to regions considered
 
         # initialize TemporalAggregation object
         self.ta = None
@@ -173,36 +175,48 @@ class Esmc:
         logging.info('Read exchanges data from ' + str(data_path))
         # read data
         self.data_reg['Exch'] = dict()
-        self.data_reg['Exch']['dist'] = pd.read_csv(data_path / 'dist.csv', sep=';',
+        self.data_reg['Exch']['Dist'] = pd.read_csv(data_path / 'Dist.csv', sep=CSV_SEPARATOR,
                                                     header=[0], index_col=[0]).loc[self.regions_names, :]
-        self.data_reg['Exch']['tc_min'] = pd.read_csv(data_path / 'tc_min.csv', sep=';',
+        self.data_reg['Exch']['Exchange_losses'] = pd.read_csv(data_path / 'Exchange_losses.csv', sep=CSV_SEPARATOR,
+                                                    header=[0], index_col=[0])
+        self.data_reg['Exch']['Lhv'] = pd.read_csv(data_path / 'Lhv.csv', sep=CSV_SEPARATOR, header=[0], index_col=[0])
+        r_path = (data_path / 'Misc_exch.json')
+        if r_path.is_file(): # if the file exist, update the data
+            self.data_reg['Exch']['Misc_exch'] = a2p.read_json(r_path)
+        self.data_reg['Exch']['Network_exchanges'] = pd.read_csv(data_path / 'Network_exchanges.csv', sep=CSV_SEPARATOR,
                                                       header=[0], index_col=[0, 1, 2]).loc[
                                           (self.regions_names, self.regions_names, slice(None)), :]
-        self.data_reg['Exch']['tc_max'] = pd.read_csv(data_path / 'tc_max.csv', sep=';',
-                                                      header=[0], index_col=[0, 1, 2]).loc[
-                                          (self.regions_names, self.regions_names, slice(None)), :]
-        self.data_reg['Exch']['c_exch_network'] = pd.read_csv(data_path / 'c_exch_network.csv', sep=';',
-                                                              header=[0], index_col=[0, 1, 2]).loc[
-                                                  (self.regions_names, self.regions_names, slice(None)), :]
 
     def read_data_indep(self):
-        """Read the End-uses demands of the region and stores it in the data attribute as a dataframe
-
-        Returns
-        -------
+        """Read data independent of the region dimension of the problem
 
         """
         data_path = self.project_dir / 'Data' / str(self.year) / '00_INDEP'
         # logging info
         logging.info('Read indep data from ' + str(data_path))
+        # reading misc_indep
+        r_path = (data_path / 'Misc_indep.json')
+        if r_path.is_file():  # if the file exist, update the data
+            self.data_indep['Misc_indep'] = a2p.read_json(r_path)
         # reading layers_in_out
-        self.data_indep['Layers_in_out'] = pd.read_csv(data_path / 'Layers_in_out.csv', sep=';', header=[0],
+        self.data_indep['Layers_in_out'] = pd.read_csv(data_path / 'Layers_in_out.csv', sep=CSV_SEPARATOR, header=[0],
                                                        index_col=[0])
         self.data_indep['Layers_in_out'] = clean_indices(self.data_indep['Layers_in_out'])
+        # reading resources_indep
+        self.data_indep['Resources_indep'] = clean_indices(pd.read_csv(data_path / 'Resources_indep.csv',
+                                                                       sep=CSV_SEPARATOR, header=[2], index_col=[2]))\
+            .drop(columns=['Comment'])
+        # reading storage_characteristics
+        self.data_indep['Storage_characteristics'] = clean_indices(pd.read_csv(data_path / 'Storage_characteristics.csv'
+                                                                   ,sep=CSV_SEPARATOR, header=[0], index_col=[0]))
         # reading storage_eff_in
         self.data_indep['Storage_eff_in'] = clean_indices(pd.read_csv(data_path / 'Storage_eff_in.csv',
-                                                                      sep=';', header=[0], index_col=[0])).dropna(
-            axis=0, how='all')
+                                                                      sep=CSV_SEPARATOR, header=[0], index_col=[0]))\
+            .dropna(axis=0, how='all')
+        # reading storage_eff_out
+        self.data_indep['Storage_eff_out'] = clean_indices(pd.read_csv(data_path / 'Storage_eff_out.csv', sep=CSV_SEPARATOR,
+                                                                      header=[0], index_col=[0])) \
+            .dropna(axis=0, how='all')
         return
 
     def concat_reg_data(self, to_concat: []):
@@ -259,11 +273,9 @@ class Esmc:
 
         return out
 
-    def print_data(self, ref_dir=None):
+    def print_data(self, ref_dir=None, indep=False):
         """
-        TODO adapt to multi-cells
-
-        add doc
+        TODO add doc
         """
         # Put default ref_dir if not given
         if ref_dir is None:
@@ -323,10 +335,141 @@ class Esmc:
         dp.print_header(dat_file=exch_file, header_txt='File containing data related to exchanges between regions')
 
         for n, d in self.data_reg['Exch'].items():
-            dp.print_df(dp.ampl_syntax(d), out_path=exch_file, name='param ')
+            if n != 'Misc_exch':
+                dp.print_df(dp.ampl_syntax(d), out_path=exch_file, name='param : ')
 
-        # TODO here add indep print
+        if indep:
+            # Building SETS from data #
+            # demand related sets
+            self.sets['SECTORS'] = list(self.ref_region.data['Demands']
+                                        .drop(columns=['Category', 'Subcategory', 'Units']).columns)
+            self.sets['END_USES_INPUT'] = list(self.ref_region.data['Demands'].index)
+            self.sets['END_USES_CATEGORIES'] = list(self.data_indep['Misc_indep']['add_sets']['END_USES_CATEGORIES'].keys())
+            self.sets['END_USES_TYPES_OF_CATEGORY'] = self.data_indep['Misc_indep']['add_sets']['END_USES_CATEGORIES']
+            eut = list(self.sets['END_USES_TYPES_OF_CATEGORY'].values())
+            eut = [item for sublist in eut for item in sublist] # flatten list
+            # resources related sets
+            self.sets['RESOURCES'] = list(self.data_indep['Resources_indep'].index)
+            self.sets['RE_FUELS'] = list(self.data_indep['Resources_indep'][self.data_indep['Resources_indep']
+                                         .loc[:, 'Subcategory'] == 'Renewable fuel'].index)
+            self.sets['RE_RESOURCES'] = list(self.data_indep['Resources_indep'][self.data_indep['Resources_indep']
+                                         .loc[:, 'Category'] == 'Renewable'].index)
+            self.sets['EXPORT'] = list(self.data_indep['Resources_indep'][self.data_indep['Resources_indep']
+                                       .loc[:,'Category'] == 'Export'].index)
+            self.sets['NOT_LAYERS'] = self.data_indep['Misc_indep']['add_sets']['NOT_LAYERS']
+            # exchanges related sets
+            self.sets['EXCHANGE_FREIGHT_R'] = self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_FREIGHT_R']
+            self.sets['EXCHANGE_NETWORK_R'] = self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_NETWORK_R']
+            self.sets['EXCHANGE_NETWORK_BIDIRECTIONAL'] =\
+                self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_NETWORK_BIDIRECTIONAL']
+            self.sets['NOEXCHANGES'] = list(set(self.sets['RESOURCES']) - set(self.sets['EXCHANGE_FREIGHT_R'])
+                                                                             - set(self.sets['EXCHANGE_NETWORK_R']))
+            # technologies related sets
+            all_techs = list(self.ref_region.data['Technologies'].index)
+            layers_in_out_tech = self.data_indep['Layers_in_out'].loc[~self.data_indep['Layers_in_out'].index.isin(self.sets['RESOURCES']), :]
+            self.sets['TECHNOLOGIES_OF_END_USES_TYPE'] = dict.fromkeys(eut)
+            for i in eut:
+                li = list(layers_in_out_tech.loc[layers_in_out_tech.loc[:, i] == 1, :].index)
+                self.sets['TECHNOLOGIES_OF_END_USES_TYPE'][i] = li
 
+            all_tech_of_eut = [item for sublist in list(self.sets['TECHNOLOGIES_OF_END_USES_TYPE'].values()) for item in sublist]
+
+            self.sets['STORAGE_TECH'] = list(self.data_indep['Storage_eff_in'].index)
+            self.sets['INFRASTRUCTURE'] = [item for item in all_techs
+                                           if item not in self.sets['STORAGE_TECH']
+                                           and item not in all_tech_of_eut]
+            self.sets['EVs_BATT'] = self.data_indep['Misc_indep']['add_sets']['EVs_BATT']
+            self.sets['V2G'] = self.data_indep['Misc_indep']['add_sets']['V2G']
+
+            self.sets['STORAGE_DAILY'] = self.data_indep['Misc_indep']['add_sets']['STORAGE_DAILY']
+            self.sets['STORAGE_OF_END_USES_TYPE'] = dict.fromkeys(eut)
+            for i in eut:
+                li = list(self.data_indep['Storage_eff_in'].loc[self.data_indep['Storage_eff_in'].loc[:, i] > 0, :].index)
+                self.sets['STORAGE_OF_END_USES_TYPE'][i] = li
+            self.sets['STORAGE_OF_END_USES_TYPE']\
+                = {k: v for k, v in self.sets['STORAGE_OF_END_USES_TYPE'].items() if v}  # Get rid of empty keys
+            dec_tech = self.sets['TECHNOLOGIES_OF_END_USES_TYPE']['HEAT_LOW_T_DECEN'].copy()
+            # TODO autmatise the thing about DEC_SOLAR?
+            dec_tech.remove('DEC_SOLAR')
+            ts_of_dec_tech = [['TS_' + item] for item in dec_tech]
+            self.sets['TS_OF_DEC_TECH'] = dict(zip(dec_tech, ts_of_dec_tech))
+            self.sets['EVs_BATT_OF_V2G'] = dict(zip(self.sets['V2G'], [[item] for item in self.sets['EVs_BATT']]))
+            self.sets['BOILERS'] = []
+            self.sets['COGEN'] = []
+            for i in all_tech_of_eut:
+                if 'BOILER' in i:
+                    self.sets['BOILERS'].append(i)
+                if 'COGEN' in i:
+                    self.sets['COGEN'].append(i)
+
+            # Printing indep.dat #
+            indep_file = ref_dir / 'indep.dat'
+            # Header
+            dp.print_header(dat_file=indep_file,
+                            header_txt='File containing data independent of the modelled regions')
+            # Sets
+            dp.newline(out_path=indep_file, comment=['#----------------------------------------',
+                                                     '# SETS not depending on TD, nor on REGIONS',
+                                                     '#----------------------------------------'])
+            for n,s in self.sets.items():
+                if type(s) is list:
+                    dp.print_set(my_set=s, out_path=indep_file, name=n)
+                else:
+                    for n2,s2 in s.items():
+                        dp.print_set(my_set=s2, out_path=indep_file, name=(n + '["' + n2 + '"]'))
+            # Parameters
+            dp.newline(out_path=indep_file, comment=['',
+                                                     '#----------------------------------------',
+                                                     '# PARAMETERS NOT DEPENDING ON THE NUMBER OF TYPICAL DAYS, '
+                                                     'NOR ON THE REGIONS :',
+                                                     '#----------------------------------------'])
+            # TODO is it possible to bettter automatise this?
+            for n,d in self.data_indep.items():
+                if n != 'Misc_indep':
+                    df = d.drop(
+                        columns=['Category', 'Subcategory', 'Technologies name', 'Units', 'Comment']
+                        , errors='ignore')
+                    df = df.mask(df > 1e14, 'Infinity')
+
+                    if n == 'Layers_in_out':
+                        name = 'param layers_in_out : '
+                    elif n == 'Storage_eff_in':
+                        name = 'param storage_eff_in : '
+                    elif n == 'Storage_eff_out':
+                        name = 'param storage_eff_out : '
+                    else:
+                        name = 'param : '
+
+                    dp.print_df(df=dp.ampl_syntax(df),
+                                out_path=indep_file,
+                                name=name,
+                                mode='a')
+                    dp.newline(out_path=indep_file)
+                else:
+                    for n2,d2 in d.items():
+                        if type(d2) is dict:
+                            if n2 != 'add_sets':
+                                if n2 == 'state_of_charge_ev':
+                                    df = pd.DataFrame.from_dict(d2, orient='index', columns=np.arange(1,25))
+                                    name = 'param state_of_charge_ev : '
+                                else:
+                                    df = pd.DataFrame.from_dict(d2,orient='index', columns=[n2])
+                                    name = 'param : '
+
+                                df = df.mask(df > 1e14, 'Infinity')
+                                dp.print_df(df=dp.ampl_syntax(df),
+                                            out_path=indep_file,
+                                            name=name,
+                                            mode='a')
+                                dp.newline(out_path=indep_file)
+                            else:
+                                pass
+
+                        else:
+                            if d2 > 1e14:
+                                d2 = 'Infinity'
+                            dp.print_param(param=d2, out_path=indep_file, name=n2)
+                            dp.newline(out_path=indep_file)
         return
 
     def print_td_data(self, eud_params=None, res_params=None, res_mult_params=None):
@@ -376,7 +519,7 @@ class Esmc:
         # comment='# typical days')
         # printing set T_H_TD
         dp.newline(dat_file, ['set T_H_TD := 		'])
-        t_h_td.to_csv(dat_file, sep='\t', header=False, index=False, mode='a', quoting=csv.QUOTE_NONE)
+        t_h_td.to_csv(dat_file, sep=AMPL_SEPARATOR, header=False, index=False, mode='a', quoting=csv.QUOTE_NONE)
         dp.end_table(dat_file)
         # printing parameters depending on TD
         # printing interlude
@@ -387,6 +530,8 @@ class Esmc:
         # printing peak_sh_factor and peak_sc_factor
         dp.print_df(df=dp.ampl_syntax(peak_sh_factor), out_path=dat_file, name='param ')
         dp.print_df(df=dp.ampl_syntax(peak_sc_factor), out_path=dat_file, name='param ')
+
+        # TODO automise this
 
         # Default name of timeseries in DATA.xlsx and corresponding name in ESTD data file
         if eud_params is None:
@@ -532,13 +677,12 @@ class Esmc:
 
         return
 
-    def solve_esom(self, run=True, outputs=False):
+    def solve_esom(self, run=True):
         """Solves the esom wih ampl
 
         Parameters
         ----------
         run
-        outputs
 
         Returns
         -------
@@ -566,17 +710,16 @@ class Esmc:
             self.esom.ampl.eval('print "GWP_op_global", sum{c in REGIONS, r in RESOURCES} (GWP_op[c,r]);')
             self.esom.ampl.eval('print "CO2_net_global", sum{c in REGIONS, r in RESOURCES} (CO2_net[c,r]);')
             self.esom.ampl.eval('print "TotalCost_global", sum{c in REGIONS} (TotalCost[c]);')
-
-        if outputs:
-            # TODO update
-            self.esom.get_outputs()
         return
 
     def prints_esom(self, inputs=True, outputs=True, solve_info=False):
-        if inputs:
-            # Printing input sets and parameters variables names
-            logging.info('Printing inputs')
-            self.esom.print_inputs()
+        # TODO Update
+        # if inputs:
+
+
+            # # Printing input sets and parameters variables names
+            # logging.info('Printing inputs')
+            # self.esom.print_inputs()
 
         directory = self.cs_dir / 'outputs'
         if outputs:
@@ -585,14 +728,14 @@ class Esmc:
             directory.mkdir(parents=True, exist_ok=True)
 
             for key, df in self.results.items():
-                df.to_csv(directory / (key + '.csv'))
+                df.to_csv(directory / (key + '.csv'), sep=CSV_SEPARATOR)
 
         if solve_info:
             # Getting and printing solve time
             if self.esom.t is None:
                 self.esom.get_solve_info()
             with open(directory / 'Solve_info.csv', mode='w', newline='\n') as file:
-                writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
+                writer = csv.writer(file, delimiter=AMPL_SEPARATOR, quotechar=' ', quoting=csv.QUOTE_MINIMAL,
                                     lineterminator="\n")
                 writer.writerow(['ampl_elapsed_time,', self.esom.t[0]])
                 writer.writerow(['solve_elapsed_time,', self.esom.t[1]])
@@ -727,7 +870,7 @@ class Esmc:
         # EXTRACTING DATA FROM OPTIMISATION MODEL
         # Get list of resources exchanged
         network_exch_r = self.esom.ampl.get_set('EXCHANGE_NETWORK_R').getValues().toList()
-        freight_exch_r = self.esom.ampl.get_set('FREIGHT_RESOURCES').getValues().toList()
+        freight_exch_r = self.esom.ampl.get_set('EXCHANGE_FREIGHT_R').getValues().toList()
         r_exch = network_exch_r.copy()  # all resources exchanged
         r_exch.extend(freight_exch_r)
         r_list = list(self.ref_region.data['Resources'].index)  # all resources

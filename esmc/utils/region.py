@@ -6,7 +6,7 @@ from pathlib import Path
 
 import esmc.postprocessing.amplpy2pd as a2p
 from esmc.utils.df_utils import clean_indices
-
+from esmc.common import CSV_SEPARATOR
 
 
 class Region:
@@ -52,7 +52,7 @@ class Region:
         """
         # The time series are redefined fully without considering the data of the ref_region
         # read the csv
-        self.data['Time_series'] = pd.read_csv(self.data_path/'Time_series.csv', sep=';', header=[0], index_col=0)
+        self.data['Time_series'] = pd.read_csv(self.data_path/'Time_series.csv', sep=CSV_SEPARATOR, header=[0], index_col=0)
         self.data['Time_series'] = clean_indices(self.data['Time_series'])
         return
 
@@ -64,7 +64,7 @@ class Region:
 
         """
         # the Weights are redefined fully without considering the ref_region
-        self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=';', header=[0], index_col=[0]).dropna(axis=0, how='any')
+        self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=CSV_SEPARATOR, header=[0], index_col=[0]).dropna(axis=0, how='any')
         self.data['Weights'].index.rename('Category', inplace=True)
         self.data['Weights'] = clean_indices(self.data['Weights'])
 
@@ -80,7 +80,7 @@ class Region:
 
         """
         # the Demands is redefined fully without considering the ref_region
-        self.data['Demands'] = pd.read_csv(self.data_path/'Demands.csv', sep=';', header=[0], index_col=[2])
+        self.data['Demands'] = pd.read_csv(self.data_path/'Demands.csv', sep=CSV_SEPARATOR, header=[0], index_col=[2])
         self.data['Demands'] = clean_indices(self.data['Demands'])
         return
 
@@ -96,7 +96,7 @@ class Region:
         # if the file exist, update the data
         if r_path.is_file():
             # read csv and clean df
-            df = pd.read_csv(r_path, sep=';', header=[2], index_col=[2]).dropna(axis=1, how='all')
+            df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[2], index_col=[2]).dropna(axis=1, how='all')
             df = clean_indices(df)
 
             # put df into attribute data
@@ -119,7 +119,7 @@ class Region:
         # if the file exist, update the data
         if r_path.is_file():
             # read csv and clean df
-            df = pd.read_csv(r_path, sep=';', header=[0], index_col=[3], skiprows=[1]).drop(columns=['Comment']
+            df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[3], skiprows=[1]).drop(columns=['Comment']
                                                                                             , errors='ignore')
             df = clean_indices(df)
 
@@ -144,7 +144,7 @@ class Region:
         # if the file exist, update the data
         if r_path.is_file():
             # read csv and clean df
-            df = pd.read_csv(r_path, sep=';', header=[0], index_col=[0])
+            df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[0])
             df = clean_indices(df)
 
             # put df into attribute data

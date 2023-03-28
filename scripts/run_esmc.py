@@ -47,7 +47,7 @@ for t in tds:
     my_model.print_td_data()
 
     # Print data
-    my_model.print_data()
+    my_model.print_data(indep=True)
 
     # Set the Energy System Optimization Model (ESOM) as an ampl formulated problem
     my_model.set_esom(ampl_path=ampl_path)

@@ -38,19 +38,20 @@ set END_USES_INPUT; # Types of demand (end-uses). Input to the model
 set END_USES_CATEGORIES; # Categories of demand (end-uses): electricity, heat, mobility
 set END_USES_TYPES_OF_CATEGORY {END_USES_CATEGORIES}; # Types of demand (end-uses).
 set RESOURCES; # Resources: fuels (renewables and fossils) and electricity imports
-set BIOFUELS within RESOURCES; # imported biofuels.
+set RE_FUELS within RESOURCES; # imported biofuels.
 set EXPORT within RESOURCES; # exported resources
+set NOT_LAYERS within RESOURCES; # resources which are not a layer
 set END_USES_TYPES := setof {i in END_USES_CATEGORIES, j in END_USES_TYPES_OF_CATEGORY [i]} j; # secondary set
 set TECHNOLOGIES_OF_END_USES_TYPE {END_USES_TYPES}; # set all energy conversion technologies (excluding storage technologies and infrastructure)
 set STORAGE_TECH; #  set of storage technologies 
-set STORAGE_OF_END_USES_TYPES {END_USES_TYPES} within STORAGE_TECH; # set all storage technologies related to an end-use types (used for thermal solar (TS))
+set STORAGE_OF_END_USES_TYPE {END_USES_TYPES} within STORAGE_TECH; # set all storage technologies related to an end-use types (used for thermal solar (TS))
 set INFRASTRUCTURE; # Infrastructure: DHN, grid, and intermediate energy conversion technologies (i.e. not directly supplying end-use demand)
 #set IMPORT within RESOURCES; # imported resources if positive, exported resources if negative
-set FREIGHT_RESOURCES within RESOURCES; #exchanged resources which are transported by freight
+set EXCHANGE_FREIGHT_R within RESOURCES; #exchanged resources which are transported by freight
 
 
 ## SECONDARY SETS: a secondary set is defined by operations on MAIN SETS
-set LAYERS := (RESOURCES diff BIOFUELS diff EXPORT) union END_USES_TYPES; # Layers are used to balance resources/products in the system
+set LAYERS := (RESOURCES diff NOT_LAYERS) union END_USES_TYPES; # Layers are used to balance resources/products in the system
 set TECHNOLOGIES := (setof {i in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE [i]} j) union STORAGE_TECH union INFRASTRUCTURE; 
 set TECHNOLOGIES_OF_END_USES_CATEGORY {i in END_USES_CATEGORIES} within TECHNOLOGIES := setof {j in END_USES_TYPES_OF_CATEGORY[i], k in TECHNOLOGIES_OF_END_USES_TYPE [j]} k;
 set RE_RESOURCES within RESOURCES; # List of RE resources (including wind hydro solar), used to compute the RE share
@@ -89,7 +90,7 @@ param co2_net {RESOURCES} >= 0;
 
 # Attribute of electric vehicles
 param batt_per_car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
-param state_of_charge_EV {V2G,HOURS} >= 0; # Minimum state of charge of the EV during the day.
+param state_of_charge_ev {V2G,HOURS} >= 0; # Minimum state of charge of the EV during the day.
 
 # Attributes of STORAGE_TECH
 param storage_eff_in {STORAGE_TECH , LAYERS} >= 0, <= 1; # eta_sto_in [-]: efficiency of input to storage from layers.  If 0 storage_tech/layer are incompatible
@@ -107,7 +108,7 @@ param c_grid_extra >=0, default 359; # Cost to reinforce the grid due to IRE pen
 
 # Attributes of exchanges
 param exchange_losses {RESOURCES} >=0 default 0; #losses on network for exchanges [%]
-param  lhv{FREIGHT_RESOURCES}>=0; #lhv of fuels transported by freight
+param  lhv{EXCHANGE_FREIGHT_R}>=0; #lhv of fuels transported by freight
 
 ##Additional parameter (not presented in the paper)
 param total_time := sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (t_op [h, td]); # [h]. added just to simplify equations
@@ -452,7 +453,7 @@ subject to additional_freight{c in REGIONS} :
 
 # additional freight due to exchanges calculation
 subject to freight_of_exchanges{c in REGIONS} :
-	Exch_Freight[c] = dist[c] * sum{r in FREIGHT_RESOURCES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((R_t_import [c,r,h,td] + R_t_export [c,r,h,td])/lhv[r]);
+	Exch_Freight[c] = dist[c] * sum{r in EXCHANGE_FREIGHT_R, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((R_t_import [c,r,h,td] + R_t_export [c,r,h,td])/lhv[r]);
 
 # [Eq. 26] To impose a constant share in the mobility
 subject to Freight_shares {c in REGIONS} :
@@ -486,7 +487,7 @@ subject to EV_storage_for_V2G_demand {c in REGIONS, j in V2G, i in EVs_BATT_OF_V
 	
 # [Eq. 33 bis] Impose a minimum state of charge of EV batteries at some hours of the day
 subject to EV_storage_min_SOC {c in REGIONS, j in V2G, i in EVs_BATT_OF_V2G[j], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}:
-	Storage_level [c, i, t] >= F [c,i] * state_of_charge_EV[j,h];
+	Storage_level [c, i, t] >= F [c,i] * state_of_charge_ev[j,h];
 		
 ## Peak demand :
 
@@ -500,7 +501,7 @@ subject to max_dhn_heat_demand {c in REGIONS, h in HOURS, td in TYPICAL_DAYS}:
 	Max_Heat_Demand[c] >= End_uses [c,"HEAT_LOW_T_DHN", h, td];
 # Peak in DHN
 subject to peak_lowT_dhn {c in REGIONS}:
-	sum {j in TECHNOLOGIES_OF_END_USES_TYPE ["HEAT_LOW_T_DHN"], i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"]} (F [c,j] + F[c,i]/storage_discharge_time[c,i]) >= peak_sh_factor[c] * Max_Heat_Demand[c];
+	sum {j in TECHNOLOGIES_OF_END_USES_TYPE ["HEAT_LOW_T_DHN"], i in STORAGE_OF_END_USES_TYPE["HEAT_LOW_T_DHN"]} (F [c,j] + F[c,i]/storage_discharge_time[c,i]) >= peak_sh_factor[c] * Max_Heat_Demand[c];
 	
 # [Eq. 34] Peak in space cooling
 subject to peak_space_cooling {c in REGIONS, j in TECHNOLOGIES_OF_END_USES_TYPE["SPACE_COOLING"], h in HOURS, td in TYPICAL_DAYS}:

@@ -208,39 +208,40 @@ class OptiProbl:
         self.outputs[var_name] = var
         return var
 
+    # TODO check if not used
 
-    def print_outputs(self, directory=None, solve_time=False):
-        """
-
-        Prints the outputs (dictionary of pd.DataFrame()) into a pickle file
-
-        Parameters
-        ----------
-        directory : pathlib.Path
-        Path of the directory where to save the dataframes
-
-        """
-        # default directory
-        if directory is None:
-            directory = self.dir / 'outputs'
-        # creating outputs dir
-        directory.mkdir(parents=True, exist_ok=True)
-        # printing outputs
-        with open(directory/'outputs.p', 'wb') as handle:
-            pickle.dump(self.outputs, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-        # for ix, (key, val) in enumerate(self.outputs.items()):
-        #     val.to_csv(directory / (str(key) + '.csv'))
-
-        if solve_time:
-            if self.t is None:
-                self.get_solve_info()
-            with open(directory / 'Solve_time.csv', mode='w', newline='\n') as file:
-                writer = csv.writer(file, delimiter='\t', quotechar=' ', quoting=csv.QUOTE_MINIMAL,
-                                       lineterminator="\n")
-                writer.writerow(['ampl_elapsed_time', self.t[0]])
-                writer.writerow(['solve_elapsed_time', self.t[1]])
-        return
+    # def print_outputs(self, directory=None, solve_time=False):
+    #     """
+    #
+    #     Prints the outputs (dictionary of pd.DataFrame()) into a pickle file
+    #
+    #     Parameters
+    #     ----------
+    #     directory : pathlib.Path
+    #     Path of the directory where to save the dataframes
+    #
+    #     """
+    #     # default directory
+    #     if directory is None:
+    #         directory = self.dir / 'outputs'
+    #     # creating outputs dir
+    #     directory.mkdir(parents=True, exist_ok=True)
+    #     # printing outputs
+    #     with open(directory/'outputs.p', 'wb') as handle:
+    #         pickle.dump(self.outputs, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    #
+    #     # for ix, (key, val) in enumerate(self.outputs.items()):
+    #     #     val.to_csv(directory / (str(key) + '.csv'))
+    #
+    #     if solve_time:
+    #         if self.t is None:
+    #             self.get_solve_info()
+    #         with open(directory / 'Solve_time.csv', mode='w', newline='\n') as file:
+    #             writer = csv.writer(file, delimiter=AMPL_SEPERATOR, quotechar=' ', quoting=csv.QUOTE_MINIMAL,
+    #                                    lineterminator="\n")
+    #             writer.writerow(['ampl_elapsed_time', self.t[0]])
+    #             writer.writerow(['solve_elapsed_time', self.t[1]])
+    #     return
 
     def read_outputs(self, directory=None):
         """

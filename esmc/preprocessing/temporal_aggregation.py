@@ -179,6 +179,10 @@ class TemporalAggregation:
     def print_dat(self, dat_file=None):
         """
 
+        Parameters
+        ----------
+        dat_file
+
         Returns
         -------
 
@@ -352,6 +356,8 @@ class TemporalAggregation:
         out = (a1 * a0[..., None, :]).reshape(-1, a1.shape[-1])
         df_out = pd.DataFrame(out, index=df1.index, columns=df1.columns)
         return df_out
+
+
 
     #TODO
     # add reading of TD_of_days.out if not running ta_algo
