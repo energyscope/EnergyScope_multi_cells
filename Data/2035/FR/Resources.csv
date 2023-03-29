@@ -3,6 +3,9 @@
 Category;Subcategory;parameter name;avail_local;avail_exterior;gwp_op_local;c_op_local;Comment
 Non-renewable;Other non-renewable;ELECTRICITY;0;0;0.206485714;0.08433;
 Non-renewable;Fossil fuel;GASOLINE;0;1.00E+15;0.3448;0.082366044;
+Renewable;Synthetic fuel;GASOLINE_RE;0;1.00E+15;0;0.0954;
+Non-renewable;Fossil fuel;JET_FUEL;0;1.00E+15;0.3148;0.1;
+Renewable;Synthetic fuel;JET_FUEL_RE;0;1.00E+15;0;0.0954;
 Non-renewable;Fossil fuel;DIESEL;0;1.00E+15;0.3148;0.079743788;
 Renewable;Renewable fuels;BIOETHANOL;0;1.00E+15;0;0.111323944;
 Renewable;Renewable fuel;BIODIESEL;0;1.00E+15;0;0.120074962;
