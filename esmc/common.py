@@ -7,3 +7,6 @@ import datetime
 commons = {}
 
 commons['logfile'] = str(datetime.datetime.now()).replace(':', '-').replace(' ', '_') + '.energyscope.log'
+
+CSV_SEPARATOR = ';'
+AMPL_SEPARATOR = '\t'

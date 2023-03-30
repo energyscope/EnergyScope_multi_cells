@@ -6,7 +6,7 @@ from pathlib import Path
 
 import esmc.postprocessing.amplpy2pd as a2p
 from esmc.utils.df_utils import clean_indices
-
+from esmc.common import CSV_SEPARATOR
 
 
 class Region:
@@ -52,7 +52,7 @@ class Region:
         """
         # The time series are redefined fully without considering the data of the ref_region
         # read the csv
-        self.data['Time_series'] = pd.read_csv(self.data_path/'Time_series.csv', sep=';', header=[0], index_col=0)
+        self.data['Time_series'] = pd.read_csv(self.data_path/'Time_series.csv', sep=CSV_SEPARATOR, header=[0], index_col=0)
         self.data['Time_series'] = clean_indices(self.data['Time_series'])
         return
 
@@ -64,7 +64,7 @@ class Region:
 
         """
         # the Weights are redefined fully without considering the ref_region
-        self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=';', header=[0], index_col=[0]).dropna(axis=0, how='any')
+        self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=CSV_SEPARATOR, header=[0], index_col=[0]).dropna(axis=0, how='any')
         self.data['Weights'].index.rename('Category', inplace=True)
         self.data['Weights'] = clean_indices(self.data['Weights'])
 
@@ -79,9 +79,9 @@ class Region:
         -------
 
         """
-        # the Demand is redefined fully without considering the ref_region
-        self.data['Demand'] = pd.read_csv(self.data_path/'Demand.csv', sep=';', header=[0], index_col=[2])
-        self.data['Demand'] = clean_indices(self.data['Demand'])
+        # the Demands is redefined fully without considering the ref_region
+        self.data['Demands'] = pd.read_csv(self.data_path/'Demands.csv', sep=CSV_SEPARATOR, header=[0], index_col=[2])
+        self.data['Demands'] = clean_indices(self.data['Demands'])
         return
 
     def read_resources(self):
@@ -96,17 +96,15 @@ class Region:
         # if the file exist, update the data
         if r_path.is_file():
             # read csv and clean df
-            df = pd.read_csv(r_path, sep=';', header=[2], index_col=[2])
+            df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[2], index_col=[2]).dropna(axis=1, how='all')
             df = clean_indices(df)
 
             # put df into attribute data
             if self.ref_region:
                 self.data['Resources'] = df
             else:
-                # using combine_first method to replace only the data redefined in the csv of the region
-                ref_index = self.data['Resources'].index
-                self.data['Resources'] = df.combine_first(self.data['Resources'])
-                self.data['Resources'] = self.data['Resources'].reindex(ref_index)
+                # using update method to replace only the data redefined in the csv of the region
+                self.data['Resources'].update(df)
 
         return
 
@@ -121,17 +119,17 @@ class Region:
         # if the file exist, update the data
         if r_path.is_file():
             # read csv and clean df
-            df = pd.read_csv(r_path, sep=';', header=[0], index_col=[3], skiprows=[1])
+            df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[3], skiprows=[1]).drop(columns=['Comment']
+                                                                                            , errors='ignore')
             df = clean_indices(df)
 
             # put df into attribute data
             if self.ref_region:
                 self.data['Technologies'] = df
             else:
-                # using combine_first method to replace only the data redefined in the csv of the region
-                ref_index = self.data['Technologies'].index
-                self.data['Technologies'] = df.combine_first(self.data['Technologies'])
-                self.data['Technologies'] = self.data['Technologies'].reindex(ref_index)
+                # using update method to replace only the data redefined in the csv of the region
+                self.data['Technologies'].update(df)
+
         return
 
     def read_storage_power_to_energy(self):
@@ -146,17 +144,15 @@ class Region:
         # if the file exist, update the data
         if r_path.is_file():
             # read csv and clean df
-            df = pd.read_csv(r_path, sep=';', header=[0], index_col=[0])
+            df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[0])
             df = clean_indices(df)
 
             # put df into attribute data
             if self.ref_region:
                 self.data['Storage_power_to_energy'] = df
             else:
-                # using combine_first method to replace only the data redefined in the csv of the region
-                ref_index = self.data['Storage_power_to_energy'].index
-                self.data['Storage_power_to_energy'] = df.combine_first(self.data['Storage_power_to_energy'])
-                self.data['Storage_power_to_energy'] = self.data['Storage_power_to_energy'].reindex(ref_index)
+                # using update method to replace only the data redefined in the csv of the region
+                self.data['Storage_power_to_energy'].update(df)
         return
 
     def read_misc(self):
@@ -229,9 +225,9 @@ class Region:
         prod_simple = [t for t in prod_ts if t not in res_mult_params.keys()]
 
         # multiply demand time series sum by the year consumption
-        tot_ts[demand_simple] = tot_ts[demand_simple]*self.data['Demand'].loc[demand_simple,:].sum(axis=1,numeric_only=True)
+        tot_ts[demand_simple] = tot_ts[demand_simple]*self.data['Demands'].loc[demand_simple,:].sum(axis=1,numeric_only=True)
         for t,l in demand_map.items():
-            tot_ts[t] = tot_ts[t]*self.data['Demand'].loc[l,:].sum(axis=1, numeric_only=True).sum(axis=0)
+            tot_ts[t] = tot_ts[t]*self.data['Demands'].loc[l,:].sum(axis=1, numeric_only=True).sum(axis=0)
         # multiply the sum of the production time series by the maximum potential (f_max in GW) of the corresponding technologies
         tot_ts[prod_simple] = tot_ts[prod_simple]*self.data['Technologies'].loc[prod_simple,'f_max']
         for t,l in res_mult_params.items():

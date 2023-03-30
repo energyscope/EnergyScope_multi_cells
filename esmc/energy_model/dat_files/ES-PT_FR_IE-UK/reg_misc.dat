@@ -1,0 +1,30 @@
+# File containing miscellaneous sets and parameters
+ set  REGIONS  :=  	ES-PT	FR	IE-UK; 
+  
+ set  RWITHOUTDAM  :=  	IE-UK;#  Regions  without  hydro  dam 
+  
+param share_ned :	HVC	METHANOL	AMMONIA := 
+ES-PT	0.779	0.029	0.192
+FR	0.779	0.029	0.192
+IE-UK	0.779	0.029	0.192
+;
+param :	re_share_primary	gwp_limit	import_capacity	solar_area := 
+ES-PT	0	Infinity	0	Infinity
+FR	0	Infinity	0	Infinity
+IE-UK	0	Infinity	0	Infinity
+;
+param :	share_mobility_public_min	share_mobility_public_max	share_freight_train_min	share_freight_train_max := 
+ES-PT	0.199	0.5	0.109	0.25
+FR	0.199	0.5	0.109	0.25
+IE-UK	0.199	0.5	0.109	0.25
+;
+param :	share_freight_road_min	share_freight_road_max	share_freight_boat_min	share_freight_boat_max := 
+ES-PT	0.0	3.0	0.156	0.3
+FR	0.0	3.0	0.156	0.3
+IE-UK	0.0	3.0	0.156	0.3
+;
+param :	share_heat_dhn_min	share_heat_dhn_max := 
+ES-PT	0.02	0.37
+FR	0.02	0.37
+IE-UK	0.02	0.37
+;
