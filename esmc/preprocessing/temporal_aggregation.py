@@ -198,7 +198,7 @@ class TemporalAggregation:
 
 
         # printing signature of data file
-        dp.print_header(Path(__file__).parent/'kmedoid_clustering'/'header.txt', dat_file)
+        dp.print_header(dat_file, header_file=Path(__file__).parent/'kmedoid_clustering'/'header.txt')
         # printing SET DIMENSIONS
         dp.print_set(my_set=[str(i) for i in n_data.columns], out_path=dat_file, name='DIMENSIONS')
 
