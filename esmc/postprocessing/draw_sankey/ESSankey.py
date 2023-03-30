@@ -52,18 +52,18 @@ Usage: ESSankey.py [OPTIONS]
 \t\t-n, --no-open
 \t\t\tprevent from automatically opening the generated html file in the browser.'''
 
-def drawSankey(path="./",outputfile='TO_REPLACE',auto_open=True):
+def drawSankey(path="./",outputfile='generated_sankey_Total.html', I2S_File="input2sankey_Total.csv", auto_open=True):
     path = Path(path)
-    if path.stem == "input2sankey":
-        path = path.parent
-        print("Warning: you should not include 'input2sankey.csv' in your path, but only the path of the directory containing this file.")
-    if outputfile == 'TO_REPLACE':
-        outputfile = path / 'python_generated_sankey.html'
-    if outputfile.parent.stem == "input2sankey":
-        outputfile = outputfile.parent.parent / outputfile.name
-    flows = pd.read_csv(path / "input2sankey.csv")
+    # if path.stem == "input2sankey":
+    #     path = path.parent
+    #     print("Warning: you should not include 'input2sankey.csv' in your path, but only the path of the directory containing this file.")
+    # if outputfile == 'TO_REPLACE':
+    #     outputfile = path / 'python_generated_sankey.html'
+    # if outputfile.parent.stem == "input2sankey":
+    #     outputfile = outputfile.parent.parent / outputfile.name
+    flows = pd.read_csv(path / I2S_File)
     fig = genSankey(flows,cat_cols=['source','target'],value_cols='realValue',title='Energy',color_col='layerColor')
-    fig.write_html(str(outputfile), auto_open=auto_open)
+    fig.write_html(str(path / Path(outputfile)), auto_open=auto_open)
     #fig.show()
 
 def genSankey(df,cat_cols=[],value_cols='',title='Sankey Diagram',color_col=[]):
