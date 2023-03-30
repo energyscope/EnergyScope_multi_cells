@@ -5,6 +5,9 @@ from pathlib import Path
 import sys
 sys.path.append('/home/pthiran/EnergyScope_multi_cells/')
 from esmc import Esmc
+from esmc import writeSankeyFile
+from esmc import drawSankey
+
 
 
 tds = [14]  # np.concatenate((np.arange(2,62,2),np.arange(62,112,4),np.array([120,140,160,180,365])))
@@ -13,7 +16,8 @@ for t in tds:
     print('Nbr_TDs', t)
 
     # specify ampl_path (set None if ampl is in Path environment variable or the path to ampl if not)
-    ampl_path = Path(r'C:\Users\pathiran\ampl_mswin64')
+    # ampl_path = Path(r'C:\Users\pathiran\ampl_mswin64')
+    ampl_path = None
 
     # info to switch off unused constraints
     gwp_limit_overall = None
@@ -58,6 +62,12 @@ for t in tds:
     # Getting and printing year results
     my_model.get_year_results()
     my_model.prints_esom(inputs=True, outputs=True, solve_info=True)
-
+    
+    # Write the input2sankey... file
+    writeSankeyFile(my_model.space_id, my_model.case_study)
+    
+    # Draw a sankey diagram via HTML from the input2sankey file previously written
+    drawSankey(path=my_model.cs_dir / "outputs", outputfile='generated_sankey_Total.html')
+    
     # delete ampl object to free resources
     my_model.esom.ampl.close()
