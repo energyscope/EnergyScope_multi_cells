@@ -540,7 +540,8 @@ class Esmc:
                           'HEAT_LOW_T_SH': 'param heating_time_series :=',
                           'SPACE_COOLING': 'param cooling_time_series :=',
                           'MOBILITY_PASSENGER': 'param mob_pass_time_series :=',
-                          'MOBILITY_FREIGHT': 'param mob_freight_time_series :='}
+                          'MOBILITY_FREIGHT': 'param mob_freight_time_series :=',
+                          'INTERNATIONAL_FREIGHT': 'param mob_int_freight_time_series :='}
         if res_params is None:
             # for resources timeseries that have only 1 tech linked to it
             res_params = {'PV': 'PV', 'WIND_OFFSHORE': 'WIND_OFFSHORE', 'WIND_ONSHORE': 'WIND_ONSHORE',
