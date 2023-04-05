@@ -7,6 +7,7 @@ Renewable;Renewable fuel;GASOLINE_RE;0;1.00E+15;0;0.0954;
 Non-renewable;Fossil fuel;JET_FUEL;0;1.00E+15;0.3148;0.1;
 Renewable;Renewable fuel;JET_FUEL_RE;0;1.00E+15;0;0.0954;
 Non-renewable;Fossil fuel;DIESEL;0;1.00E+15;0.3148;0.079743788;
+Renewable;Renewable fuels;DIESEL_RE;0;1.00E+15;0;0.0954;
 Renewable;Renewable fuels;BIOETHANOL;0;1.00E+15;0;0.111323944;
 Renewable;Renewable fuel;BIODIESEL;0;1.00E+15;0;0.120074962;
 Non-renewable;Fossil fuel;LFO;0;1.00E+15;0.3115;0.06015058;

@@ -120,6 +120,7 @@ param heating_time_series {REGIONS, HOURS, TYPICAL_DAYS} >= 0, <= 1; # %_sh [-]:
 param cooling_time_series {REGIONS, HOURS, TYPICAL_DAYS} >= 0, <= 1;
 param mob_pass_time_series {REGIONS, HOURS, TYPICAL_DAYS} >= 0, <= 1; # %_pass [-]: factor for sharing passenger transportation across Typical days (adding up to 1) based on https://www.fhwa.dot.gov/policy/2013cpr/chap1.cfm
 param mob_freight_time_series {REGIONS, HOURS, TYPICAL_DAYS} >= 0, <= 1; # %_fr [-]: factor for sharing freight transportation across Typical days (adding up to 1)
+param mob_int_freight_time_series {REGIONS, HOURS, TYPICAL_DAYS} >= 0, <=1; # %_fr [-]: factor for sharing international freight transportation across Typical days (adding up to 1)
 param c_p_t {TECHNOLOGIES, REGIONS, HOURS, TYPICAL_DAYS} default 1; #Hourly capacity factor [-]. If = 1 (default value) <=> no impact.
 
 ## Parameters added to define scenarios and technologies [Table 2]
@@ -257,6 +258,8 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_road[c]
 		else (if l == "MOB_FREIGHT_BOAT" then
 			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_boat[c]
+		else (if l == "CONTAINER_FREIGHT" then
+			(end_uses_input[c,"INTERNATIONAL_FREIGHT"]   * mob_int_freight_time_series [c, h, td] / t_op [h, td] )
 		else (if l == "HEAT_HIGH_T" then
 			end_uses_input[c,l] / total_time
 		else (if l == "SPACE_COOLING" then
@@ -270,7 +273,7 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 		else (if l == "METHANOL" then
 			end_uses_input[c, "NON_ENERGY"] * share_ned [c, "METHANOL"] / total_time
 		else 
-			0 )))))))))))))); # For all layers which don't have an end-use demand
+			0 ))))))))))))))); # For all layers which don't have an end-use demand
 
 
 ## Cost

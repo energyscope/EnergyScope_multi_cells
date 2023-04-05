@@ -162,6 +162,7 @@ RegroupElements = {
     "Boat Freight":     ["BOAT_FREIGHT_DIESEL", "BOAT_FREIGHT_NG", "BOAT_FREIGHT_METHANOL"],
     "Road Freight":     ["TRUCK_DIESEL", "TRUCK_METHANOL", "TRUCK_FUEL_CELL",
                          "TRUCK_ELEC", "TRUCK_NG"],
+    "Int. Freight": ["CONTAINER_CARGO_DIESEL", "CONTAINER_CARGO_LNG", "CONTAINER_CARGO_FUELCELL"],
     "Solar" :           ["PT_COLLECTOR", "ST_COLLECTOR"],
     "H2.":               ["H2_ELECTROLYSIS", "SMR", "H2_BIOMASS", "AMMONIA_TO_H2"],
     "Gasifi SNG":       ["GASIFICATION_SNG"],
@@ -169,7 +170,7 @@ RegroupElements = {
     "Pyrolise" :        ["PYROLYSIS_TO_LFO", "PYROLYSIS_TO_FUELS"],
     "To Methanol":      ["SYN_METHANOLATION", "METHANE_TO_METHANOL", "BIOMASS_TO_METHANOL"],
     "Haber Bosch":      ["HABER_BOSCH"],
-    "Fischer-Tropsch":  ["FISCHER_TROPSCH"],
+    "Fischer-Tropsch":  ["FISCHER_TROPSCH_DIESEL", "FISCHER_TROPSCH_GASOLINE", "FISCHER_TROPSCH_JETFUEL"],
     "To HVC":           ["OIL_TO_HVC", "GAS_TO_HVC", "BIOMASS_TO_HVC", "METHANOL_TO_HVC"],
     "Elec in/out":      ["ELECTRICITY"],
     "Oil imports":         ["GASOLINE"],
@@ -228,6 +229,7 @@ RegroupLayers ={
     "Rail Freight": ["MOB_FREIGHT_RAIL"],	
     "Road Freight": ["MOB_FREIGHT_ROAD"],	
     "Boat Freight": ["MOB_FREIGHT_BOAT"],	
+    "Int. Freight": ["CONTAINER_FREIGHT"],
     "Solar": ["PT_HEAT", "ST_HEAT"]
     }
 
@@ -284,7 +286,8 @@ EndUseLayer = [
     "Private Mob",
     "Road Freight",
     "Boat Freight",
-    "Rail Freight"
+    "Rail Freight",
+    "Int. Freight"
 ]
 
 EndUseName = {
