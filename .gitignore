@@ -22,3 +22,5 @@ esmc/utils/__pycache__/
 esmc.egg-info/
 
 scripts/projects/
+
+Data/exogenous_data/gitignored/
