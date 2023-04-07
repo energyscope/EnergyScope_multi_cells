@@ -124,7 +124,8 @@ class Esmc:
         """
         logging.info('Initializing TemporalAggregation with ' + algo + ' algorithm')
         self.ta = TemporalAggregation(self.regions, self.dat_dir / 'td_dat', Nbr_TD=self.nbr_td, algo=algo,
-                                      ampl_path=ampl_path)
+                                      ampl_path=ampl_path,
+                                      time_series_mapping=self.data_indep['Misc_indep']['time_series_mapping'])
         return
 
     def update_version(self):
@@ -448,7 +449,7 @@ class Esmc:
                 else:
                     for n2,d2 in d.items():
                         if type(d2) is dict:
-                            if n2 != 'add_sets':
+                            if n2 != 'add_sets' and n2 != 'time_series_mapping':
                                 if n2 == 'state_of_charge_ev':
                                     df = pd.DataFrame.from_dict(d2, orient='index', columns=np.arange(1,25))
                                     name = 'param state_of_charge_ev : '
@@ -535,24 +536,29 @@ class Esmc:
 
         # Default name of timeseries in DATA.xlsx and corresponding name in ESTD data file
         if eud_params is None:
-            # for EUD timeseries
-            eud_params = {'ELECTRICITY': 'param electricity_time_series :=',
-                          'HEAT_LOW_T_SH': 'param heating_time_series :=',
-                          'SPACE_COOLING': 'param cooling_time_series :=',
-                          'MOBILITY_PASSENGER': 'param mob_pass_time_series :=',
-                          'MOBILITY_FREIGHT': 'param mob_freight_time_series :='}
+            # # for EUD timeseries
+            # eud_params = {'ELECTRICITY': 'param electricity_time_series :=',
+            #               'HEAT_LOW_T_SH': 'param heating_time_series :=',
+            #               'SPACE_COOLING': 'param cooling_time_series :=',
+            #               'MOBILITY_PASSENGER': 'param mob_pass_time_series :=',
+            #               'MOBILITY_FREIGHT': 'param mob_freight_time_series :='}
+            eud_params = self.data_indep['Misc_indep']['time_series_mapping']['eud_params']
         if res_params is None:
-            # for resources timeseries that have only 1 tech linked to it
-            res_params = {'PV': 'PV', 'WIND_OFFSHORE': 'WIND_OFFSHORE', 'WIND_ONSHORE': 'WIND_ONSHORE',
-                          'HYDRO_DAM': 'HYDRO_DAM', 'HYDRO_RIVER': 'HYDRO_RIVER'}
+            res_params = self.data_indep['Misc_indep']['time_series_mapping']['res_params']
+
+            # # for resources timeseries that have only 1 tech linked to it
+            # res_params = {'PV': 'PV', 'WIND_OFFSHORE': 'WIND_OFFSHORE', 'WIND_ONSHORE': 'WIND_ONSHORE',
+            #               'HYDRO_DAM': 'HYDRO_DAM', 'HYDRO_RIVER': 'HYDRO_RIVER'}
         if res_mult_params is None:
-            # for resources timeseries that have several techs linked to it
-            res_mult_params = {'TIDAL': ['TIDAL_STREAM', 'TIDAL_RANGE'],
-                               'SOLAR': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
+            res_mult_params = self.data_indep['Misc_indep']['time_series_mapping']['res_mult_params']
+
+            # # for resources timeseries that have several techs linked to it
+            # res_mult_params = {'TIDAL': ['TIDAL_STREAM', 'TIDAL_RANGE'],
+            #                    'SOLAR': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
 
         # printing EUD timeseries param
         for i in eud_params.keys():
-            dp.newline(out_path=dat_file, comment=[eud_params[i]])
+            dp.newline(out_path=dat_file, comment=['param ' + eud_params[i] + ' :='])
             for r in self.regions:
                 # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the
                 # name of the time series, put it into ampl syntax and print it
@@ -1171,8 +1177,17 @@ class Esmc:
         logging.info('Getting Curt')
 
         # Get curtailment
-        curt = self.esom.get_var('Curt').reset_index()
+        curt = self.ta.from_td_to_year(ts_td=self.esom.get_var('Curt').reset_index().set_index(['Typical_days', 'Hours'])) \
+            .groupby(['Regions', 'Technologies']).sum()
+        # Get tech with a c_p_t defined (by addding list of res_params and flatten list of res_mult_param)
+        tech_cpt = list(self.data_indep['Misc_indep']['time_series_mapping']['res_params'].values()) \
+                   + [element for sublist in
+                      self.data_indep['Misc_indep']['time_series_mapping']['res_mult_params'].values()
+                      for element in sublist]
+        # Keep only curt for tech_cpt
+        curt = curt.loc[(slice(None), tech_cpt),:].copy()
         # Set regions as categorical data
+        curt.reset_index(inplace=True)
         curt['Regions'] = pd.Categorical(curt['Regions'], self.regions_names)
         curt = curt.set_index(['Regions'])
         curt.sort_index(inplace=True)

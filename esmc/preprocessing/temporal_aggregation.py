@@ -38,18 +38,13 @@ class TemporalAggregation:
         Prints the animals name and what sound it makes
     """
 
-    def __init__(self, regions, dat_dir, Nbr_TD=10, algo='kmedoid', ampl_path=None):
-        """TODO
-        Parameters
-        ----------
-        name : str
-            The name of the animal
-        sound : str
-            The sound the animal makes
-        num_legs : int, optional
-            The number of legs the animal (default is 4)
-        """
+    def __init__(self, regions, dat_dir:Path,  time_series_mapping: dict, Nbr_TD=10, algo='kmedoid', ampl_path=None):
+
         self.regions_names = list(regions.keys())
+        self.time_series_mapping = time_series_mapping
+        self.demand_ts = list(time_series_mapping['eud_params'].keys())
+        self.prod_ts = list(time_series_mapping['res_params'].keys()) \
+                  + list(time_series_mapping['res_mult_params'].keys())
         self.Nbr_TD = Nbr_TD
         self.regions = regions
         self.dat_dir = dat_dir
@@ -108,7 +103,7 @@ class TemporalAggregation:
         """
         # compute Cell_w in each region
         for r in self.regions_names:
-            self.regions[r].compute_cell_w()
+            self.regions[r].compute_cell_w(time_series_mapping=self.time_series_mapping)
 
         # create frames for concatenation (list of df to concat)
         frames = list()
@@ -120,8 +115,6 @@ class TemporalAggregation:
         # concatenating and storing results into attributes
         self.n_daily_ts = pd.concat(frames, axis=1, keys=self.regions_names)
         self.weights = pd.concat(frames_w, keys=self.regions_names)
-
-
 
         # normalizing the weights accross regions
         self.normalize_weights()
@@ -136,25 +129,28 @@ class TemporalAggregation:
         The results are stored in a new column of the weights attribute called 'Weights_n'
 
         """
+        # TODO automatise this
         # demand and production time series names
-        prod_ts = ['PV', 'WIND_ONSHORE', 'WIND_OFFSHORE', 'HYDRO_DAM', 'HYDRO_RIVER', 'TIDAL', 'SOLAR']
-        demand_ts = ['ELECTRICITY','HEAT_LOW_T_SH','SPACE_COOLING']
+        prod_ts_with_weight = [item for item in self.prod_ts if item in self.weights.index.unique(level=1)]
+        demand_ts_with_weight = [item for item in self.demand_ts if item in self.weights.index.unique(level=1)]
+        # prod_ts = ['PV', 'WIND_ONSHORE', 'WIND_OFFSHORE', 'HYDRO_DAM', 'HYDRO_RIVER', 'TIDAL', 'SOLAR']
+        # demand_ts = ['ELECTRICITY','HEAT_LOW_T_SH','SPACE_COOLING']
 
         self.weights.loc[:,'Weights_n'] = 0 # initialize normalized weights column
         # NORMALIZING WEIGHTS ACCROSS COUNTRIES #
         regions_total = pd.Series(0,index=self.weights.index.levels[1])
-        regions_total[demand_ts] = self.weights.loc[(slice(None),demand_ts), 'Cell_w'].sum(axis=0) # total of demand ts weights
-        regions_total[prod_ts] = self.weights.loc[(slice(None),prod_ts), 'Cell_w'].sum(axis=0) # total of production ts weights
+        regions_total[demand_ts_with_weight] = self.weights.loc[(slice(None),demand_ts_with_weight), 'Cell_w'].sum(axis=0) # total of demand ts weights
+        regions_total[prod_ts_with_weight] = self.weights.loc[(slice(None),prod_ts_with_weight), 'Cell_w'].sum(axis=0) # total of production ts weights
 
         # TODO automatize this (everything should happen in python code, prod and demand ts classification should be an input, set a treshold on cell_w and/or weight_n to neglect a ts, names should coincide with model's names)
         # replacing regions_total by the sum of demands for demands and the sum of potential productions for productions
 
         # first normalization
         self.weights.loc[:,'Weights_n'] = (self.weights.loc[:,'Cell_w']).div(regions_total, axis=0, level=1)
-        # sort out the ts with Weights_n < 0.02 and renormalize the Weights_n
+        # sort out the ts with Weights_n < 0.001 and renormalize the Weights_n
         self.weights.loc[self.weights['Weights_n']<0.001,'Weights_n'] = np.nan
-        regions_total[demand_ts] = self.weights.loc[(slice(None), demand_ts), 'Weights_n'].sum(axis=0)  # total of demand ts weights
-        regions_total[prod_ts] = self.weights.loc[(slice(None), prod_ts), 'Weights_n'].sum(axis=0)  # total of production ts weights
+        regions_total[demand_ts_with_weight] = self.weights.loc[(slice(None), demand_ts_with_weight), 'Weights_n'].sum(axis=0)  # total of demand ts weights
+        regions_total[prod_ts_with_weight] = self.weights.loc[(slice(None), prod_ts_with_weight), 'Weights_n'].sum(axis=0)  # total of production ts weights
         # second normalization to have sum=1
         self.weights.loc[:,'Weights_n'] = (self.weights.loc[:,'Weights_n']).div(regions_total, axis=0, level=1)/2
         return
@@ -195,10 +191,8 @@ class TemporalAggregation:
         n_data = self.n_data.copy()
         n_data.columns = np.arange(1, self.n_data.shape[1] + 1)
 
-
-
         # printing signature of data file
-        dp.print_header(Path(__file__).parent/'kmedoid_clustering'/'header.txt', dat_file)
+        dp.print_header(dat_file=dat_file, header_file=Path(__file__).parent/'kmedoid_clustering'/'header.txt')
         # printing SET DIMENSIONS
         dp.print_set(my_set=[str(i) for i in n_data.columns], out_path=dat_file, name='DIMENSIONS')
 
@@ -251,6 +245,7 @@ class TemporalAggregation:
         my_optimizer = OptiProbl(mod_path, [data_path], options, ampl_path=ampl_path)
         my_optimizer.run_ampl()
         # get cluster_matrix, compute td_of_days and print it
+        # TODO make,it more efficient and get rid of get_outputs?
         my_optimizer.get_outputs()
         cm = my_optimizer.outputs['Cluster_matrix'].pivot(index='index0', columns='index1', values='Cluster_matrix.val')
         cm.index.name = None

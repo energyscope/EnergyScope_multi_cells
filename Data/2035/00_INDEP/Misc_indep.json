@@ -1,8 +1,9 @@
 {
     "i_rate" : 0.015,
 	"gwp_limit_overall": 1e15,
-	"power_density_pv" : 0.2367,
-    "power_density_solar_thermal" : 0.2857,
+	"power_density_pv" : 0.170,
+    "power_density_solar_thermal" : 0.7,
+	"sm_max" : 4,
 	"c_grid_extra" : 367.8,
 	"loss_network" : {"ELECTRICITY": 4.7E-02, "HEAT_LOW_T_DHN": 5.0E-02},
 
@@ -12,6 +13,20 @@
     "state_of_charge_ev" :	{
 			"CAR_PHEV" : [0.0,0.0,0.0,0.0,0.0,0.0,0.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
 			"CAR_BEV" :  [0.0,0.0,0.0,0.0,0.0,0.0,0.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+	},
+	"time_series_mapping": {
+		"eud_params" : {"ELECTRICITY_VAR": "electricity_time_series",
+                          "HEAT_LOW_T_SH": "heating_time_series",
+                          "SPACE_COOLING": "cooling_time_series",
+                          "MOBILITY_PASSENGER": "mob_pass_time_series",
+                          "MOBILITY_FREIGHT": "mob_freight_time_series"},
+		"res_params": {"WIND_OFFSHORE": "WIND_OFFSHORE", "WIND_ONSHORE": "WIND_ONSHORE", "HYDRO_DAM": "HYDRO_DAM", "HYDRO_RIVER": "HYDRO_RIVER"},
+		"res_mult_params": {
+			"PV": ["PV_ROOFTOP", "PV_UTILITY"], 
+			"TIDAL": ["TIDAL_STREAM", "TIDAL_RANGE"],
+            "SOLAR": ["DHN_SOLAR", "DEC_SOLAR"],
+            "CSP": ["PT_COLLECTOR", "ST_COLLECTOR"]}
+		
 	},
 	"add_sets": {"END_USES_CATEGORIES" : {
 					  "ELECTRICITY" : ["ELECTRICITY"],
