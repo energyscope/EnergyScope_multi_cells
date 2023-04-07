@@ -20,3 +20,5 @@ esmc/utils/__pycache__/
 .vscode/
 
 esmc.egg-info/
+
+scripts/projects/
