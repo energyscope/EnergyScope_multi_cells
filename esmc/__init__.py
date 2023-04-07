@@ -65,6 +65,7 @@ except Exception:
 
 
 from .preprocessing.preprocessing import step1_in, step2_in, set_ampl, run_ampl, run_esmc, update_version
+from .preprocessing.precalc import *
 from .preprocessing.dat_print import *
 from esmc.utils.region import Region
 from esmc.utils.opti_probl import OptiProbl
