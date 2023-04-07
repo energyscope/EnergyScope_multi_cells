@@ -174,7 +174,10 @@ param storage_discharge_time {REGIONS, STORAGE_TECH} >= 0; # t_sto_out [h]: Time
 
 # Other attributes
 param import_capacity{REGIONS} >= 0; # Maximum electricity import capacity [GW]
-param solar_area{REGIONS} >= 0; # Maximum land available for PV deployement [km2]
+param solar_area_rooftop{REGIONS} >= 0; # Maximum land available for solar deployement on rooftops [km2]
+param solar_area_ground{REGIONS} >= 0; # Maximum land available for solar deployement on the ground [km2]
+param solar_area_ground_high_irr{REGIONS} >= 0; # Maximum land available for solar deployement on the ground in locations with high irradiance [km2]
+param sm_max >= 0 default 4; # Maximum solar multiple for csp plants
 
 
 # Parameters for additional freight due to exchanges calcultations
@@ -196,12 +199,11 @@ var Share_freight_boat{c in REGIONS}, >= share_freight_boat_min[c], <= share_fre
 var Share_heat_dhn{c in REGIONS}, >= share_heat_dhn_min[c], <= share_heat_dhn_max[c]; # %_DHN: Ratio [0; 1] centralized over total low-temperature heat
 var F {REGIONS, TECHNOLOGIES} >= 0; # F: Installed capacity ([GW]) with respect to main output (see layers_in_out). [GWh] for STORAGE_TECH.
 var F_t {REGIONS, TECHNOLOGIES, HOURS, TYPICAL_DAYS} >= 0; # F_t: Operation in each period [GW] or, for STORAGE_TECH, storage level [GWh]. multiplication factor with respect to the values in layers_in_out table. Takes into account c_p
-#var R_t {REGIONS, RESOURCES , HOURS, TYPICAL_DAYS} >= 0; # R_t: Operation in each period [GW] . multiplication factor with respect to the values in layers_in_out table. Takes into account c_p
-var R_t_local {REGIONS, RESOURCES , HOURS, TYPICAL_DAYS} >= 0;
-var R_t_exterior {REGIONS, RESOURCES , HOURS, TYPICAL_DAYS} >= 0;
-var R_t_import{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0;
-var R_t_export{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0;
-
+var Curt {REGIONS, TECHNOLOGIES, HOURS, TYPICAL_DAYS} >=0; # Curtailement [GW]
+var R_t_local {REGIONS, RESOURCES , HOURS, TYPICAL_DAYS} >= 0; # Use of resource from local feedstock
+var R_t_exterior {REGIONS, RESOURCES , HOURS, TYPICAL_DAYS} >= 0; # Import of resource from the exterior of the overall system
+var R_t_import{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # Import of resources from neighbouring regions modelled in the overall system
+var R_t_export{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # Export of resources to neighbouring region modelled in the overall system
 
 var Storage_in {REGIONS, i in STORAGE_TECH, LAYERS, HOURS, TYPICAL_DAYS} >= 0; # Sto_in [GW]: Power input to the storage in a certain period
 var Storage_out {REGIONS, i in STORAGE_TECH, LAYERS, HOURS, TYPICAL_DAYS} >= 0; # Sto_out [GW]: Power output from the storage in a certain period
@@ -229,7 +231,7 @@ var Exch_imp{REGIONS,REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # (Import of
 var Exch_exp{REGIONS,REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # (Export of c1 to c2) Negative part (export) of the exchanges of ressource between regions during a certain period t [GW]
 var Exch_Freight{REGIONS}>=0; # yearly additional freight due to exchanges
 var Transfer_capacity{c1 in REGIONS, c2 in REGIONS, i in RESOURCES} >= tc_min[c1, c2, i], <= 2*tc_max[c1, c2, i]; # Optimal transer capacity from c2 to c1
-var Curt{REGIONS} >=0;
+#var Curt{REGIONS} >=0;
 
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
@@ -242,7 +244,7 @@ var Curt{REGIONS} >=0;
 subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 	End_uses [c, l, h, td] = (if l == "ELECTRICITY" 
 		then
-			(end_uses_input[c,l] / total_time + end_uses_input[c,"LIGHTING"] * electricity_time_series [c, h, td] / t_op [h, td] ) + Network_losses [c,l,h,td]
+			(end_uses_input[c,l] / total_time + end_uses_input[c,"ELECTRICITY_VAR"] * electricity_time_series [c, h, td] / t_op [h, td] ) + Network_losses [c,l,h,td]
 		else (if l == "HEAT_LOW_T_DHN" then
 			(end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td] ) * Share_heat_dhn[c] + Network_losses [c,l,h,td]
 		else (if l == "HEAT_LOW_T_DECEN" then
@@ -298,23 +300,6 @@ subject to exch_network_cost_calc {c in REGIONS, i in EXCHANGE_NETWORK_R diff EX
 subject to exch_network_cost_calc_bidirectional {c in REGIONS, i in EXCHANGE_NETWORK_BIDIRECTIONAL}:
 	C_exch_network [c,i] = sum {c2 in REGIONS} (c_exch_network [c,c2,i] * Transfer_capacity [c,c2,i] / 2);
 
-
-## Curtailement
-#------
-#Curt = PV_max - PV + Wind_max - Wind :
-
-subject to compute_curt {c in REGIONS} :
-	Curt[c] = sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]}   (F[c,"PV"]           *c_p_t["PV",c,h,td]            - F_t[c,"PV",h,td])
-			 + sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (F[c,"WIND_ONSHORE"] *c_p_t["WIND_ONSHORE",c,h,td]  - F_t[c,"WIND_ONSHORE",h,td])
-			 + sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (F[c,"WIND_OFFSHORE"]*c_p_t["WIND_OFFSHORE",c,h,td] - F_t[c,"WIND_OFFSHORE",h,td])
-			  + sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]}   (F[c,"STIRLING_DISH"] * c_p_t["STIRLING_DISH",c,h,td] - F_t[c,"STIRLING_DISH",h,td])
-			 + sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]}   (F[c,"PT_COLLECTOR"] * c_p_t["PT_COLLECTOR",c,h,td] - F_t[c,"PT_COLLECTOR",h,td])/(-layers_in_out["PT_POWER_BLOCK","PT_HEAT"])
-			 + sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]}   (F[c,"ST_COLLECTOR"] * c_p_t["ST_COLLECTOR",c,h,td] - F_t[c,"ST_COLLECTOR",h,td])/(-layers_in_out["ST_POWER_BLOCK","ST_HEAT"]);
-
-
-
-
-
 ## Emissions
 #-----------
 
@@ -344,7 +329,7 @@ subject to size_limit {c in REGIONS, j in TECHNOLOGIES}:
 	
 # [Eq. 10] relation between power and capacity via period capacity factor. This forces max hourly output (e.g. renewables)
 subject to capacity_factor_t {c in REGIONS, j in TECHNOLOGIES, h in HOURS, td in TYPICAL_DAYS}:
-	F_t [c,j, h, td] <= F [c,j] * c_p_t [j, c, h, td];
+	F_t [c,j, h, td] + Curt[c, j, h, td] = F [c,j] * c_p_t [j, c, h, td];
 	
 # [Eq. 11] relation between mult_t and mult via yearly capacity factor. This one forces total annual output
 subject to capacity_factor {c in REGIONS, j in TECHNOLOGIES}:
@@ -421,8 +406,8 @@ subject to network_losses {c in REGIONS, eut in END_USES_TYPES, h in HOURS, td i
 
 # [Eq. 21] 9.4 M€ is the extra investment needed if there is a big deployment of stochastic renewables
 subject to extra_grid{c in REGIONS}:
-    F [c,"GRID"] = 1 + (c_grid_extra / c_inv[c,"GRID"]) *( (F [c,"WIND_ONSHORE"]     + F [c,"WIND_OFFSHORE"]     + F [c,"PV"]      )
-					                                     - (f_min [c,"WIND_ONSHORE"] + f_min [c,"WIND_OFFSHORE"] + f_min [c,"PV"]) );
+    F [c,"GRID"] = 1 + (c_grid_extra / c_inv[c,"GRID"]) *( (F [c,"WIND_ONSHORE"]     + F [c,"WIND_OFFSHORE"]     + F [c,"PV_ROOFTOP"]   + F [c,"PV_UTILITY"]   )
+					                                     - (f_min [c,"WIND_ONSHORE"] + f_min [c,"WIND_OFFSHORE"]  + f_min [c,"PV_ROOFTOP"] + f_min [c,"PV_UTILITY"]) );
 
 
 # [Eq. 22] DHN: assigning a cost to the network
@@ -571,8 +556,25 @@ subject to limit_hydro_dams_output {c in REGIONS, h in HOURS, td in TYPICAL_DAYS
 
 
 # [Eq. 39] Limit surface area for solar
-subject to solar_area_limited250km2 {c in REGIONS} :
-	F[c,"PV"]/power_density_pv +(F[c,"DEC_SOLAR"]+F[c,"DHN_SOLAR"])/power_density_solar_thermal <= solar_area [c];
+subject to solar_area_rooftop_limited {c in REGIONS} :
+	(F[c,"PV_ROOFTOP"])/power_density_pv +(F[c,"DEC_SOLAR"]+F[c,"DHN_SOLAR"])/power_density_solar_thermal <= solar_area_rooftop [c];
+
+subject to solar_area_ground_limited {c in REGIONS} :
+	(F[c,"PV_UTILITY"])/power_density_pv
+		+ (layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"]*F[c,"PT_COLLECTOR"]+layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"]*F[c,"ST_COLLECTOR"])/power_density_pv
+<= solar_area_ground [c];
+
+subject to solar_area_ground_high_irr_limited {c in REGIONS} :
+	(layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"]*F[c,"PT_COLLECTOR"]
+		+layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"]*F[c,"ST_COLLECTOR"])/power_density_pv
+<= solar_area_ground_high_irr [c];
+
+# Limit on solar multiple of csp plants (by definition, sm = (F_coll*eta_pb)/F_pb
+subject to sm_limit_solar_tower {c in REGIONS}:
+	layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"] * F[c,"ST_COLLECTOR"] <= sm_max * F[c,"ST_POWER_BLOCK"];
+
+subject to sm_limit_parabolic_trough {c in REGIONS}:
+	layers_in_out ["PT_POWER_BLOCK", "ST_HEAT"] * F[c,"PT_COLLECTOR"] <= sm_max * F[c,"PT_POWER_BLOCK"];
 
 
 
@@ -608,7 +610,7 @@ subject to exportation {c1 in REGIONS, i in RESOURCES, h in HOURS, td in TYPICAL
 ##########################
 
 # Can choose between TotalGWP and TotalCost
-minimize obj:  sum{c in REGIONS} (TotalCost[c] - Curt[c]*0.000001);
+minimize obj:  sum{c in REGIONS} TotalCost[c];
 
 ## formula for GWP_op optimization
 # sum{c in REGIONS, r in RESOURCES} (GWP_op [c,r]);
