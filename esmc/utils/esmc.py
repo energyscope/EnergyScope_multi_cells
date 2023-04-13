@@ -176,8 +176,11 @@ class Esmc:
         logging.info('Read exchanges data from ' + str(data_path))
         # read data
         self.data_reg['Exch'] = dict()
+        # self.data_reg['Exch']['Dist'] = pd.read_csv(data_path / 'Dist.csv', sep=CSV_SEPARATOR,
+        #                                             header=[0], index_col=[0]).loc[self.regions_names, :]
         self.data_reg['Exch']['Dist'] = pd.read_csv(data_path / 'Dist.csv', sep=CSV_SEPARATOR,
-                                                    header=[0], index_col=[0]).loc[self.regions_names, :]
+                                                    header=[0], index_col=[0,1]).loc[
+                                        (self.regions_names, self.regions_names), :]
         self.data_reg['Exch']['Exchange_losses'] = pd.read_csv(data_path / 'Exchange_losses.csv', sep=CSV_SEPARATOR,
                                                     header=[0], index_col=[0])
         self.data_reg['Exch']['Lhv'] = pd.read_csv(data_path / 'Lhv.csv', sep=CSV_SEPARATOR, header=[0], index_col=[0])

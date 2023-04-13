@@ -181,7 +181,7 @@ param sm_max >= 0 default 4; # Maximum solar multiple for csp plants
 
 
 # Parameters for additional freight due to exchanges calcultations
-param  dist{REGIONS}>=0 default 0; #travelled distance by fuels exchanged in each region
+param  dist{REGIONS, REGIONS} >=0 default 1E+09; #travelled distance by fuels exchanged in each region
 param  c_exch_network{REGIONS,REGIONS,EXCHANGE_NETWORK_R} >= 0 default 0; # Investment cost of network connections between cells
 
 
@@ -229,7 +229,8 @@ var Network_losses {REGIONS, END_USES_TYPES, HOURS, TYPICAL_DAYS} >= 0; # Net_lo
 var Storage_level {REGIONS, STORAGE_TECH, PERIODS} >= 0; # Sto_level [GWh]: Energy stored at each period
 var Exch_imp{REGIONS,REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # (Import of c1 from c2) Positive part (import) of the exchanges of ressource between regions during a certain period t [GW]
 var Exch_exp{REGIONS,REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # (Export of c1 to c2) Negative part (export) of the exchanges of ressource between regions during a certain period t [GW]
-var Exch_Freight{REGIONS}>=0; # yearly additional freight due to exchanges
+var Exch_freight_border{REGIONS, REGIONS}>=0; # yearly additional freight due to exchanges accross each border
+var Exch_freight{REGIONS}>=0; # yearly additional freight due to exchanges for each region
 var Transfer_capacity{c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R} >= 0; # Optimal transer capacity from c2 to c1
 #var Curt{REGIONS} >=0;
 
@@ -601,10 +602,12 @@ subject to bidirectonal_exchanges {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_N
 #	Transfer_capacity [c1,c2,i] = tc_min [c1,c2,i];
 
 # freight exchanges (+ eq 25 and 26), computing and adding addtional freight due to exchanges
-subject to freight_of_exchanges{c in REGIONS} :
-	Exch_Freight[c] = dist[c] * sum{r in EXCHANGE_FREIGHT_R, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((R_t_import [c,r,h,td] + R_t_export [c,r,h,td])/lhv[r]);
+subject to freight_of_exchanges_border{c1 in REGIONS, c2 in REGIONS} :
+	Exch_freight_border[c1,c2] = dist[c1,c2] * sum{r in EXCHANGE_FREIGHT_R, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((Exch_imp[c1,c2,r,h,td] + Exch_exp[c1,c2,r,h,td])/lhv[r]);
+subject to freight_of_exchanges{c1 in REGIONS} :
+	Exch_freight[c1] = sum{c2 in REGIONS} Exch_freight_border[c1,c2]/2;
 subject to additional_freight{c in REGIONS} :
-	sum{j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} (Shares_mobility_freight [c,j]) = (Exch_Freight[c] + end_uses_input[c,"MOBILITY_FREIGHT"])/(end_uses_input[c,"MOBILITY_FREIGHT"]);
+	sum{j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} (Shares_mobility_freight [c,j]) = (Exch_freight[c] + end_uses_input[c,"MOBILITY_FREIGHT"])/(end_uses_input[c,"MOBILITY_FREIGHT"]);
 
 
 ##########################
