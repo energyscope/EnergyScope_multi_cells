@@ -20,9 +20,6 @@ project_dir = PurePath(__file__).parents[2]
 ex_data_dir = project_dir / 'Data' / 'exogenous_data'
 
 
-
-
-
 def compute_csp_ts(lat: float, long: float, year: int=2015,
                    additional_losses: float =0.2, eff_improvements: float = 0.1369,
                    land_use_csp_coll: float = 2.2353) -> pd.Series:
@@ -80,6 +77,11 @@ def compute_csp_ts(lat: float, long: float, year: int=2015,
     # computing the final time series
     # additonal losses and efficiency improvement
     csp_heat = data_precalc['collector_heat'] * (1 - additional_losses) * (1 + eff_improvements)
+    tot_irr = data['Gb(i)'].sum()
+    tot_csp_heat = csp_heat.sum()
+    eta_th = tot_csp_heat / tot_irr
+    meta['eta_th'] = eta_th
+
     # converting [W/m^2] into [GW_th/GW_p,th]
     csp_heat = (csp_heat/1000)*land_use_csp_coll
 
