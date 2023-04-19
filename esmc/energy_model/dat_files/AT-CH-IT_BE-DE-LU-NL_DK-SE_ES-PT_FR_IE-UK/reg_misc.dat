@@ -11,35 +11,35 @@ ES-PT	0.779	0.029	0.192
 FR	0.779	0.029	0.192
 IE-UK	0.779	0.029	0.192
 ;
-param :	re_share_primary	gwp_limit	import_capacity	solar_area := 
-AT-CH-IT	0	Infinity	0	Infinity
-BE-DE-LU-NL	0	Infinity	0	Infinity
-DK-SE	0	Infinity	0	Infinity
-ES-PT	0	Infinity	0	Infinity
-FR	0	Infinity	0	Infinity
-IE-UK	0	Infinity	0	Infinity
+param :	re_share_primary	gwp_limit	import_capacity	solar_area_rooftop := 
+AT-CH-IT	0.0	559200.0	0.0	988.0
+BE-DE-LU-NL	0.0	1420200.0	0.0	1518.0
+DK-SE	0.0	111770.0	0.0	224.0
+ES-PT	0.0	280037.0	0.0	718.0
+FR	0.0	410026.0	0.0	901.0
+IE-UK	0.0	678771.0	0.0	936.0
 ;
-param :	share_mobility_public_min	share_mobility_public_max	share_freight_train_min	share_freight_train_max := 
-AT-CH-IT	0.199	0.5	0.109	0.25
-BE-DE-LU-NL	0.199	0.5	0.109	0.25
-DK-SE	0.199	0.5	0.109	0.25
-ES-PT	0.199	0.5	0.109	0.25
-FR	0.199	0.5	0.109	0.25
-IE-UK	0.199	0.5	0.109	0.25
+param :	solar_area_ground	solar_area_ground_high_irr	share_mobility_public_min	share_mobility_public_max := 
+AT-CH-IT	5558.0	124.0	0.199	0.5
+BE-DE-LU-NL	5735.0	0.0	0.199	0.5
+DK-SE	1500.0	0.0	0.199	0.5
+ES-PT	8112.0	3347.0	0.199	0.5
+FR	8777.0	89.0	0.199	0.5
+IE-UK	4471.0	0.0	0.199	0.5
 ;
-param :	share_freight_road_min	share_freight_road_max	share_freight_boat_min	share_freight_boat_max := 
-AT-CH-IT	0.0	3.0	0.156	0.3
-BE-DE-LU-NL	0.0	3.0	0.156	0.3
-DK-SE	0.0	3.0	0.156	0.3
-ES-PT	0.0	3.0	0.156	0.3
-FR	0.0	3.0	0.156	0.3
-IE-UK	0.0	3.0	0.156	0.3
+param :	share_freight_train_min	share_freight_train_max	share_freight_road_min	share_freight_road_max := 
+AT-CH-IT	0.109	0.25	0.0	3.0
+BE-DE-LU-NL	0.109	0.25	0.0	3.0
+DK-SE	0.109	0.25	0.0	3.0
+ES-PT	0.109	0.25	0.0	3.0
+FR	0.109	0.25	0.0	3.0
+IE-UK	0.109	0.25	0.0	3.0
 ;
-param :	share_heat_dhn_min	share_heat_dhn_max := 
-AT-CH-IT	0.02	0.37
-BE-DE-LU-NL	0.02	0.37
-DK-SE	0.02	0.37
-ES-PT	0.02	0.37
-FR	0.02	0.37
-IE-UK	0.02	0.37
+param :	share_freight_boat_min	share_freight_boat_max	share_heat_dhn_min	share_heat_dhn_max := 
+AT-CH-IT	0.156	0.3	0.02	0.37
+BE-DE-LU-NL	0.156	0.3	0.02	0.37
+DK-SE	0.156	0.3	0.02	0.37
+ES-PT	0.156	0.3	0.02	0.37
+FR	0.156	0.3	0.02	0.37
+IE-UK	0.156	0.3	0.02	0.37
 ;

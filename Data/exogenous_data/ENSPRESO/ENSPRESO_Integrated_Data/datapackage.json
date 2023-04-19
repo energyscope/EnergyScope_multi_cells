@@ -1,0 +1,505 @@
+{
+  "profile": "tabular-data-package",
+  "name": "ENSPRESO Integrated data",
+  "title": "ENSPRESO Integrated data for wind, solar and biomass - ENergy Systems Potential Renewable Energy SOurces",
+  "homepage": "https://data.jrc.ec.europa.eu/collection/id-00138",
+  "description": "ENSPRESO is an open dataset for energy models on renewable energy potentials in the EU, at national (NUTS0) and regional levels (NUTS2). Within ENSPRESO, ENergy Systems Potential Renewable Energy SOurces, technical potentials are provided for wind, solar and biomass, based on coherent GIS-based land-restriction scenarios.", 
+  "contributors": [
+    {
+      "title": "Wouter Nijs",
+      "role": "author"
+    }
+  ],
+    "sources": [
+    {
+      "title": "Open access paper in Energy Strategy Reviews; ENSPRESO - an open, EU-28 wide, transparent and coherent database of wind, solar and biomass energy potentials",
+      "path": "https://www.sciencedirect.com/science/article/pii/S2211467X19300720"
+    },
+	{
+      "title": "JRC technical report - JRC109698 - Wind potentials for EU  and neighbouring countries",
+      "path": "https://publications.jrc.ec.europa.eu/repository/handle/JRC109698"
+    },
+	{
+      "title": "JRC technical report - JRC1098626 - The JRC-EU-TIMES model. Bioenergy potentials for EU and neighbouring countries",
+      "path": "https://publications.jrc.ec.europa.eu/repository/handle/JRC98626"
+    }
+  ],
+  "licenses": [
+    {
+      "name": "CC-BY-4.0",
+      "title": "Creative Commons Attribution 4.0",
+      "path": "https://creativecommons.org/licenses/by/4.0/"
+    }
+  ],
+  "resources": [
+    {
+      "name": "ENSPRESO_Integrated_NUTS2_Data",
+      "path": "ENSPRESO_Integrated_NUTS2_Data.csv",
+      "profile": "tabular-data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "nuts2_code",
+            "type": "string",
+            "format": "default",
+            "title": "NUTS2 2013 classification"
+          },
+          {
+            "name": "biomass_production_twh_medium_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario – total for all 3 groups"
+          },
+          {
+            "name": "biomass_production_twh_low_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario – total for all 3 groups"
+          },
+          {
+            "name": "biomass_production_twh_high_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario  – total for all 3 groups"
+          },
+          {
+            "name": "biomass_production_twh_medium_agri&landscape _residues",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario –agri&landscape_residues"
+          },
+          {
+            "name": "biomass_production_twh_low_agri&landscape _residues",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario – agri&landscape_residues"
+          },
+          {
+            "name": "biomass_production_twh_high_agri&landscape _residues",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario – agri&landscape_residues"
+          },
+          {
+            "name": "biomass_production_twh_medium_energy_crops",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario – energy_crops"
+          },
+          {
+            "name": "biomass_production_twh_low_energy_crops",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario – energy_crops"
+          },
+          {
+            "name": "biomass_production_twh_high_energy_crops",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario – energy_crops"
+          },
+          {
+            "name": "biomass_production_twh_medium_forestry",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario – forestry"
+          },
+          {
+            "name": "biomass_production_twh_low_forestry",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario – forestry"
+          },
+          {
+            "name": "biomass_production_twh_high_forestry",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario – forestry"
+          },
+          {
+            "name": "wind_onshore_capacity_gw_medium",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for reference scenario (Reference - Large turbines)"
+          },
+          {
+            "name": "wind_onshore_capacity_gw_low",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario (1200m from settlements)"
+          },
+          {
+            "name": "wind_onshore_capacity_gw_high",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario (400m from settlements)"
+          },
+          {
+            "name": "wind_onshore_production_twh_medium",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for reference scenario (Reference - Large turbines)"
+          },
+          {
+            "name": "wind_onshore_production_twh_low",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario (1200m from settlements)"
+          },
+          {
+            "name": "wind_onshore_production_twh_high",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario (400m from settlements)"
+          },
+          {
+            "name": "wind_onshore_land_use_percentage_medium",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for reference scenario (Reference - Large turbines)"
+          },
+          {
+            "name": "wind_onshore_land_use_percentage_low",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario (1200m from settlements)"
+          },
+          {
+            "name": "wind_onshore_land_use_percentage_high",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario (400m from settlements)"
+          },
+          {
+            "name": "solar_capacity_gw_medium_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario (170 W/m2) – total for all 3 types"
+          },
+          {
+            "name": "solar_capacity_gw_low_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario (85 W/m2) – total for all 3 types"
+          },
+          {
+            "name": "solar_capacity_gw_high_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario (300 W/m2) – total for all 3 types"
+          },
+          {
+            "name": "solar_capacity_gw_medium_pv_roof",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario (170 W/m2) – roof & façade PV"
+          },
+          {
+            "name": "solar_capacity_gw_low_pv_roof",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario (85 W/m2) – roof & façade PV"
+          },
+          {
+            "name": "solar_capacity_gw_high_pv_roof",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario (300 W/m2) – roof & façade PV"
+          },
+          {
+            "name": "solar_capacity_gw_medium_pv_ground",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario (170 W/m2) – ground PV"
+          },
+          {
+            "name": "solar_capacity_gw_low_pv_ground",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario (85 W/m2) – ground PV"
+          },
+          {
+            "name": "solar_capacity_gw_high_pv_ground",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario (300 W/m2) – ground PV"
+          },
+          {
+            "name": "solar_capacity_gw_medium_csp",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario (170 W/m2) – CSP"
+          },
+          {
+            "name": "solar_capacity_gw_low_csp",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario (85 W/m2) – CSP"
+          },
+          {
+            "name": "solar_capacity_gw_high_csp",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario (300 W/m2) – CSP"
+          },
+          {
+            "name": "solar_production_twh_medium_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario (170 W/m2) – total for all 3 types"
+          },
+          {
+            "name": "solar_production_twh_low_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario (85 W/m2) – total for all 3 types"
+          },
+          {
+            "name": "solar_production_twh_high_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario (300 W/m2) – total for all 3 types"
+          },
+          {
+            "name": "solar_production_twh_medium_pv_roof",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario (170 W/m2) – roof & façade PV"
+          },
+          {
+            "name": "solar_production_twh_low_pv_roof",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario (85 W/m2) – roof & façade PV"
+          },
+          {
+            "name": "solar_production_twh_high_pv_roof",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario (300 W/m2) – roof & façade PV"
+          },
+          {
+            "name": "solar_production_twh_medium_pv_ground",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario (170 W/m2) – ground PV"
+          },
+          {
+            "name": "solar_production_twh_low_pv_ground",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario (85 W/m2) – ground PV"
+          },
+          {
+            "name": "solar_production_twh_high_pv_ground",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario (300 W/m2) – ground PV"
+          },
+          {
+            "name": "solar_production_twh_medium_csp",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for medium scenario (170 W/m2) – CSP"
+          },
+          {
+            "name": "solar_production_twh_low_csp",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario (85 W/m2) – CSP"
+          },
+          {
+            "name": "solar_production_twh_high_csp",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario (300 W/m2) – CSP"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ENSPRESO_Integrated_EEZ_Data_Offshore",
+      "path": "ENSPRESO_Integrated_EEZ_Data_Offshore.csv",
+      "profile": "tabular-data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "eez_code_2016",
+            "type": "string",
+            "format": "default",
+            "title": "Exclusive Economic Zone",
+            "description": "An exclusive economic zone (EEZ), as prescribed by the 1982 United Nations Convention on the Law of the Sea, is an area of the sea in which a sovereign state has special rights regarding the exploration and use of marine resources, including energy production from water and wind.[Law of the Sea, United Nations]"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_medium_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for reference scenario – total"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_medium_0-30",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for reference scenario - water depth 0-30m"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_medium_30-60",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for reference scenario - water depth 30-60m"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_low_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario – total"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_low_0-30",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario - water depth 0-30m"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_low_30-60",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario - water depth 30-60m"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_high_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - total"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_high_0-30",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 0-30m"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_high_30-60",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 30-60m"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_high_60-100",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 60-100m"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_high_100-1000",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 100-1000m"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_high_0-30_12nm",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 0-30m in 12nm zone"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_high_30-60_12nm",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 30-60m in 12nm zone"
+          },
+          {
+            "name": "wind_offshore_capacity_gw_high_60-100_12nm",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 60-100m in 12nm zone"
+          },
+          {
+            "name": "wind_offshore_production_twh_medium_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for reference scenario – total"
+          },
+          {
+            "name": "wind_offshore_production_twh_medium_0-30",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for reference scenario - water depth 0-30m"
+          },
+          {
+            "name": "wind_offshore_production_twh_medium_30-60",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for reference scenario - water depth 30-60m"
+          },
+          {
+            "name": "wind_offshore_production_twh_low_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario – total"
+          },
+          {
+            "name": "wind_offshore_production_twh_low_0-30",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario - water depth 0-30m"
+          },
+          {
+            "name": "wind_offshore_production_twh_low_30-60",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for low scenario - water depth 30-60m"
+          },
+          {
+            "name": "wind_offshore_production_twh_high_total",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - total"
+          },
+          {
+            "name": "wind_offshore_production_twh_high_0-30",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 0-30m"
+          },
+          {
+            "name": "wind_offshore_production_twh_high_30-60",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 30-60m"
+          },
+          {
+            "name": "wind_offshore_production_twh_high_60-100",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 60-100m"
+          },
+          {
+            "name": "wind_offshore_production_twh_high_100-1000",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 100-1000m"
+          },
+          {
+            "name": "wind_offshore_production_twh_high_0-30_12nm",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 0-30m in 12nm zone"
+          },
+          {
+            "name": "wind_offshore_production_twh_high_30-60_12nm",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 30-60m in 12nm zone"
+          },
+          {
+            "name": "wind_offshore_production_twh_high_60-100_12nm",
+            "type": "integer",
+            "format": "default",
+            "title": "Data for high scenario - water depth 60-100m in 12nm zone"
+          }
+        ]
+      }
+    }
+  ]
+}

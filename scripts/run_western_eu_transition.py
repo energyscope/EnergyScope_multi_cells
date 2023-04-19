@@ -1,19 +1,24 @@
 import numpy as np
+from pathlib import Path
 
 # additional line for VS studio
 import sys
-sys.path.append('C:\\Users\\pathiran\\Documents\\Energy_system_modelling\\EnergyScope_multi_cells')
+sys.path.append('/home/pthiran/EnergyScope_multi_cells/')
 from esmc import Esmc
 
 co2_1990 = {'AT-CH-IT': 559200, 'BE-DE-LU-NL': 1420200, 'DK-SE': 111770, 'ES-PT': 280037, 'FR': 410026, 'IE-UK': 678771} # net emissions in 1990 [ktCO2_eq/y]
 gwp_limit = dict()
-reduction =[0, 0.5, 0.8, 0.9, 1.0]
+reduction = [0, 0.5, 0.8, 0.9, 1.0]
 
 tds = 14  # np.concatenate((np.arange(2,62,2),np.arange(62,112,4),np.array([120,140,160,180,365])))
 
 for red in reduction:
     print('Reduction', red)
 
+    # specify ampl_path (set None if ampl is in Path environment variable or the path to ampl if not)
+    ampl_path = Path(r'C:\Users\pathiran\ampl_mswin64')
+
+    # info to switch off unused constraints
     gwp_limit_overall = None
     re_share_primary = None
     f_perc = False
@@ -39,20 +44,20 @@ for red in reduction:
     # Initialize and solve the temporal aggregation algorithm:
     # if already run, set algo='read' to read the solution of the clustering
     # else, set algo='kmedoid' to run kmedoid clustering algorithm to choose typical days (TDs)
-    my_model.init_ta(algo='read')
+    my_model.init_ta(algo='read', ampl_path=ampl_path)
+
+    # Update data for gwp_limit
+    for r,g in co2_1990.items():
+        my_model.regions[r].data['Misc']['gwp_limit'] = g*(1-red)
 
     # Print the time related data of the energy system optimization model using the TDs to represent it
     my_model.print_td_data()
 
+    # Print data
+    my_model.print_data(indep=True)
+
     # Set the Energy System Optimization Model (ESOM) as an ampl formulated problem
-    my_model.set_esom()
-
-    # update gwp_limit
-    gwp_limit_param = my_model.esom.ampl.get_parameter('gwp_limit')
-
-    for r,g in co2_1990.items():
-        gwp_limit[r] = g*(1-red)
-    gwp_limit_param.setValues(gwp_limit)
+    my_model.set_esom(ampl_path=ampl_path)
 
     # Solving the ESOM
     my_model.solve_esom()

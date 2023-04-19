@@ -1,12 +1,12 @@
 Category;Subcategory;Technologies name;Technologies param;f_min;f_max
 ;;Name (simplified);Name (in model and documents);[GW];[GW]
 Electricity;Electricity;Nuclear;NUCLEAR;0;0
-Electricity;Electricity;Photovoltaic;PV;7.77;531
-Electricity;Electricity;Parabolic trough power block;PT_POWER_BLOCK;0;0
-Electricity;Electricity;Solar tower power block;ST_POWER_BLOCK;0;15
-Electricity;Electricity;Striling dish;STIRLING_DISH;0;0
-Electricity;Electricity;Wind onshore;WIND_ONSHORE;12.22;125.5
-Electricity;Electricity;Wind offshore;WIND_OFFSHORE;0;11
+Electricity;Electricity;Photovoltaic rooftop;PV_ROOFTOP;3.885;167.84
+Electricity;Electricity;Photovoltaic utility scale;PV_UTILITY;3.885;944.84
+Electricity;Electricity;Parabolic trough power block;PT_POWER_BLOCK;0;21
+Electricity;Electricity;Solar tower power block;ST_POWER_BLOCK;0;21
+Electricity;Electricity;Wind onshore;WIND_ONSHORE;12.22;189.4
+Electricity;Electricity;Wind offshore;WIND_OFFSHORE;0;3.4
 Electricity;Electricity;Hydro dam;HYDRO_DAM;15.42;15.862
 Electricity;Electricity;Hydro river;HYDRO_RIVER;19.731;20.582
 Electricity;Electricity; tidal stream;NEW_TIDAL_STREAM;0;0
@@ -15,5 +15,9 @@ Electricity;Electricity;Tidal range;TIDAL_RANGE;0;0
 Electricity;Electricity;Wave;WAVE;0;0
 Electricity;Electricity;Geothermal power plant;GEOTHERMAL;0.869;2.3
 Heat;Heat low temperature centralised;Geothermal (DHN);DHN_DEEP_GEO;0;20
+Heat;Heat low temperature centralised;Solar thermal (DHN);DHN_SOLAR;0;691.11
+Heat;Heat low temperature decentralised;Solar thermal (decentralised);DEC_SOLAR;0;691.11
+Electricity;Electricity;Parabolic trough collectors;PT_COLLECTOR;0;55.26
+Electricity;Electricity;Solar tower collectors;ST_COLLECTOR;0;55.26
 Storage;Electricity storage;Hydro dam storage;DAM_STORAGE;10805.72;12306.221
 Storage;Electricity storage;Pumped hydro storage;PHS;494;3972

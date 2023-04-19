@@ -1,0 +1,282 @@
+ampl: option times 0, gentimes 0;ampl: option 'times' '1';#				incremental	total
+#phase		seconds		memory		memory
+#execute	0.046875	22215832	22215832
+ampl: option times 1, gentimes 0;### option ...
+#				incremental	total
+#phase		seconds		memory		memory
+#execute	0		0		22215832
+ampl: option times 0, gentimes 0;### option ...
+ampl: option 'gentimes' '1';ampl: option times 1, gentimes 1;### option ...
+#				incremental	total
+#phase		seconds		memory		memory
+#execute	0		0		22215832
+ampl: option times 0, gentimes 0;### option ...
+ampl: option 'cplex_options' 'mipdisplay=5 mipinterval=1000 mipgap=1e-6';ampl: option times 1, gentimes 1;#				incremental	total
+#phase		seconds		memory		memory
+#execute	0		1536		22217368
+ampl: solve;### solve ...
+#compile	0		1560		22218928
+##genmod times:
+##seq      seconds    cum. sec.    mem. inc.  name
+## 89            0            0            0  derstage
+## 93            0            0            0  sstatus
+## 107            0            0            0  DIMENSIONS
+## 108            0            0            0  DAYS
+## 109            0            0            0  Nbr_TD
+## 110     0.015625     0.015625            0  Ndata
+## 111            4      4.01562     11602128  Distance
+## 112            0      4.01562            0  Selected_TD
+## 114            0      4.01562      4202528  Cluster_matrix
+## 116     0.015625      4.03125      3233312  allocate_1TD_per_day
+## 118     0.015625      4.04688     14759016  other_TD_null
+## 120            0      4.04688      3225600  representation
+## 122            0      4.04688            0  limit_number_of_TD
+## 124     0.015625       4.0625      3187200  Euclidean_distance
+#genmod		4.0625		40209784	62428712
+#merge		0		2097160		64525872
+#collect	0.015625	41178704	105704576
+
+"option presolve 10;" used, but "option presolve 2;" would suffice.
+133590 variables, all binary
+133956 constraints, all linear; 533630 nonzeros
+	366 equality constraints
+	133590 inequality constraints
+1 linear objective; 132860 nonzeros.
+
+presolve results:
+	variables omitted:	0
+	constraints omitted:	0
+	ranges relaxed:		133590
+	bounds improved:	0
+	nba cycles:		1
+	bound row scans:	133956
+	row-scan updates:	0
+#presolve	0.109375	33758768	139463344
+#output		0.171875	4194312		143657656
+#Total		4.40625
+CPLEX 22.1.1.0: mipdisplay=5
+mipinterval=1000
+mipgap=1e-6
+Reduced MIP has 133956 rows, 133590 columns, and 533630 nonzeros.
+Reduced MIP has 133590 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Found incumbent of value 0.513862 after 2.62 sec. (3386.92 ticks)
+Probing time = 1.02 sec. (39.18 ticks)
+Detecting symmetries...
+Reduced MIP has 133956 rows, 133590 columns, and 533630 nonzeros.
+Reduced MIP has 133590 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Probing time = 0.86 sec. (39.10 ticks)
+Clique table members: 133590.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: deterministic, using up to 8 threads.
+Parallel mode: deterministic, using up to 2 threads for parallel tasks at root LP.
+Root relaxation solution time = 25.48 sec. (8587.43 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.5139        0.0000           100.00%
+Found incumbent of value 0.513862 after 31.86 sec. (13952.16 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.2628        0.0000           100.00%
+Found incumbent of value 0.262811 after 31.86 sec. (13953.18 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.2429        0.0000           100.00%
+Found incumbent of value 0.242881 after 31.86 sec. (13953.69 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.2426        0.0000           100.00%
+Found incumbent of value 0.242594 after 31.86 sec. (13954.20 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.2354        0.0000           100.00%
+Found incumbent of value 0.235432 after 31.86 sec. (13954.71 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2153   768        0.2354        0.2153    11587    8.54%
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.2288        0.2153             5.88%
+Found incumbent of value 0.228777 after 32.20 sec. (14235.13 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2153   768        0.2288      Fract: 1    11662    5.87%
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.2160        0.2153             0.29%
+Found incumbent of value 0.215960 after 34.80 sec. (15937.03 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.2158        0.2153             0.19%
+Found incumbent of value 0.215756 after 34.88 sec. (16020.96 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2154   768        0.2158      Fract: 1    11719    0.19%
+Detecting symmetries...
+
+Repeating presolve.
+MIP Presolve eliminated 89687 rows and 89687 columns.
+Reduced MIP has 44269 rows, 43903 columns, and 174934 nonzeros.
+Reduced MIP has 43903 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Probing time = 0.06 sec. (14.07 ticks)
+Detecting symmetries...
+Reduced MIP has 44269 rows, 43903 columns, and 174934 nonzeros.
+Reduced MIP has 43903 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Represolve time = 0.89 sec. (765.53 ticks)
+Probing time = 0.12 sec. (14.07 ticks)
+Clique table members: 43929.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: deterministic, using up to 8 threads.
+Root relaxation solution time = 5.89 sec. (1659.89 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.2158        0.2154             0.19%
+Found incumbent of value 0.215756 after 43.16 sec. (19290.90 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2154   768        0.2158        0.2154    11769    0.19%
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2154  1002        0.2158      Cuts: 37    11949    0.16%
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2154   985        0.2158   ZeroHalf: 9    12189    0.15%
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.2157        0.2154             0.10%
+Found incumbent of value 0.215656 after 44.67 sec. (20337.08 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0  -1.00000e+75     0        0.2157        0.2154    12189    0.10%
+Detecting symmetries...
+
+Repeating presolve.
+MIP Presolve eliminated 38092 rows and 38092 columns.
+Reduced MIP has 6177 rows, 5811 columns, and 23088 nonzeros.
+Reduced MIP has 5811 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Probing time = 0.02 sec. (1.78 ticks)
+Detecting symmetries...
+Reduced MIP has 6177 rows, 5811 columns, and 23088 nonzeros.
+Reduced MIP has 5811 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Represolve time = 0.17 sec. (143.49 ticks)
+Probing time = 0.00 sec. (1.78 ticks)
+Clique table members: 6098.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: deterministic, using up to 8 threads.
+Root relaxation solution time = 0.39 sec. (252.26 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.2157        0.2155             0.06%
+Found incumbent of value 0.215656 after 45.34 sec. (20787.18 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2154  1004        0.2157        0.2155    15327    0.06%
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2155  1201        0.2157      Cuts: 13    15437    0.06%
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2155  1198        0.2157  ZeroHalf: 10    15522    0.06%
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2155  1314        0.2157  ZeroHalf: 23    15554    0.06%
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2155  1188        0.2157   ZeroHalf: 3    15616    0.05%
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2155   519        0.2157  ZeroHalf: 29    15717    0.05%
+Detecting symmetries...
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        0.2155  1324        0.2157  ZeroHalf: 10    15761    0.05%
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0        cutoff              0.2157        0.2157    15761    0.00%
+Elapsed time = 46.75 sec. (21728.02 ticks, tree = 0.01 MB)
+
+Zero-half cuts applied:  48
+Gomory fractional cuts applied:  2
+
+Root node processing (before b&c):
+  Real time             =   46.77 sec. (21729.68 ticks)
+Parallel b&c, 8 threads:
+  Real time             =    0.00 sec. (0.00 ticks)
+  Sync time (average)   =    0.00 sec.
+  Wait time (average)   =    0.00 sec.
+                          ------------
+Total (root+branch&cut) =   46.77 sec. (21729.68 ticks)
+CPLEX 22.1.1.0: optimal integer solution; objective 0.2156555625
+15761 MIP simplex iterations
+0 branch-and-bound nodes
+#execute	0.078125	21231544	164889200
+ampl: option times 0, gentimes 0;### option ...
+ampl: option 'show_stats' '0';ampl: option times 1, gentimes 1;#				incremental	total
+#phase		seconds		memory		memory
+#execute	0		0		164889200
+ampl: option times 0, gentimes 0;### option ...
+ampl: option 'times' '0';ampl: option times 0, gentimes 1;ampl: option 'gentimes' '0';### option ...
+ampl: option omit_zero_rows 0;_display _ampl_elapsed_time;;_display 0 1 1
+_ampl_elapsed_time
+4.545999999999999
+ampl: option omit_zero_rows 0;_display _solve_elapsed_time;;_display 0 1 1
+_solve_elapsed_time
+47.829
+ampl: option omit_zero_rows 0;_display solve_result_num;;_display 0 1 1
+solve_result_num
+2
+ampl: option 'log_file' '';
