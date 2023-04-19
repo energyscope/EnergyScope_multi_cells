@@ -22,7 +22,7 @@ for t in tds:
     # info to switch off unused constraints
     gwp_limit_overall = None
     re_share_primary = None
-    f_perc = False
+    f_perc = True
 
     # define configuration
     config = {'case_study': 'test',
