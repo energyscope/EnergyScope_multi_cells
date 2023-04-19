@@ -9,7 +9,7 @@ Electricity;Electricity;Wind onshore;WIND_ONSHORE;12.22;189.4
 Electricity;Electricity;Wind offshore;WIND_OFFSHORE;0;3.4
 Electricity;Electricity;Hydro dam;HYDRO_DAM;15.42;15.862
 Electricity;Electricity;Hydro river;HYDRO_RIVER;19.731;20.582
-Electricity;Electricity; tidal stream;NEW_TIDAL_STREAM;0;0
+Electricity;Electricity;New tidal stream;NEW_TIDAL_STREAM;0;0
 Electricity;Electricity;Tidal stream;TIDAL_STREAM;0;0
 Electricity;Electricity;Tidal range;TIDAL_RANGE;0;0
 Electricity;Electricity;Wave;WAVE;0;0

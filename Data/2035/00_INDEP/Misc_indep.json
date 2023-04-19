@@ -23,7 +23,7 @@
 		"res_params": {"WIND_OFFSHORE": "WIND_OFFSHORE", "WIND_ONSHORE": "WIND_ONSHORE", "HYDRO_DAM": "HYDRO_DAM", "HYDRO_RIVER": "HYDRO_RIVER"},
 		"res_mult_params": {
 			"PV": ["PV_ROOFTOP", "PV_UTILITY"], 
-			"TIDAL": ["TIDAL_STREAM", "TIDAL_RANGE"],
+			"TIDAL": ["NEW_TIDAL_STREAM", "TIDAL_STREAM", "TIDAL_RANGE"],
             "SOLAR": ["DHN_SOLAR", "DEC_SOLAR"],
             "CSP": ["PT_COLLECTOR", "ST_COLLECTOR"]}
 		
