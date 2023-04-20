@@ -102,7 +102,7 @@ if get_enspreso:
         won_pot = won_pot.loc[:, (enspreso_sce_wind, 'CF > 25%')].sum(axis=1)
     elif won_min_cf >= 20:
         # won_pot = won_pot.loc[:,(enspreso_sce_wind, ['CF > 25%', '20% < CF < 25%'])].sum(axis=1)
-        sequence = ['CF > 25%', '20% < CF < 25%']
+        sequence = ['CF > 25%', '20%  < CF < 25%']
         won_pot = won_pot.loc[:, (enspreso_sce_wind, won_pot.columns.isin(sequence, level=1))].sum(axis=1)
     else:
         won_pot = won_pot.loc[:, (enspreso_sce_wind, slice(None))].sum(axis=1)
@@ -255,6 +255,9 @@ for r, r_full in code_2_full.items():
                             'DAM_STORAGE', 'PHS']
         tech_new = tech_new.loc[ordered_tech_res, :]
         tech_new.index.name = 'Technologies param'
+        # if f_max is smaller then f_min, we put f_min to f_max
+        tech_new.loc[:, 'f_max'] = tech_new.loc[:, 'f_max'].mask(tech_new.loc[:, 'f_max'] < tech_new.loc[:, 'f_min'],
+                                                                 tech_new.loc[:, 'f_min'])
 
         # update weights according to the potential for res
         file = data_dir / str(year_stop) / '00_INDEP' / 'Misc_indep.json'
