@@ -64,12 +64,14 @@ class Region:
 
         """
         # the Weights are redefined fully without considering the ref_region
-        self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=CSV_SEPARATOR, header=[0], index_col=[0]).dropna(axis=0, how='any')
+        self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=CSV_SEPARATOR, header=[0], index_col=[0])\
+            .dropna(axis=0, how='any')
         self.data['Weights'].index.rename('Category', inplace=True)
         self.data['Weights'] = clean_indices(self.data['Weights'])
 
         # The time series without weight into data have NaN as Weight
-        self.data['Weights'] = self.data['Weights'].reindex(self.data['Time_series'].columns, method=None, fill_value=np.nan)
+        self.data['Weights'] = self.data['Weights'].reindex(self.data['Time_series'].columns,
+                                                            method=None, fill_value=np.nan)
         return
 
     def read_eud(self):
@@ -91,54 +93,49 @@ class Region:
         -------
 
         """
-        # TODO change infinity to 1e15 and only back to infinity when printing
         r_path = self.data_path / 'Resources.csv'
         # if the file exist, update the data
         if r_path.is_file():
-            # read csv and clean df
-            df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[2], index_col=[2]).dropna(axis=1, how='all')
-            df = clean_indices(df)
-
-            # put df into attribute data
             if self.ref_region:
+                # read csv and clean df
+                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[2], index_col=[2]).dropna(axis=1, how='all')
+                df = clean_indices(df)
+                # put df into attribute data
                 self.data['Resources'] = df
             else:
+                # read csv and clean df
+                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[0]).dropna(axis=1, how='all')
+                df = clean_indices(df)
                 # using update method to replace only the data redefined in the csv of the region
                 self.data['Resources'].update(df)
 
         return
 
     def read_tech(self):
-        """Reads the technologies data of the region and stores it in the data attribute as a dataframe
-
-        Returns
-        -------
-
+        """
+        Reads the technologies data of the region and stores it in the data attribute as a dataframe
         """
         r_path = self.data_path / 'Technologies.csv'
         # if the file exist, update the data
         if r_path.is_file():
-            # read csv and clean df
-            df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[3], skiprows=[1]).drop(columns=['Comment']
-                                                                                            , errors='ignore')
-            df = clean_indices(df)
-
-            # put df into attribute data
             if self.ref_region:
+                # read csv and clean df
+                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[3], skiprows=[1]).drop(
+                    columns=['Comment']
+                    , errors='ignore')
+                df = clean_indices(df)
+                # put df into attribute data
                 self.data['Technologies'] = df
             else:
+                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[0])
+                df = clean_indices(df)
                 # using update method to replace only the data redefined in the csv of the region
                 self.data['Technologies'].update(df)
-
         return
 
     def read_storage_power_to_energy(self):
-        """Reads the storage power to energy ratio of the region and stores it in the data attribute as a dataframe
-
-
-        Returns
-        -------
-
+        """
+        Reads the storage power to energy ratio of the region and stores it in the data attribute as a dataframe
         """
         r_path = self.data_path / 'Storage_power_to_energy.csv'
         # if the file exist, update the data
@@ -156,12 +153,8 @@ class Region:
         return
 
     def read_misc(self):
-        """Reads the miscellaneous data of the region and store it in the data attribute as a dictionary
-
-
-        Returns
-        -------
-
+        """
+        Reads the miscellaneous data of the region and store it in the data attribute as a dictionary
         """
         r_path = (self.data_path/'Misc.json')
         # if the file exist, update the data
@@ -179,9 +172,7 @@ class Region:
 
     def read_data(self, all=True, ):
         """
-
         Reads the data related to this region
-
         """
         logging.info('Read data from '+str(self.data_path))
 
