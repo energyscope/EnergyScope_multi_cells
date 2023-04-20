@@ -1,5 +1,5 @@
 {
-    "solar_area_rooftop" : 718,
-    "solar_area_ground" : 8112,
-    "solar_area_ground_high_irr" : 3347
+      "solar_area_rooftop": 60.7588180314156,
+      "solar_area_ground": 524.2800000000001,
+      "solar_area_ground_high_irr": 0.33
 }

@@ -1,23 +1,22 @@
-Category;Subcategory;Technologies name;Technologies param;f_min;f_max;Comment
-;;Name (simplified);Name (in model and documents);[GW];[GW];
-Electricity;Electricity;Nuclear;NUCLEAR;0;2;
-Electricity;Electricity;Photovoltaic rooftop;PV_ROOFTOP;0;27;
-Electricity;Electricity;Photovoltaic utility scale;PV_UTILITY;0;77;
-Electricity;Electricity;Parabolic trough power block;PT_POWER_BLOCK;0;0;
-Electricity;Electricity;Solar tower power block;ST_POWER_BLOCK;0;0;
-Electricity;Electricity;Wind onshore;WIND_ONSHORE;0;10;
-Electricity;Electricity;Wind offshore;WIND_OFFSHORE;0;6;
-Electricity;Electricity;Hydro dam;HYDRO_DAM;0;0;
-Electricity;Electricity;Hydro river;HYDRO_RIVER;0;0.115;
-Electricity;Electricity; tidal stream;NEW_TIDAL_STREAM;0;0;
-Electricity;Electricity;Tidal stream;TIDAL_STREAM;0;0;
-Electricity;Electricity;Tidal range;TIDAL_RANGE;0;0;
-Electricity;Electricity;Wave;WAVE;0;0;
-Electricity;Electricity;Geothermal power plant;GEOTHERMAL;0;0;
-Heat;Heat low temperature centralised;Geothermal (DHN);DHN_DEEP_GEO;0;0;
-Heat;Heat low temperature centralised;Solar thermal (DHN);DHN_SOLAR;0;111.2;
-Heat;Heat low temperature decentralised;Solar thermal (decentralised);DEC_SOLAR;0;111.2;
-Electricity;Electricity;Parabolic trough collectors;PT_COLLECTOR;0;0;
-Electricity;Electricity;Solar tower collectors;ST_COLLECTOR;0;0;
-Storage;Electricity storage;Hydro dam storage;DAM_STORAGE;0;0;
-Storage;Electricity storage;Pumped hydro storage;PHS;5;6.5;
+Technologies param;f_min;f_max
+NUCLEAR;0.0;100000.0
+PV_ROOFTOP;2.916;27.14786523993995
+PV_UTILITY;0.0;76.9182
+PT_POWER_BLOCK;0.0;0.0
+ST_POWER_BLOCK;0.0;0.0
+PT_COLLECTOR;0.0;0.0
+ST_COLLECTOR;0.0;0.0
+WIND_ONSHORE;1.249;2.199729197
+WIND_OFFSHORE;0.712;1.85
+HYDRO_DAM;0.0;0.001
+HYDRO_RIVER;0.171;0.172
+NEW_TIDAL_STREAM;0.0;0.0
+TIDAL_STREAM;0.0;0.0
+TIDAL_RANGE;0.0;0.0
+WAVE;0.0;0.0
+GEOTHERMAL;0.0;0.2
+DHN_DEEP_GEO;0.0;0.0
+DHN_SOLAR;0.0;111.78532745857626
+DEC_SOLAR;0.0;111.78532745857626
+DAM_STORAGE;0.0;0.0
+PHS;8.0;14.0

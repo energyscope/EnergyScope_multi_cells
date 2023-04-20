@@ -1,23 +1,22 @@
-Category;Subcategory;Technologies name;Technologies param;f_min;f_max;Comment
-;;Name (simplified);Name (in model and documents);[GW];[GW];
-Electricity;Electricity;Nuclear;NUCLEAR;0;0;
-Electricity;Electricity;Photovoltaic rooftop;PV_ROOFTOP;3.47;122;
-Electricity;Electricity;Photovoltaic utility scale;PV_UTILITY;3.47;1379;
-Electricity;Electricity;Parabolic trough power block;PT_POWER_BLOCK;0;569;
-Electricity;Electricity;Solar tower power block;ST_POWER_BLOCK;0;569;
-Electricity;Electricity;Wind onshore;WIND_ONSHORE;27.921;743.6;
-Electricity;Electricity;Wind offshore;WIND_OFFSHORE;0;0.7;
-Electricity;Electricity;Hydro dam;HYDRO_DAM;19.701;19.703;
-Electricity;Electricity;Hydro river;HYDRO_RIVER;3.942;3.944;
-Electricity;Electricity;Tidal stream;NEW_TIDAL_STREAM;0;0;
-Electricity;Electricity;Tidal stream;TIDAL_STREAM;0;0.07;
-Electricity;Electricity;Tidal range;TIDAL_RANGE;0;0.07;
-Electricity;Electricity;Wave;WAVE;0;0;
-Electricity;Electricity;Geothermal power plant;GEOTHERMAL;0;3.7;
-Heat;Heat low temperature centralised;Geothermal (DHN);DHN_DEEP_GEO;0;0;
-Heat;Heat low temperature centralised;Solar thermal (DHN);DHN_SOLAR;0;502.00;
-Heat;Heat low temperature decentralised;Solar thermal (decentralised);DEC_SOLAR;0;502.00;
-Electricity;Electricity;Parabolic trough collectors;PT_COLLECTOR;0;1500.00;
-Electricity;Electricity;Solar tower collectors;ST_COLLECTOR;0;1500.00;
-Storage;Electricity storage;Hydro dam storage;DAM_STORAGE;8839.186;8839.197;
-Storage;Electricity storage;Pumped hydro storage;PHS;1637;5172;
+Technologies param;f_min;f_max
+NUCLEAR;0.0;100000.0
+PV_ROOFTOP;0.0;13.683785743922646
+PV_UTILITY;0.0;58.7775
+PT_POWER_BLOCK;0.0;0.0
+ST_POWER_BLOCK;0.0;0.0
+PT_COLLECTOR;0.0;0.0
+ST_COLLECTOR;0.0;0.0
+WIND_ONSHORE;0.496;19.73228879
+WIND_OFFSHORE;0.0;21.265
+HYDRO_DAM;0.0;0.001
+HYDRO_RIVER;3.264;3.264
+NEW_TIDAL_STREAM;0.0;0.0
+TIDAL_STREAM;0.0;0.0
+TIDAL_RANGE;0.0;0.0
+WAVE;0.0;0.0
+GEOTHERMAL;0.0;0.3
+DHN_DEEP_GEO;0.0;0.0
+DHN_SOLAR;0.0;56.34500012203442
+DEC_SOLAR;0.0;56.34500012203442
+DAM_STORAGE;0.0;0.0
+PHS;0.0;0.0
