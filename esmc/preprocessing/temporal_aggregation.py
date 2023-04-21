@@ -60,11 +60,15 @@ class TemporalAggregation:
         self.weight()
 
         self.td_of_days = pd.DataFrame()
+        self.e_ts = np.nan
         # run clustering algorithm
         if algo=='kmedoid':
             self.td_of_days = self.kmedoid_clustering(ampl_path=ampl_path)
         elif algo=='read':
             self.td_of_days = self.read_td_of_days()
+            self.e_ts = pd.read_csv(dat_dir / ('e_ts' + str(self.Nbr_TD) + '.txt'), sep='\t').values
+
+        logging.info('The typical days clustering has an time series error of ' + str(self.e_ts))
         self.t_h_td = pd.DataFrame()
 
         return

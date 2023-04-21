@@ -53,7 +53,7 @@ class Esmc:
 
     """
 
-    def __init__(self, config, nbr_td=10):
+    def __init__(self, config, nbr_td=14):
         # identification of case study
         self.case_study = config['case_study']
         self.comment = config['comment']
@@ -69,8 +69,7 @@ class Esmc:
 
         # path definition
         self.project_dir = Path(__file__).parents[2]
-        self.dat_dir = self.project_dir / 'esmc' / 'energy_model' / 'dat_files' / self.space_id
-                #  self.project_dir / 'case_studies' / 'dat_files' / self.space_id
+        self.dat_dir = self.project_dir / 'case_studies' / self.space_id / '00_td_dat'
         self.cs_dir = self.project_dir / 'case_studies' / self.space_id / self.case_study
         # create directories
         self.dat_dir.mkdir(parents=True, exist_ok=True)
@@ -123,7 +122,7 @@ class Esmc:
 
         """
         logging.info('Initializing TemporalAggregation with ' + algo + ' algorithm')
-        self.ta = TemporalAggregation(self.regions, self.dat_dir / 'td_dat', Nbr_TD=self.nbr_td, algo=algo,
+        self.ta = TemporalAggregation(self.regions, self.dat_dir, Nbr_TD=self.nbr_td, algo=algo,
                                       ampl_path=ampl_path,
                                       time_series_mapping=self.data_indep['Misc_indep']['time_series_mapping'])
         return
@@ -277,16 +276,12 @@ class Esmc:
 
         return out
 
-    def print_data(self, ref_dir=None, indep=False):
+    def print_data(self, indep=False):
         """
         TODO add doc
         """
-        # Put default ref_dir if not given
-        if ref_dir is None:
-            ref_dir = self.project_dir / 'esmc' / 'energy_model' / 'dat_files'
-
         # Logging
-        logging.info('Printing regional data into ' + str(ref_dir / self.space_id))
+        logging.info('Printing regional data into ' + str(self.cs_dir))
 
         # Concatenate data across regions
         self.data_reg['Demands'], self.data_reg['Resources'], \
@@ -305,7 +300,7 @@ class Esmc:
                 name = 'param : '
 
             dp.print_df(df=dp.ampl_syntax(df),
-                        out_path=ref_dir / self.space_id / ('reg_' + n.lower() + '.dat'),
+                        out_path=self.cs_dir / ('reg_' + n.lower() + '.dat'),
                         name=name,
                         mode='w')
 
@@ -316,7 +311,7 @@ class Esmc:
         rwithoutdam = list(df.loc[df < 1e-2].index.get_level_values(level=0))
 
         # Print reg_misc.dat
-        misc_file = ref_dir / self.space_id / 'reg_misc.dat'
+        misc_file = self.cs_dir / 'reg_misc.dat'
 
         dp.print_header(dat_file=misc_file, header_txt='File containing miscellaneous sets and parameters')
 
@@ -334,7 +329,7 @@ class Esmc:
             dp.print_df(dp.ampl_syntax(df), out_path=misc_file, name='param :')
 
         # Print reg_exch.dat
-        exch_file = ref_dir / self.space_id / 'reg_exch.dat'
+        exch_file = self.cs_dir / 'reg_exch.dat'
 
         dp.print_header(dat_file=exch_file, header_txt='File containing data related to exchanges between regions')
 
@@ -407,7 +402,7 @@ class Esmc:
                     self.sets['COGEN'].append(i)
 
             # Printing indep.dat #
-            indep_file = ref_dir / 'indep.dat'
+            indep_file = self.cs_dir / 'indep.dat'
             # Header
             dp.print_header(dat_file=indep_file,
                             header_txt='File containing data independent of the modelled regions')
@@ -486,7 +481,7 @@ class Esmc:
         """
 
         # file to print to
-        dat_file = self.dat_dir / ('reg_' + str(self.nbr_td) + 'TD.dat')
+        dat_file = self.cs_dir / ('reg_' + str(self.nbr_td) + 'TD.dat')
 
         # logging info
         logging.info('Printing TD data into ' + str(dat_file))
@@ -618,32 +613,18 @@ class Esmc:
         if copy_from_ref:
             # path of the reference files for ampl
             if ref_dir is None:
-                ref_dir = self.project_dir / 'esmc' / 'energy_model' / 'dat_files'
-
+                ref_dir = self.project_dir / 'esmc' / 'energy_model'
+            # TODO get rid of this if it work without it
             # logging
-            logging.info('Copying mod and dat files from ' + str(ref_dir) + ' to ' + str(self.cs_dir))
+            logging.info('Copying mod file from ' + str(ref_dir) + ' to ' + str(self.cs_dir))
 
             # TODO automatise the names of the .dat
             # mod and data files ref path
             mod_ref = self.project_dir / 'esmc' / 'energy_model' / 'ESMC_model_AMPL.mod'
-            data_ref = [ref_dir / 'indep.dat',
-                        ref_dir / self.space_id / ('reg_' + str(self.nbr_td) + 'TD.dat'),
-                        ref_dir / self.space_id / 'reg_demands.dat',
-                        ref_dir / self.space_id / 'reg_exch.dat',
-                        ref_dir / self.space_id / 'reg_misc.dat',
-                        ref_dir / self.space_id / 'reg_resources.dat',
-                        ref_dir / self.space_id / 'reg_storage_power_to_energy.dat',
-                        ref_dir / self.space_id / 'reg_technologies.dat',
-                        ]
-
-            # [ref_dir / self.space_id / ('ESMC_' + str(self.nbr_td) + 'TD.dat'),
-            #  ref_dir / 'ESMC_indep.dat',
-            #  ref_dir / self.space_id / 'ESMC_regions.dat']
 
             # copy the files from ref_dir to case_study directory
             shutil.copyfile(mod_ref, mod_path)
-            for i in range(len(data_ref)):
-                shutil.copyfile(data_ref[i], data_path[i])
+
 
         # default ampl_options
         if ampl_options is None:
