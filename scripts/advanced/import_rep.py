@@ -149,7 +149,7 @@ ordered_tech_res = ['NUCLEAR',
  'PT_POWER_BLOCK', 'ST_POWER_BLOCK', 'PT_COLLECTOR', 'ST_COLLECTOR',
  'WIND_ONSHORE', 'WIND_OFFSHORE',
  'HYDRO_DAM', 'HYDRO_RIVER',
- 'NEW_TIDAL_STREAM', 'TIDAL_STREAM', 'TIDAL_RANGE', 'WAVE',
+ 'TIDAL_STREAM', 'TIDAL_RANGE', 'WAVE',
  'GEOTHERMAL', 'DHN_DEEP_GEO',
  'DHN_SOLAR', 'DEC_SOLAR',
  'DAM_STORAGE', 'PHS']
@@ -244,15 +244,6 @@ for r, r_full in code_2_full.items():
             my_df = res_pot_esmc.loc[:, r_full].to_frame(name='f_max')
             tech_new = tech_dommisse.copy()
             tech_new.update(my_df)
-        ordered_tech_res = ['NUCLEAR',
-                            'PV_ROOFTOP', 'PV_UTILITY',
-                            'PT_POWER_BLOCK', 'ST_POWER_BLOCK', 'PT_COLLECTOR', 'ST_COLLECTOR',
-                            'WIND_ONSHORE', 'WIND_OFFSHORE',
-                            'HYDRO_DAM', 'HYDRO_RIVER',
-                            'NEW_TIDAL_STREAM', 'TIDAL_STREAM', 'TIDAL_RANGE', 'WAVE',
-                            'GEOTHERMAL', 'DHN_DEEP_GEO',
-                            'DHN_SOLAR', 'DEC_SOLAR',
-                            'DAM_STORAGE', 'PHS']
         tech_new = tech_new.loc[ordered_tech_res, :]
         tech_new.index.name = 'Technologies param'
         # if f_max is smaller then f_min, we put f_min to f_max
