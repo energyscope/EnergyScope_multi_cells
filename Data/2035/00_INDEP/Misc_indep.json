@@ -19,7 +19,8 @@
                           "HEAT_LOW_T_SH": "heating_time_series",
                           "SPACE_COOLING": "cooling_time_series",
                           "MOBILITY_PASSENGER": "mob_pass_time_series",
-                          "MOBILITY_FREIGHT": "mob_freight_time_series"},
+                          "MOBILITY_FREIGHT": "mob_freight_time_series",
+				  "INTERNATIONAL_FREIGHT": "mob_int_freight_time_series"},
 		"res_params": {"WIND_OFFSHORE": "WIND_OFFSHORE", "WIND_ONSHORE": "WIND_ONSHORE", "HYDRO_DAM": "HYDRO_DAM", "HYDRO_RIVER": "HYDRO_RIVER"},
 		"res_mult_params": {
 			"PV": ["PV_ROOFTOP", "PV_UTILITY"], 
