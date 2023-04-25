@@ -96,7 +96,7 @@ def writeSankeyFile(space_id, case_study):
                 tech_count = 0
                 for layer in cell.year_balance.columns:
                     value = cell.year_balance.loc[tech][layer]
-                    if value > 10 and tech != layer:
+                    if value > 50 and tech != layer:
                         if tech == "End Use":
                             continue
                         else:
@@ -130,9 +130,8 @@ RegroupElements = {
     "CCGT_Ammonia":     ["CCGT_AMMONIA"],
     "Coal_US":          ["COAL_US"],
     "Coal_IGCC":        ["COAL_IGCC"],
-    "Solar PV":         ["PV"],
+    "Solar PV":         ["PV_ROOFTOP", "PV_UTILITY"],
     "CSP":              ["PT_POWER_BLOCK","ST_POWER_BLOCK"],
-    "Stirling Dish":    ["STIRLING_DISH"],
     "Wind Onshore":     ["WIND_ONSHORE"],
     "Wind Offshore":    ["WIND_OFFSHORE"],
     "Hydro Dam":        ["HYDRO_DAM"],
@@ -165,7 +164,7 @@ RegroupElements = {
     "Int. Freight":     ["CONTAINER_CARGO_DIESEL", "CONTAINER_CARGO_LNG", 
                          "CONTAINER_CARGO_METHANOL", "CONTAINER_CARGO_AMMONIA", 
                          "CONTAINER_CARGO_FUELCELL_AMMONIA","CONTAINER_CARGO_RETRO_METHANOL",
-                         "CONTAINER_CARGO_RETRO_AMMONIA"],
+                         "CONTAINER_CARGO_RETRO_AMMONIA", "CONTAINER_CARGO_FUELCELL_LH2"],
     "Solar" :           ["PT_COLLECTOR", "ST_COLLECTOR"],
     "H2.":               ["H2_ELECTROLYSIS", "SMR", "H2_BIOMASS", "AMMONIA_TO_H2"],
     "Gasifi SNG":       ["GASIFICATION_SNG"],
