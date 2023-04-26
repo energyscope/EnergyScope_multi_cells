@@ -727,9 +727,9 @@ class Esmc:
             with open(directory / 'Solve_info.csv', mode='w', newline='\n') as file:
                 writer = csv.writer(file, delimiter=AMPL_SEPARATOR, quotechar=' ', quoting=csv.QUOTE_MINIMAL,
                                     lineterminator="\n")
-                writer.writerow(['ampl_elapsed_time,', self.esom.t[0]])
-                writer.writerow(['solve_elapsed_time,', self.esom.t[1]])
-                writer.writerow(['solve_result_num,', self.esom.t[2]])
+                writer.writerow(['ampl_elapsed_time', CSV_SEPARATOR, self.esom.t[0]])
+                writer.writerow(['solve_elapsed_time', CSV_SEPARATOR, self.esom.t[1]])
+                writer.writerow(['solve_result_num', CSV_SEPARATOR, self.esom.t[2]])
         return
 
     # TODO add a if none into results that need other results
@@ -905,6 +905,7 @@ class Esmc:
         exchanges_year = exchanges_year.drop(columns='Exch_imp').rename(columns={'Exch_exp': 'Exchanges_year'})
 
         # compute utilization factor of lines
+        # TODO check why not right Transfer_capacity with Exchanges_year for unidirectionnal exch?
         exchanges_year['Transfer_capacity'] = transfer_capacity['Transfer_capacity']
         exchanges_year['Utilization_factor'] = \
             exchanges_year['Exchanges_year'] / (transfer_capacity['Transfer_capacity'] * 8760)
@@ -1177,6 +1178,40 @@ class Esmc:
         curt.sort_index(inplace=True)
         # Store Curt into results
         self.results['Curt'] = curt
+        return
+
+    def read_results(self):
+        """ Reads the results printed into csv and store them into results dictionnary
+
+        """
+        # Reading the main results into csv
+        self.results['TotalCost'] = pd.read_csv(self.cs_dir / 'outputs' / 'TotalCost.csv',
+                                                header=[0], index_col=[0], sep=CSV_SEPARATOR)
+        self.results['Cost_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'Cost_breakdown.csv',
+                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+        self.results['Gwp_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'Gwp_breakdown.csv',
+                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+        self.results['Exchanges_year'] = pd.read_csv(self.cs_dir / 'outputs' / 'Exchanges_year.csv',
+                                                header=[0], index_col=[0, 1, 2], sep=CSV_SEPARATOR)
+        self.results['Resources'] = pd.read_csv(self.cs_dir / 'outputs' / 'Resources.csv',
+                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+        self.results['Assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Assets.csv',
+                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+        self.results['Sto_assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Sto_assets.csv',
+                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+        self.results['Year_balance'] = pd.read_csv(self.cs_dir / 'outputs' / 'Year_balance.csv',
+                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+        self.results['Curt'] = pd.read_csv(self.cs_dir / 'outputs' / 'Curt.csv',
+                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+
+        # reading the solving information and storing them
+        if self.esom is None:
+            # initialize empty OptiProbl if doesn't exist
+            self.esom = OptiProbl(set_ampl=False)
+
+        self.esom.t = list(pd.read_csv(self.cs_dir / 'outputs' / 'Solve_info.csv',
+                                  header=None, index_col=[0], sep=CSV_SEPARATOR).values)
+
         return
 
     def categorical_esmc(self, df: pd.DataFrame, col_name: str, el_name: str):

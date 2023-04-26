@@ -15,7 +15,7 @@ co2_1990 = pd.read_excel(Path(__file__).parents[1] / 'Data' / 'exogenous_data' /
                          sheet_name='Total', header=[0], index_col=[0], nrows=33).loc[eu27_full_names, 'Total [ktCO2]']
 # imposed emission reduction
 reduction = 0.9
-
+# number of typical days (check that tse<0.22)
 tds = 14
 
 print('Nbr_TDs', tds)

@@ -27,14 +27,31 @@ class OptiProbl:
 
     """
 
-    def __init__(self, mod_path, data_path, options, solver='cplex', ampl_path=None):
+    def __init__(self, mod_path=None, data_path=list(), options=dict(), solver='cplex', ampl_path=None, set_ampl=True):
+        """
+
+        Parameters
+        ----------
+        mod_path
+        data_path
+        options
+        solver
+        ampl_path
+        set_ampl
+        """
         # instantiate different attributes
-        self.dir = Path()
-        self.dir = mod_path.parent
+        if mod_path is None:
+            self.dir = Path()
+        else:
+            self.dir = mod_path.parent
+
         self.mod_path = mod_path
         self.data_path = data_path
         self.options = options
-        self.ampl = self.set_ampl(mod_path, data_path, solver, ampl_path)
+        if set_ampl:
+            self.ampl = self.set_ampl(mod_path, data_path, solver, ampl_path)
+        else:
+            self.ampl = None
         self.vars = list()
         self.params = list()
         self.sets = dict()
