@@ -21,7 +21,7 @@ tds = 14
 print('Nbr_TDs', tds)
 
 # specify ampl_path (set None if ampl is in Path environment variable or the path to ampl if not)
-ampl_path = Path(r'C:\Users\pathiran\ampl_mswin64')
+ampl_path = None
 
 # info to switch off unused constraints
 gwp_limit_overall = None
@@ -29,9 +29,9 @@ re_share_primary = None
 f_perc = False
 
 # define configuration
-config = {'case_study': 'test',
+config = {'case_study': 'test_new_elec_tc',
           'comment': 'none',
-          'regions_names': eu27_country_code, #['ES-PT', 'FR', 'IE-UK'],
+          'regions_names': eu27_country_code,
           'ref_region': 'FR',
           'gwp_limit_overall': gwp_limit_overall,
           're_share_primary': re_share_primary,
@@ -50,7 +50,6 @@ my_model.init_regions()
 # update some data
 for r_code, region in my_model.regions.items():
     region.data['Misc']['gwp_limit'] = (1-reduction) * co2_1990.loc[code_2_full[r_code]]
-
 
 # Initialize and solve the temporal aggregation algorithm:
 # if already run, set algo='read' to read the solution of the clustering
