@@ -25,11 +25,13 @@ A first time to recompute mean_eta_th and a second time to get the time series
 import pandas as pd
 import numpy as np
 
-from esmc import generate_all_csp_ts  # TODO update that to put it out of the package
 from pathlib import Path
-from esmc import CSV_SEPARATOR
-from esmc.common import eu27_country_code, eu27_full_names, code_2_full
+from esmc.common import eu27_country_code, eu27_full_names, code_2_full, CSV_SEPARATOR
 from esmc.utils.df_utils import clean_indices
+
+import sys
+sys.path.append(str(Path(__file__).parents[2] / 'esmc' / 'preprocessing'))
+from precalc import generate_all_csp_ts
 
 # Configuration
 proj_year = 2035
@@ -37,8 +39,8 @@ ref_year = 2015
 
 compute_csp = True
 read_csp = False
-read_dommisse = True
-update_ts = True
+read_dommisse = False
+update_ts = False
 
 expected_cp_tidal = 0.2223 # from Hammons T.J. (2011)
 
