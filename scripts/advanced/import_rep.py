@@ -188,7 +188,11 @@ for r, r_full in code_2_full.items():
         # split PV into PV_ROOFTOP and PV_UTILITY by keeping the installed capacity into PV_ROOFTOP
         tech_dommisse.rename(index={'PV': 'PV_ROOFTOP'}, inplace=True)
         tech_dommisse.loc['PV_UTILITY', :] = 0
-
+        # set f_max NUCLEAR to 0 by default (except for FR)
+        if r!='FR':
+            tech_dommisse.loc['NUCLEAR', 'f_max'] = 0
+        else:
+            tech_dommisse.loc['NUCLEAR', 'f_max'] = 41.30
         if r_full=='Switzerland':
             solar_area['Switzerland'] = 0
             solar_area.loc['solar_area_rooftop', 'Switzerland'] =\
