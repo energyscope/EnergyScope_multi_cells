@@ -884,7 +884,7 @@ class Esmc:
         exch_exp.index.rename(ind, inplace=True)
         # Get the transfer capacity
         transfer_capacity = self.esom.get_var('Transfer_capacity')
-        transfer_capacity.index.names = ['To', 'From', 'Resources']  # set names of indices
+        transfer_capacity.index.names = ['From', 'To', 'Resources']  # set names of indices
 
         # EXCHANGES RELATED COMPUTATIONS
         # Clean exchanges from double fictive fluxes due to LP formulation
@@ -906,7 +906,7 @@ class Esmc:
 
         # compute utilization factor of lines
         # TODO check why not right Transfer_capacity with Exchanges_year for unidirectionnal exch?
-        exchanges_year['Transfer_capacity'] = transfer_capacity['Transfer_capacity']
+        exchanges_year = exchanges_year.merge(transfer_capacity, left_index=True, right_index=True)
         exchanges_year['Utilization_factor'] = \
             exchanges_year['Exchanges_year'] / (transfer_capacity['Transfer_capacity'] * 8760)
 

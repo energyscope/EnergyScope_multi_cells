@@ -127,7 +127,7 @@ class Region:
                 # put df into attribute data
                 self.data['Technologies'] = df
             else:
-                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[0])
+                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[0]).dropna(how='all', axis=1)
                 df = clean_indices(df)
                 # using update method to replace only the data redefined in the csv of the region
                 self.data['Technologies'].update(df)

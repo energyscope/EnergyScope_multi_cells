@@ -166,7 +166,7 @@ param gwp_op_local {REGIONS, RESOURCES} >= 0; # GWP emissions associated to the 
 param c_p {REGIONS, TECHNOLOGIES} >= 0, <= 1 default 1; # yearly capacity factor of each technology [-], defined on annual basis. Different than 1 if sum {t in PERIODS} F_t (t) <= c_p * F
 param tc_min {REGIONS, REGIONS, EXCHANGE_NETWORK_R} default 0; #minimal transfer capacity of each resource between regions [GW]
 param tc_max {REGIONS, REGIONS, EXCHANGE_NETWORK_R} default 0; #maximal transfer capacity of each resource between regions [GW]
-param tc_mul >=0 default 2; # multiplicator of the maximum transfer capacity (tc_max)
+param tc_mul >=0 default 1; # multiplicator of the maximum transfer capacity (tc_max)
 
 # Attributes of STORAGE_TECH
 param storage_charge_time    {REGIONS, STORAGE_TECH} >= 0; # t_sto_in [h]: Time to charge storage (Energy to Power ratio). If value =  5 <=>  5h for a full charge.
@@ -590,9 +590,9 @@ subject to resources_no_exchanges2 {c1 in REGIONS, c2 in REGIONS, n in NOEXCHANG
 
 # network exchanges
 subject to capacity_limit_imp {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, h in HOURS, td in TYPICAL_DAYS} :
-	Exch_imp[c1,c2,i,h,td] <= Transfer_capacity [c1,c2,i];
+	Exch_imp[c1,c2,i,h,td] <= Transfer_capacity [c2,c1,i];
 subject to capacity_limit_exp {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, h in HOURS, td in TYPICAL_DAYS} :
-	Exch_exp[c1,c2,i,h,td] <= Transfer_capacity [c2,c1,i];
+	Exch_exp[c1,c2,i,h,td] <= Transfer_capacity [c1,c2,i];
 subject to transfer_capacity_bounds {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R}:
 	tc_min[c1, c2, i] <= Transfer_capacity[c1,c2,i] <= tc_mul*tc_max[c1, c2, i];
 subject to bidirectonal_exchanges {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_BIDIRECTIONAL}:
