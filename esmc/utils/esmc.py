@@ -906,7 +906,7 @@ class Esmc:
 
         # compute utilization factor of lines
         # TODO check why not right Transfer_capacity with Exchanges_year for unidirectionnal exch?
-        exchanges_year = exchanges_year.merge(transfer_capacity, left_index=True, right_index=True)
+        exchanges_year = exchanges_year.merge(transfer_capacity, how='outer', left_index=True, right_index=True)
         exchanges_year['Utilization_factor'] = \
             exchanges_year['Exchanges_year'] / (transfer_capacity['Transfer_capacity'] * 8760)
 
