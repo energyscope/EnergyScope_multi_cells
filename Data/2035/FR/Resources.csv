@@ -9,8 +9,8 @@ Renewable;Renewable fuel;BIODIESEL;0;1E+15;0;0.120074962;
 Non-renewable;Fossil fuel;LFO;0;1E+15;0.31;0.06015058;
 Non-renewable;Fossil fuel;GAS;0;1E+15;0.27;0.04425306;
 Renewable;Renewable fuel;GAS_RE;0;1E+15;0;0.118326;
-Renewable;Biomass;WOOD;322767.39;0;0.01;0.01754033;
-Renewable;Biomass;WET_BIOMASS;172984.62;0;0.01;0.00761312;
+Renewable;Biomass;WOOD;322767.39;0;0.02456;0.01754033;
+Renewable;Biomass;WET_BIOMASS;172984.62;0;0.01056;0.00761312;
 Non-renewable;Fossil fuel;COAL;0;0;0.4;0.017657892;
 Non-renewable;Other non-renewable;URANIUM;0;1E+15;0;0.003876456;
 Non-renewable;Other non-renewable;WASTE;57777.84;0;0.15;0.00854573;
@@ -30,3 +30,6 @@ Others;Others;CO2_INDUSTRY ;0;0;0;0;
 Others;Others;CO2_CAPTURED;0;0;0;0;
 Others;Others;PT_HEAT;0;0;0;0;
 Others;Others;ST_HEAT;0;0;0;0;
+Renewable;Biomass;OTHER_LIGNO;75834.76;0;0.00756;0.02121073661
+Renewable;Biomass;BIOWASTE;24921.1;0;0.01488;0.000267780219
+Renewable;Biomass;BIOMASS_RESIDUES;72342.04;0;0.00324;0.009872886406

@@ -90,12 +90,16 @@ Electricity;Electricity;Solar tower collectors;ST_COLLECTOR;100;5;0;25;1;0;1;0;3
 Synthetic fuels;Synthetic fuels;Electrolysers;H2_ELECTROLYSIS;696.2025316;19.14556962;0;15;0.9;0;1;0;1000000000000000.00;
 Synthetic fuels;Synthetic fuels;Steam methane reforming; SMR ;681.2435621;64.43487218;0;25;0.86;0;1;0;1000000000000000.00;
 Synthetic fuels;Synthetic fuels;Biomass to hydrogen;H2_BIOMASS;2525.386272;195.7018447;0;25;0.86;0;1;0;1000000000000000.00;
-Synthetic fuels;Synthetic fuels;Wood gasification;GASIFICATION_SNG;2743.8056;139.9381965;0;25;0.85;0;1;0;1000000000000000.00;
+Synthetic fuels;Synthetic fuels;Lignocellulosic biomass gasification;GASIFICATION_LIGNO_TO_SNG;2743.8056;139.9381965;0;25;0.85;0;1;0;1.00E+15
+Synthetic fuels;Synthetic fuels;Biowaste gasification;GASIFICATION_BIOWASTE_TO_SNG;2743.8056;139.9381965;0;25;0.85;0;1;0;1.00E+15
 Synthetic fuels;Synthetic fuels;Hydrogen methanation;SYN_METHANATION;262.1968349;66.99276316;0;40;1;0;1;0;1000000000000000.00;
-Synthetic fuels;Synthetic fuels;Biomass methanation;BIOMETHANATION;986.0473827;13.65909091;0;20;0.85;0;1;0;1000000000000000.00;
+Synthetic fuels;Synthetic fuels;Wet biomass methanation;BIOMETHANATION_WET_BIOMASS;986.0473827;13.65909091;0;20;0.85;0;1;0;1000000000000000.00;
+Synthetic fuels;Synthetic fuels;Biowaste methanation;BIOMETHANATION_BIOWASTE;986.0473827;13.65909091;0;20;0.85;0;1;0;1000000000000000.00;
 Synthetic fuels;Synthetic fuels;Biomass hydrolysis;BIO_HYDROLYSIS;1591.909355;108.53745;0;15;0.85;0;1;0;1000000000000000.00;
-Synthetic fuels;Synthetic fuels;Wood pyrolysis to LFO;PYROLYSIS_TO_LFO ;1344.22;61.09697026;0;25;0.85;0;1;0;1000000000000000.00;OIL
-Synthetic fuels;Synthetic fuels;Wood pyrolysis to gasoline and diesel;PYROLYSIS_TO_FUELS;1365;38;0;25;0.85;0;1;0;1000000000000000.00;
+Synthetic fuels;Synthetic fuels;Lignocellulosic biomass pyrolysis to LFO;PYROLYSIS_LIGNO_TO_LFO ;1344.22;61.09697026;0;25;0.85;0;1;0;1000000000000000.00;OIL
+Synthetic fuels;Synthetic fuels;Lignocellulosic biomass pyrolysis to gasoline and diesel;PYROLYSIS_LIGNO_TO_FUELS;1365;38;0;25;0.85;0;1;0;1000000000000000.00;
+Synthetic fuels;Synthetic fuels;Biowaste pyrolysis to LFO;PYROLYSIS_BIOWASTE_TO_LFO ;1344.22;61.09697026;0;25;0.85;0;1;0;1000000000000000.00;OIL
+Synthetic fuels;Synthetic fuels;Biowaste pyrolysis to gasoline and diesel;PYROLYSIS_BIOWASTE_TO_FUELS;1365;38;0;25;0.85;0;1;0;1000000000000000.00;
 Synthetic fuels;Synthetic fuels;Carbon capture atmospheric;ATM_CCS;5160;129.6;0;40;1;0;1;0;1000000000000000.00;
 Synthetic fuels;Synthetic fuels;Carbon capture from industry;INDUSTRY_CCS;2580;64.8;0;40;1;0;1;0;1000000000000000.00;
 Synthetic fuels;Synthetic fuels;Hydrogen methanolation;SYN_METHANOLATION;1679.651653;47.66486711;0;20;0.95;0;1;0;1000000000000000.00;

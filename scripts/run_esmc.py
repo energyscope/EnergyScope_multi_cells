@@ -6,13 +6,15 @@ import sys
 
 import pandas as pd
 
-sys.path.append('/home/pthiran/EnergyScope_multi_cells/')
+sys.path.append('/home/asepulchre/EnergyScope_multi_cells/')
 from esmc import Esmc
 from esmc.common import eu27_country_code, eu27_full_names, code_2_full
 
+"""
 # importing national emissions of 1990 (eurostat data)
 co2_1990 = pd.read_excel(Path(__file__).parents[1] / 'Data' / 'exogenous_data' / 'regions' / 'Total_energy_1990.xlsx',
                          sheet_name='Total', header=[0], index_col=[0], nrows=33).loc[eu27_full_names, 'Total [ktCO2]']
+"""
 # imposed emission reduction
 reduction = 0.9
 # number of typical days (check that tse<0.22)
@@ -47,9 +49,11 @@ my_model.read_data_indep()
 # initialize the different regions and reads their data
 my_model.init_regions()
 
+"""
 # update some data
 for r_code, region in my_model.regions.items():
     region.data['Misc']['gwp_limit'] = (1-reduction) * co2_1990.loc[code_2_full[r_code]]
+"""
 
 # Initialize and solve the temporal aggregation algorithm:
 # if already run, set algo='read' to read the solution of the clustering
