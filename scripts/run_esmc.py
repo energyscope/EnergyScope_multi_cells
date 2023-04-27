@@ -11,7 +11,7 @@ from esmc import drawSankey
 
 
 tds = [14]  # np.concatenate((np.arange(2,62,2),np.arange(62,112,4),np.array([120,140,160,180,365])))
-"coucou"
+
 for t in tds:
     print('Nbr_TDs', t)
 
