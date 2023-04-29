@@ -16,7 +16,7 @@ co2_1990 = pd.read_excel(Path(__file__).parents[1] / 'Data' / 'exogenous_data' /
                          sheet_name='Total', header=[0], index_col=[0], nrows=33).loc[eu27_full_names, 'Total [ktCO2]']
 """
 # imposed emission reduction
-reduction = 0.9
+reduction = 1
 # number of typical days (check that tse<0.22)
 tds = 14
 
@@ -31,9 +31,9 @@ re_share_primary = None
 f_perc = False
 
 # define configuration
-config = {'case_study': 'test_new_elec_tc',
+config = {'case_study': 'test-90',
           'comment': 'none',
-          'regions_names': eu27_country_code,
+          'regions_names': ['AT-CH-IT', 'ES-PT', 'FR', 'BE-DE-LU-NL', 'IE-UK', 'DK-SE'],
           'ref_region': 'FR',
           'gwp_limit_overall': gwp_limit_overall,
           're_share_primary': re_share_primary,
@@ -48,6 +48,13 @@ my_model.read_data_indep()
 
 # initialize the different regions and reads their data
 my_model.init_regions()
+
+my_model.regions['ES-PT'].data['Misc']['gwp_limit'] = 28003.7
+my_model.regions['FR'].data['Misc']['gwp_limit'] = 41002.6
+my_model.regions['IE-UK'].data['Misc']['gwp_limit'] = 67877.1
+my_model.regions['DK-SE'].data['Misc']['gwp_limit'] = 11177
+my_model.regions['BE-DE-LU-NL'].data['Misc']['gwp_limit'] = 142020
+my_model.regions['AT-CH-IT'].data['Misc']['gwp_limit'] = 55920
 
 """
 # update some data
