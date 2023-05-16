@@ -79,26 +79,28 @@ Mobility;Freight;Train (freight);TRAIN_FREIGHT;104.4155844;2.088311688;0;40;0.34
 Mobility;Freight;Boat diesel;BOAT_FREIGHT_DIESEL;76.38888889;3.819444444;0;40;0.114155251;0;1;0;1.00E+15;
 Mobility;Freight;Boat gas;BOAT_FREIGHT_NG;76.38888889;3.819444444;0;40;0.114155251;0;1;0;1.00E+15;
 Mobility;Freight;Boat methanol;BOAT_FREIGHT_METHANOL ;76.38888889;3.819444444;0;40;0.114155251;0;1;0;1.00E+15;
-Mobility;Freight;Container shipping diesel;CONTAINER_CARGO_DIESEL;18.6763;1.8563;0;40;0.739666854;0;1;0;1.00E+15;
-Mobility;Freight;Container shipping LNG;CONTAINER_CARGO_LNG;21.6645;2.1533;0;40;0.739666854;0;1;0;1.00E+15;
-Mobility;Freight;Container shipping fuelcell;CONTAINER_CARGO_METHANOL;20.7307;2.0605;0;40;0.739666854;0;1;0;1.00E+15;
-Mobility;Freight;Container shipping fuelcell;CONTAINER_CARGO_AMMONIA;21.6645;2.1533;0;40;0.739666854;0;1;0;1.00E+15;
-Mobility;Freight;Container shipping fuelcell;CONTAINER_CARGO_FUELCELL_LH2;26.9219;2.6758;0;40;0.739666854;0;1;0;1.00E+15;
-Mobility;Freight;Container shipping fuelcell;CONTAINER_CARGO_FUELCELL_AMMONIA;26.9219;2.6758;0;40;0.739666854;0;1;0;1.00E+15;
-Mobility;Freight;Container shipping fuelcell;CONTAINER_CARGO_RETRO_METHANOL;3.1127;2.1464;0;40;0.739666854;0;1;0;1.00E+15;
-Mobility;Freight;Container shipping fuelcell;CONTAINER_CARGO_RETRO_AMMONIA;4.8353;2.3229;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International freight;Container shipping diesel;CONTAINER_CARGO_DIESEL;18.6763;1.8563;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International freight;Container shipping LNG;CONTAINER_CARGO_LNG;21.6645;2.1533;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International freight;Container shipping fuelcell;CONTAINER_CARGO_METHANOL;20.7307;2.0605;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International freight;Container shipping fuelcell;CONTAINER_CARGO_AMMONIA;21.6645;2.1533;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International freight;Container shipping fuelcell;CONTAINER_CARGO_FUELCELL_LH2;26.9219;2.6758;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International freight;Container shipping fuelcell;CONTAINER_CARGO_FUELCELL_AMMONIA;26.9219;2.6758;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International freight;Container shipping fuelcell;CONTAINER_CARGO_RETRO_METHANOL;3.1127;2.1464;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International freight;Container shipping fuelcell;CONTAINER_CARGO_RETRO_AMMONIA;4.8353;2.3229;0;40;0.739666854;0;1;0;1.00E+15;
 Mobility;Freight;Trucks diesel;TRUCK_DIESEL;371.1111111;18.55555556;0;15;0.092592593;0;1;0;1.00E+15;
-Mobility;Freight;Truck methanol; TRUCK_METHANOL ;371.1111111;18.55555556;0;15;0.092592593;0;1;0;1.00E+15;
+Mobility;Freight;Truck methanol;TRUCK_METHANOL ;371.1111111;18.55555556;0;15;0.092592593;0;1;0;1.00E+15;
 Mobility;Freight;Truck fuel cell (hydrogen);TRUCK_FUEL_CELL;402.2222222;12.06666667;0;15;0.092592593;0;1;0;1.00E+15;
 Mobility;Freight;Truck electric;TRUCK_ELEC;771.1111111;23.13333333;0;15;0.092592593;0;1;0;1.00E+15;
 Mobility;Freight;Truck gas;TRUCK_NG;371.1111111;18.55555556;0;15;0.092592593;0;1;0;1.00E+15;
 Infrastructure;Infrastructure;Efficiency mesures in energy system;EFFICIENCY;3320;0;0;1;1;0;1;0;1.00E+15;
 Infrastructure;Infrastructure;Distric heating network;DHN;825.8825733;0;0;60;1;0;1;0;1.00E+15;
 Infrastructure;Infrastructure;Electrical grid cost;GRID ;446394.729;0;0;80;1;0;1;0;1.00E+15;
+Infrastructure;Infrastructure;Hydrogen grid pipeline;H2_GRID_PIPELINE;208.4451;1.876;0;40;1;0;1;0;1.00E+15;
+Infrastructure;Infrastructure;Hydrogen grid compressor;H2_GRID_COMPRESSOR;70.4351;1.1974;0;25;1;0;1;0;1.00E+15;
 Electricity;Electricity;Parabolic trough collectors;PT_COLLECTOR;4504.71429;62.65;0;25;1;0;1;0;1.00E+15;OIL
 Electricity;Electricity;Solar tower collectors;ST_COLLECTOR;100;5;0;25;1;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Electrolysers;H2_ELECTROLYSIS;696.2025316;19.14556962;0;15;0.9;0;1;0;1.00E+15;
-Synthetic fuels;Synthetic fuels;Steam methane reforming; SMR ;681.2435621;64.43487218;0;25;0.86;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Steam methane reforming;SMR ;681.2435621;64.43487218;0;25;0.86;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Biomass to hydrogen;H2_BIOMASS;2525.386272;195.7018447;0;25;0.86;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Wood gasification;GASIFICATION_SNG;2743.8056;139.9381965;0;25;0.85;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Hydrogen methanation;SYN_METHANATION;262.1968349;66.99276316;0;40;1;0;1;0;1.00E+15;METHANOL
