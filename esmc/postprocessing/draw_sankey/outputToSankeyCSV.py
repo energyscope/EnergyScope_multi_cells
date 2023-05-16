@@ -97,6 +97,8 @@ def writeSankeyFile(space_id, case_study):
                 for layer in cell.year_balance.columns:
                     value = cell.year_balance.loc[tech][layer]
                     if value > 50 and tech != layer:
+                        if value < 100*len(cells_name) and cell.name == "Total" or tech == "DHN Tech":
+                            continue
                         if tech == "End Use":
                             continue
                         else:
