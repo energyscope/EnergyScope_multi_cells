@@ -656,8 +656,7 @@ class Esmc:
                              'timelimit 64800',
                              'bardisplay=1',
                              'prestats=1',
-                             'display=2',
-                             'parallel=1']
+                             'display=2']
             cplex_options_str = ' '.join(cplex_options)
             ampl_options = {'show_stats': 3,
                             'log_file': str(self.cs_dir / 'log.txt'),
