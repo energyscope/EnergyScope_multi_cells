@@ -25,7 +25,7 @@ for t in tds:
     f_perc = True
 
     # define configuration
-    config = {'case_study': 'test',
+    config = {'case_study': 'test_H2_grid_exch',
               'comment': 'none',
               'regions_names': ['ES-PT', 'FR', 'IE-UK'],
               'ref_region': 'FR',
@@ -68,6 +68,10 @@ for t in tds:
     
     # Draw a sankey diagram via HTML from the input2sankey file previously written
     drawSankey(path=my_model.cs_dir / "outputs", outputfile='generated_sankey_Total.html')
+    for name in config['regions_names']:
+        drawSankey(path=my_model.cs_dir / "outputs", outputfile='generated_sankey_'+name+'.html', 
+                   I2S_File="input2sankey_"+name+".csv", auto_open=False)
+        
     
     # delete ampl object to free resources
     my_model.esom.ampl.close()
