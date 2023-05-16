@@ -1,7 +1,7 @@
 {
     "i_rate" : 0.015,
 	"gwp_limit_overall": 1e15,
-	"H2_grid_flag": 0,
+	"H2_grid_flag": 1,
 	"power_density_pv" : 0.170,
     "power_density_solar_thermal" : 0.7,
 	"sm_max" : 4,
