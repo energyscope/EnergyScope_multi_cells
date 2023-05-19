@@ -1,12 +1,14 @@
 # File containing data related to exchanges between regions
 param : 	dist := 
-ES-PT	644
-FR	540
-IE-UK	605
+ES-PT	FR	500
+FR	ES-PT	500
+FR	IE-UK	500
+IE-UK	FR	500
 ;
 param : 	exchange_losses := 
 ELECTRICITY	0.061238988
 GAS	0.02
+H2	0.0
 ;
 param : 	lhv := 
 METHANOL	6390
@@ -18,8 +20,10 @@ CO2_CAPTURED	1000000
 param : 	tc_min	tc_max	c_exch_network := 
 ES-PT	FR	ELECTRICITY	2.8	5.0	15.33
 ES-PT	FR	GAS	9.35	9.35	0.541
+ES-PT	FR	H2	0.0	18.0	1.037
 FR	ES-PT	ELECTRICITY	2.8	5.0	15.33
 FR	ES-PT	GAS	6.875	6.875	0.541
+FR	ES-PT	H2	0.0	18.0	1.037
 FR	IE-UK	ELECTRICITY	2.0	6.1	27.66
 IE-UK	FR	ELECTRICITY	2.0	6.1	27.66
 ;

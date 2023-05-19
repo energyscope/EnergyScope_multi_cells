@@ -12,12 +12,12 @@ FR	0.779	0.029	0.192
 IE-UK	0.779	0.029	0.192
 ;
 param :	re_share_primary	gwp_limit	import_capacity	solar_area_rooftop := 
-AT-CH-IT	0.0	559200.0	0.0	988.0
-BE-DE-LU-NL	0.0	1420200.0	0.0	1518.0
-DK-SE	0.0	111770.0	0.0	224.0
-ES-PT	0.0	280037.0	0.0	718.0
-FR	0.0	410026.0	0.0	901.0
-IE-UK	0.0	678771.0	0.0	936.0
+AT-CH-IT	0.0	0.0	0.0	988.0
+BE-DE-LU-NL	0.0	0.0	0.0	1518.0
+DK-SE	0.0	0.0	0.0	224.0
+ES-PT	0.0	0.0	0.0	718.0
+FR	0.0	0.0	0.0	901.0
+IE-UK	0.0	0.0	0.0	936.0
 ;
 param :	solar_area_ground	solar_area_ground_high_irr	share_mobility_public_min	share_mobility_public_max := 
 AT-CH-IT	5558.0	124.0	0.199	0.5
