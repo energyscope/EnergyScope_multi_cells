@@ -187,7 +187,10 @@ RegroupElements = {
                          "PYROLYSIS_BIOWASTE_TO_FUELS"],
     "To Methanol":      ["SYN_METHANOLATION", "METHANE_TO_METHANOL", "BIOMASS_TO_METHANOL"],
     "Haber Bosch":      ["HABER_BOSCH"],
-    "Fischer-Tropsch":  ["FISCHER_TROPSCH_DIESEL", "FISCHER_TROPSCH_GASOLINE"],
+    "Fischer-Tropsch":  ["FISCHER_TROPSCH_DIESEL", "FISCHER_TROPSCH_GASOLINE", "FISCHER_TROPSCH_LFO"],
+    "Bio Fischer-Tropsch" : ["FT_LIGNO_GASOLINE", "FT_LIGNO_LFO", "FT_LIGNO_DIESEL",
+                             "FT_BIOWASTE_GASOLINE", "FT_BIOWASTE_LFO", "FT_BIOWASTE_DIESEL"],
+    "Biomass to fuel" : ["BIOMASS_TO_FUEL"],
     "HVC":           ["OIL_TO_HVC", "GAS_TO_HVC", "BIOMASS_TO_HVC", "METHANOL_TO_HVC"],
     "Elec in/out":      ["ELECTRICITY"],
     "Oil imports":         ["GASOLINE"],
@@ -198,14 +201,12 @@ RegroupElements = {
     "LFO imports":              ["LFO"],
     "Gas imports":              ["GAS"],
     "Gas RE imports":           ["GAS_RE"],
-    "Wood":                     ["WOOD"],
-    "Other Ligno":              ["OTHER_LIGNO"],
+    "Wood/Ligno":               ["WOOD", "OTHER_LIGNO"],
     "Wet Biomass":              ["WET_BIOMASS"],
-    "Biomass residue":          ["BIOMASS_RESIDUES"],
-    "Biowaste":                 ["BIOWASTE"],
+    "Biowaste":                 ["BIOWASTE", "BIOMASS_RESIDUES"],
     "Coal imports":             ["COAL"],
-    "Waste imports":            ["WASTE"],
-    "H2 imports":               ["H2"],
+    "Waste":            ["WASTE"],
+    "H2 imports/export":               ["H2"],
     "H2 RE imports":            ["H2_RE"],
     "Ammonia imports":          ["AMMONIA"],
     "Methanol imports":         ["METHANOL"],
@@ -217,7 +218,9 @@ RegroupElements = {
                          "TS_DEC_BOILER_OIL"],
     "DHN Sto":          ["TS_DHN_DAILY", "TS_DHN_SEASONAL"],
     "Cold Sto":         ["TS_COLD"],
-    "End Use":          ["END_USES"]
+    "End Use":          ["END_USES"],
+    "Steel":            ["STEEL_DRI_C_EAF", "STEEL_DRI_H_EAF", "STEEL_BF_BOF",
+                         "STEEL_EAF_SCRAP"]
 }
 
 
@@ -229,7 +232,7 @@ RegroupLayers ={
     "Diesel": ["DIESEL"],	
     "LFO": ["LFO"],
     "Gas": ["GAS"],	
-    "Wood": ["WOOD"],
+    "Wood/Ligno": ["WOOD"],
     "Wet Biomass": ["WET_BIOMASS"],
     "Biowaste": ["BIOWASTE"],
     "Coal": ["COAL"],
@@ -252,7 +255,8 @@ RegroupLayers ={
     #"Road Freight": ["MOB_FREIGHT_ROAD"],	
     #"Boat Freight": ["MOB_FREIGHT_BOAT"],	
     "Int. Freight": ["CONTAINER_FREIGHT"],
-    "Solar": ["PT_HEAT", "ST_HEAT"]
+    "Solar": ["PT_HEAT", "ST_HEAT"],
+    "Steel": ["STEEL"]
     }
 
 # Link the tech with the layer name (as in LayerColor) of its output. If several
@@ -313,7 +317,8 @@ EndUseLayer = [
     #"Road Freight",
     #"Boat Freight",
     #"Rail Freight",
-    "Int. Freight"
+    "Int. Freight",
+    "Steel"
 ]
 
 EndUseName = {
@@ -332,7 +337,7 @@ LayerColor = {
     "Diesel": "#D3D3D3",	
     "LFO": "#8B008B",
     "Gas": "#FFD700",	
-    "Wood": "#CD853F",
+    "Wood/Ligno": "#CD853F",
     "Biomass": "#336600",
     "Biowaste": "#336600",
     "Coal": "#A0522D",
@@ -340,7 +345,8 @@ LayerColor = {
     "Waste": "#808000",	
     "H2.": "#FF00FF",
     "Ammonia": "#000ECD",	
-    "Methanol": "#CC0066",	
+    "Methanol": "#CC0066",
+    "Steel": "#B0C4DE",	
     "HVC": "#00FFFF",	
     "Heat HT": "#DC143C",		
     "Heat LT DHN": "#FA8072",	

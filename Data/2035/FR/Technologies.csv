@@ -105,6 +105,12 @@ Synthetic fuels;Synthetic fuels;Steam methane reforming;SMR ;681.2435621;64.4348
 Synthetic fuels;Synthetic fuels;Biomass to hydrogen;H2_BIOMASS;2525.386272;195.7018447;0;25;0.86;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Lignocellulosic biomass gasification;GASIFICATION_LIGNO_TO_SNG;2743.8056;139.9381965;0;25;0.85;0;1;0;1.00E+15;METHANOL
 Synthetic fuels;Synthetic fuels;Biowaste gasification;GASIFICATION_BIOWASTE_TO_SNG;2743.8056;139.9381965;0;25;0.85;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch Ligno Gasoline;FT_LIGNO_GASOLINE;1038;30.7;0;25;0.85;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch Ligno LFO;FT_LIGNO_LFO;1038;30.7;0;25;0.85;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch Ligno Diesel;FT_LIGNO_DIESEL;1038;30.7;0;25;0.85;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch bio waste Gasoline;FT_BIOWASTE_GASOLINE;1038;30.7;0;25;0.85;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch bio waste LFO;FT_BIOWASTE_LFO;1038;30.7;0;25;0.85;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch bio waste Diesel;FT_BIOWASTE_DIESEL;1038;30.7;0;25;0.85;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Hydrogen methanation;SYN_METHANATION;262.1968349;66.99276316;0;40;1;0;1;0;1.00E+15;AMMONIA
 Synthetic fuels;Synthetic fuels;Wet biomass methanation;BIOMETHANATION_WET_BIOMASS;986.0473827;13.65909091;0;20;0.85;0;1;0;1.00E+15;AMMONIA
 Synthetic fuels;Synthetic fuels;Biowaste methanation;BIOMETHANATION_BIOWASTE;986.0473827;13.65909091;0;20;0.85;0;1;0;1.00E+15;
@@ -121,6 +127,8 @@ Synthetic fuels;Synthetic fuels;Biomass methanolation;BIOMASS_TO_METHANOL ;2520;
 Synthetic fuels;Synthetic fuels;Haber bosch (H2 to amonia);HABER_BOSCH ;847;16.56;0;20;1;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Fischer-Tropsch;FISCHER_TROPSCH_DIESEL;975;48.75;0;25;0.93;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Fischer-Tropsch;FISCHER_TROPSCH_GASOLINE;975;48.75;0;25;0.93;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch;FISCHER_TROPSCH_LFO;975;48.75;0;25;0.93;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Ethanol pathway;BIOMASS_TO_FUEL;2787;139.35;0;25;0.95;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Amonia to H2;AMMONIA_TO_H2 ;681.24;62.8658412;0;25;0.86;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Oil to HVC;OIL_TO_HVC ;395;2.1;0;15;1;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Gas to HVC;GAS_TO_HVC ;797.6;19.93997837;0;25;1;0;1;0;1.00E+15;
@@ -156,3 +164,7 @@ Storage;Other storage;Parabolic trough storage;PT_STORAGE;36.9568;0.3695;0;25;1;
 Storage;Other storage;Solar tower storage;ST_STORAGE;19.099;0.1909;0;25;1;0;1;0;1.00E+15;
 Storage;Thermal storage;Space cooling storage;TS_COLD;25;0.3;0;20;1;0;1;0;1.00E+15;
 Storage;Other storage;CO2 storage;CO2_STORAGE;49.5;0.495;0;20;1;0;1;0;1.00E+15;
+Steel;Steel;DRI_C_EAF;STEEL_DRI_C_EAF;644000;32200;0;40;1;0;1;0;1.00E+15;
+Steel;Steel;DRI_H_EAF;STEEL_DRI_H_EAF;644000;32200;0;40;1;0;1;0;1.00E+15;
+Steel;Steel;BF_BOF;STEEL_BF_BOF;736000;36800;0;40;1;0;1;0;1.00E+15;
+Steel;Steel;EAF scrap;STEEL_EAF_SCRAP;460000;23000;0;40;1;0;1;0;1.00E+15;
