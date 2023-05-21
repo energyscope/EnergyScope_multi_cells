@@ -272,6 +272,8 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 			end_uses_input[c,l] * cooling_time_series [c, h, td] / t_op [h, td]
 		else (if l == "PROCESS_COOLING" then
 			end_uses_input[c,l] / total_time
+		else (if l == "STEEL" then
+			end_uses_input[c,l] / total_time
 		else (if l == "HVC" then
 			end_uses_input[c,"NON_ENERGY"] * share_ned [c, "HVC"] / total_time
 		else (if l == "AMMONIA" then
@@ -279,7 +281,7 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 		else (if l == "METHANOL" then
 			end_uses_input[c, "NON_ENERGY"] * share_ned [c, "METHANOL"] / total_time
 		else 
-			0 ))))))))))))))); # For all layers which don't have an end-use demand
+			0 )))))))))))))))); # For all layers which don't have an end-use demand
 
 
 ## Cost
