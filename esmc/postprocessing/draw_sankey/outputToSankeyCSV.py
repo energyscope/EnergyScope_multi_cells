@@ -6,10 +6,11 @@ from pathlib import Path
 
 class Cell:
     
-    def __init__(self, name, year_balance, storage):
+    def __init__(self, name, year_balance, storage, limit):
         self.name = name
         self.year_balance = year_balance
         self.storage = storage
+        self.limit = limit
         
         self.year_balance = self.arrange_columns(self.year_balance.copy(), RegroupLayers)
         self.year_balance = self.arrange_rows(self.year_balance.copy(), RegroupElements)
@@ -18,7 +19,7 @@ class Cell:
         
         self.update_year_balance()
         
-    def arrange(self, dataframe, RegroupDict):
+    def arrange(self, dataframe, RegroupDict, arrange_rows = False):
         
         for column_name, group_columns in RegroupDict.items():
             if len(group_columns) > 1:
@@ -30,6 +31,9 @@ class Cell:
                 
             else:
                 dataframe = dataframe.rename(columns={group_columns[0]:column_name})
+            if arrange_rows and not self.check_relevance(dataframe, column_name):
+                dataframe.pop(column_name)
+                
         for column in dataframe.columns:
             if column not in RegroupDict.keys():
                 dataframe.pop(column)
@@ -39,13 +43,41 @@ class Cell:
         return self.arrange(data_frame, RegroupDict)
     
     def arrange_rows(self, data_frame, RegroupDict):
-        return self.arrange(data_frame.T, RegroupDict).T
+        return self.arrange(data_frame.T, RegroupDict, arrange_rows=True).T
     
     def update_year_balance(self):
         for sto in StorageLayer:
             self.year_balance.loc[sto][StorageLayer[sto]] = -self.storage.loc[sto]["Year energy flux"]
+    
+    def check_relevance(self, dataframe, column_name):
+        minus_presence = False
+        plus_presence = False
+        minus_under_limit = True
+        plus_under_limit = True
+        
+        relevance = True
+        
+        for index in dataframe.index:
+            value = dataframe.loc[index][column_name]
+            if value < 0:
+                minus_presence = True
+            if value > 0:
+                plus_presence = True
+            if value < 0 and abs(value) > self.limit :
+                minus_under_limit = False
+            if value > 0 and value > self.limit :
+                plus_under_limit = False
                 
-def writeSankeyFile(space_id, case_study):
+        if minus_presence and plus_presence and (minus_under_limit or plus_under_limit):
+            relevance = False
+        
+        if self.name == "Total" and (column_name in Resources) and minus_presence :
+            relevance = False
+        
+        return relevance
+        
+                
+def writeSankeyFile(space_id, case_study, limit=50):
     
     proj_dir = Path(__file__).parents[3]
     output_dir = proj_dir / "case_studies" / space_id / case_study / "outputs"
@@ -74,7 +106,7 @@ def writeSankeyFile(space_id, case_study):
         
     cells = {}
     for cell_name in cells_name:
-        cells[cell_name] = Cell(cell_name, all_data_balance.loc[cell_name], all_data_sto.loc[cell_name])
+        cells[cell_name] = Cell(cell_name, all_data_balance.loc[cell_name], all_data_sto.loc[cell_name], limit)
     
     
     total_data_balance = all_data_balance.loc[cells_name[0]]
@@ -83,8 +115,9 @@ def writeSankeyFile(space_id, case_study):
         total_data_balance = total_data_balance.add(all_data_balance.loc[cells_name[i]])
         total_data_sto = total_data_sto.add(all_data_sto.loc[cells_name[i]])
     
-    cells["Total"] = Cell("Total", total_data_balance, total_data_sto)
-    
+    cells["Total"] = Cell("Total", total_data_balance, total_data_sto, limit)
+    print(cells["Total"].year_balance)
+    print(cells["ES-PT"].year_balance)
     
     
     for cell in cells.values():
@@ -96,9 +129,7 @@ def writeSankeyFile(space_id, case_study):
                 tech_count = 0
                 for layer in cell.year_balance.columns:
                     value = cell.year_balance.loc[tech][layer]
-                    if value > 50 and tech != layer:
-                        if value < 100*len(cells_name) and cell.name == "Total" or tech == "DHN Tech":
-                            continue
+                    if value > cell.limit and tech != layer:
                         if tech == "End Use":
                             continue
                         else:
@@ -160,7 +191,8 @@ RegroupElements = {
     
     "Mobility": ["TRAMWAY_TROLLEY", "BUS_COACH_DIESEL", "BUS_COACH_HYDIESEL",
                  "BUS_COACH_CNG_STOICH", "BUS_COACH_FC_HYBRIDH2", "TRAIN_PUB", 
-                 "PLANE_DIESEL", "CAR_GASOLINE", "CAR_DIESEL", "CAR_NG", 
+                 "PLANE_DIESEL_INTRA_EU", "PLANE_DIESEL_EXTRA_EU", "CAR_GASOLINE", 
+                 "CAR_DIESEL", "CAR_NG", 
                  "CAR_METHANOL", "CAR_HEV", "CAR_PHEV", "CAR_BEV", "CAR_FUEL_CELL"],
     #"Public Mob": ["TRAMWAY_TROLLEY", "BUS_COACH_DIESEL", "BUS_COACH_HYDIESEL",
      #            "BUS_COACH_CNG_STOICH", "BUS_COACH_FC_HYBRIDH2", "TRAIN_PUB", 
@@ -223,6 +255,27 @@ RegroupElements = {
                          "STEEL_EAF_SCRAP"]
 }
 
+Resources = [
+    "Elec in/out",
+    "Oil imports",
+    "Oil RE imports",
+    "Diesel imports",
+    "Bioethanol imports",
+    "Biodiesel imports",
+    "LFO imports",
+    "Gas imports",
+    "Gas RE imports",
+    "Wood/Ligno",
+    "Wet Biomass",
+    "Biowaste",
+    "Coal imports",
+    "Waste",
+    "H2 imports/export",
+    "H2 RE imports",
+    "Ammonia imports",
+    "Methanol imports",
+    "Ammonia RE imports",
+    "Methanol RE imports"]
 
 # Names of the layers.
 RegroupLayers ={
@@ -247,7 +300,7 @@ RegroupLayers ={
     "Cooling": ["SPACE_COOLING", "PROCESS_COOLING"],
     #"Space Cool": ["SPACE_COOLING"],	
     #"Process Cool": ["PROCESS_COOLING"],
-    "Mobility": 	["MOB_PUBLIC", "MOB_PRIVATE"],
+    "Mobility": 	["MOB_PUBLIC", "MOB_PRIVATE", "INTRA_EU_AVIATION", "EXTRA_EU_AVIATION"],
     #"Public Mob": ["MOB_PUBLIC"],	
     #"Private Mob": ["MOB_PRIVATE"],	
     "Freight": ["MOB_FREIGHT_RAIL","MOB_FREIGHT_ROAD", "MOB_FREIGHT_BOAT"],
@@ -333,12 +386,11 @@ EndUseName = {
 LayerColor = {
     "Elec": "#00BFFF",
     "Oil": "#8B008B",
-    "Jet Fuel": "#CDC0B0",
     "Diesel": "#D3D3D3",	
     "LFO": "#8B008B",
     "Gas": "#FFD700",	
     "Wood/Ligno": "#CD853F",
-    "Biomass": "#336600",
+    "Wet Biomass": "#336600",
     "Biowaste": "#336600",
     "Coal": "#A0522D",
     "Uranium": "#FFC0CB",
