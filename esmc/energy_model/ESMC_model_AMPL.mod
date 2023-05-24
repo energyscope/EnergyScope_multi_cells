@@ -131,9 +131,11 @@ param re_share_primary {REGIONS} >= 0; # re_share [-]: minimum share of primary 
 param gwp_limit {REGIONS} >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 
 
-# Share public vs private mobility
+# Share public vs private mobility vs intra-EU aviation
 param share_mobility_public_min{REGIONS} >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max{REGIONS} >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
+param share_intraEU_flight_min{REGIONS} >= 0, <= 1; # %_aviation,min [-]: min limit for share of intra-EU flight over total mobility 
+param share_intraEU_flight_max{REGIONS} >= 0, <= 1; # %_aviation,max [-]: max limit for share of intra-EU flight over total mobility 
 
 # Share train vs truck vs boat in freight transportation
 param share_freight_train_min{REGIONS} >= 0, <= 1; # %_rail,min [-]: min limit for penetration of train in freight transportation
@@ -197,6 +199,7 @@ param  c_exch_network{REGIONS,REGIONS,EXCHANGE_NETWORK_R} >= 0 default 0; # Inve
 
 ##Independent variables [Table 3] :
 var Share_mobility_public{c in REGIONS} >= share_mobility_public_min[c], <= share_mobility_public_max[c]; # %_Public: Ratio [0; 1] public mobility over total passenger mobility
+var Share_intraEU_flight{c in REGIONS} >= share_intraEU_flight_min[c], <= share_intraEU_flight_max[c]; # %_intraEU aviation: Ratio [0; 1] intraEU aviation mobility over total passenger mobility
 var Share_freight_train{c in REGIONS}, >= share_freight_train_min[c], <= share_freight_train_max[c]; # %_Rail: Ratio [0; 1] rail transport over total freight transport
 var Share_freight_road{c in REGIONS}, >= share_freight_road_min[c], <= share_freight_road_max[c]; # %_Road: Ratio [0; 1] Road transport over total freight transport
 var Share_freight_boat{c in REGIONS}, >= share_freight_boat_min[c], <= share_freight_boat_max[c]; # %_Boat: Ratio [0; 1] boat transport over total freight transport
@@ -256,8 +259,12 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 			(end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td] ) * (1 - Share_heat_dhn[c])
 		else (if l == "MOB_PUBLIC" then
 			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * Share_mobility_public[c]
+		else (if l == "INTRA_EU_AVIATION" then
+			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * Share_intraEU_flight[c]
+		else (if l == "EXTRA_EU_AVIATION" then
+			(end_uses_input[c,"EXTRA_EU_AVIATION"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) 
 		else (if l == "MOB_PRIVATE" then
-			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * (1 - Share_mobility_public[c])
+			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * (1 - Share_mobility_public[c]-Share_intraEU_flight[c])
 		else (if l == "MOB_FREIGHT_RAIL" then
 			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_train[c]
 		else (if l == "MOB_FREIGHT_ROAD" then
@@ -281,7 +288,7 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 		else (if l == "METHANOL" then
 			end_uses_input[c, "NON_ENERGY"] * share_ned [c, "METHANOL"] / total_time
 		else 
-			0 )))))))))))))))); # For all layers which don't have an end-use demand
+			0 )))))))))))))))))); # For all layers which don't have an end-use demand
 
 
 ## Cost
