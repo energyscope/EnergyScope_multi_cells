@@ -1,5 +1,7 @@
 {
     "solar_area_rooftop" : 718,
     "solar_area_ground" : 8112,
-    "solar_area_ground_high_irr" : 3347
+    "solar_area_ground_high_irr" : 3347,
+    "share_intraEU_flight_min" : 0.232,
+    "share_intraEU_flight_max" : 0.2321
 }

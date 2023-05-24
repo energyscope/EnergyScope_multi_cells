@@ -7,6 +7,8 @@
     "solar_area_ground_high_irr" : 89,
 	"share_mobility_public_min" : 0.199,
 	"share_mobility_public_max" : 0.5,
+	"share_intraEU_flight_min" : 0.088,
+      "share_intraEU_flight_max" : 0.089,
     "share_freight_train_min" : 0.109,
     "share_freight_train_max" : 0.25,
     "share_freight_road_min" : 0,
