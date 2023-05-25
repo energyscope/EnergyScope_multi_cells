@@ -74,3 +74,6 @@ from .postprocessing.amplpy2pd import print_json, read_json
 from .postprocessing.postprocessing import get_used, get_var_cases, subgroup, subgroup_on_max, compute_convergence
 from .postprocessing.td_analysis import *
 from .postprocessing.draw_sankey.ESSankey import drawSankey
+from .postprocessing.draw_sankey.output_to_sankey_csv import write_sankey_file
+from .postprocessing.geoplots import *
+

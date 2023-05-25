@@ -53,7 +53,7 @@ class Esmc:
 
     """
 
-    def __init__(self, config, nbr_td=10):
+    def __init__(self, config, nbr_td=14):
         # identification of case study
         self.case_study = config['case_study']
         self.comment = config['comment']
@@ -69,8 +69,7 @@ class Esmc:
 
         # path definition
         self.project_dir = Path(__file__).parents[2]
-        self.dat_dir = self.project_dir / 'esmc' / 'energy_model' / 'dat_files' / self.space_id
-                #  self.project_dir / 'case_studies' / 'dat_files' / self.space_id
+        self.dat_dir = self.project_dir / 'case_studies' / self.space_id / '00_td_dat'
         self.cs_dir = self.project_dir / 'case_studies' / self.space_id / self.case_study
         # create directories
         self.dat_dir.mkdir(parents=True, exist_ok=True)
@@ -123,8 +122,9 @@ class Esmc:
 
         """
         logging.info('Initializing TemporalAggregation with ' + algo + ' algorithm')
-        self.ta = TemporalAggregation(self.regions, self.dat_dir / 'td_dat', Nbr_TD=self.nbr_td, algo=algo,
-                                      ampl_path=ampl_path)
+        self.ta = TemporalAggregation(self.regions, self.dat_dir, Nbr_TD=self.nbr_td, algo=algo,
+                                      ampl_path=ampl_path,
+                                      time_series_mapping=self.data_indep['Misc_indep']['time_series_mapping'])
         return
 
     def update_version(self):
@@ -175,8 +175,11 @@ class Esmc:
         logging.info('Read exchanges data from ' + str(data_path))
         # read data
         self.data_reg['Exch'] = dict()
+        # self.data_reg['Exch']['Dist'] = pd.read_csv(data_path / 'Dist.csv', sep=CSV_SEPARATOR,
+        #                                             header=[0], index_col=[0]).loc[self.regions_names, :]
         self.data_reg['Exch']['Dist'] = pd.read_csv(data_path / 'Dist.csv', sep=CSV_SEPARATOR,
-                                                    header=[0], index_col=[0]).loc[self.regions_names, :]
+                                                    header=[0], index_col=[0,1]).loc[
+                                        (self.regions_names, self.regions_names), :]
         self.data_reg['Exch']['Exchange_losses'] = pd.read_csv(data_path / 'Exchange_losses.csv', sep=CSV_SEPARATOR,
                                                     header=[0], index_col=[0])
         self.data_reg['Exch']['Lhv'] = pd.read_csv(data_path / 'Lhv.csv', sep=CSV_SEPARATOR, header=[0], index_col=[0])
@@ -273,16 +276,12 @@ class Esmc:
 
         return out
 
-    def print_data(self, ref_dir=None, indep=False):
+    def print_data(self, indep=False):
         """
         TODO add doc
         """
-        # Put default ref_dir if not given
-        if ref_dir is None:
-            ref_dir = self.project_dir / 'esmc' / 'energy_model' / 'dat_files'
-
         # Logging
-        logging.info('Printing regional data into ' + str(ref_dir / self.space_id))
+        logging.info('Printing regional data into ' + str(self.cs_dir))
 
         # Concatenate data across regions
         self.data_reg['Demands'], self.data_reg['Resources'], \
@@ -301,7 +300,7 @@ class Esmc:
                 name = 'param : '
 
             dp.print_df(df=dp.ampl_syntax(df),
-                        out_path=ref_dir / self.space_id / ('reg_' + n.lower() + '.dat'),
+                        out_path=self.cs_dir / ('reg_' + n.lower() + '.dat'),
                         name=name,
                         mode='w')
 
@@ -312,7 +311,7 @@ class Esmc:
         rwithoutdam = list(df.loc[df < 1e-2].index.get_level_values(level=0))
 
         # Print reg_misc.dat
-        misc_file = ref_dir / self.space_id / 'reg_misc.dat'
+        misc_file = self.cs_dir / 'reg_misc.dat'
 
         dp.print_header(dat_file=misc_file, header_txt='File containing miscellaneous sets and parameters')
 
@@ -330,7 +329,7 @@ class Esmc:
             dp.print_df(dp.ampl_syntax(df), out_path=misc_file, name='param :')
 
         # Print reg_exch.dat
-        exch_file = ref_dir / self.space_id / 'reg_exch.dat'
+        exch_file = self.cs_dir / 'reg_exch.dat'
 
         dp.print_header(dat_file=exch_file, header_txt='File containing data related to exchanges between regions')
 
@@ -403,7 +402,7 @@ class Esmc:
                     self.sets['COGEN'].append(i)
 
             # Printing indep.dat #
-            indep_file = ref_dir / 'indep.dat'
+            indep_file = self.cs_dir / 'indep.dat'
             # Header
             dp.print_header(dat_file=indep_file,
                             header_txt='File containing data independent of the modelled regions')
@@ -448,7 +447,7 @@ class Esmc:
                 else:
                     for n2,d2 in d.items():
                         if type(d2) is dict:
-                            if n2 != 'add_sets':
+                            if n2 != 'add_sets' and n2 != 'time_series_mapping':
                                 if n2 == 'state_of_charge_ev':
                                     df = pd.DataFrame.from_dict(d2, orient='index', columns=np.arange(1,25))
                                     name = 'param state_of_charge_ev : '
@@ -482,7 +481,7 @@ class Esmc:
         """
 
         # file to print to
-        dat_file = self.dat_dir / ('reg_' + str(self.nbr_td) + 'TD.dat')
+        dat_file = self.cs_dir / ('reg_' + str(self.nbr_td) + 'TD.dat')
 
         # logging info
         logging.info('Printing TD data into ' + str(dat_file))
@@ -535,24 +534,29 @@ class Esmc:
 
         # Default name of timeseries in DATA.xlsx and corresponding name in ESTD data file
         if eud_params is None:
-            # for EUD timeseries
-            eud_params = {'ELECTRICITY': 'param electricity_time_series :=',
-                          'HEAT_LOW_T_SH': 'param heating_time_series :=',
-                          'SPACE_COOLING': 'param cooling_time_series :=',
-                          'MOBILITY_PASSENGER': 'param mob_pass_time_series :=',
-                          'MOBILITY_FREIGHT': 'param mob_freight_time_series :='}
+            # # for EUD timeseries
+            # eud_params = {'ELECTRICITY': 'param electricity_time_series :=',
+            #               'HEAT_LOW_T_SH': 'param heating_time_series :=',
+            #               'SPACE_COOLING': 'param cooling_time_series :=',
+            #               'MOBILITY_PASSENGER': 'param mob_pass_time_series :=',
+            #               'MOBILITY_FREIGHT': 'param mob_freight_time_series :='}
+            eud_params = self.data_indep['Misc_indep']['time_series_mapping']['eud_params']
         if res_params is None:
-            # for resources timeseries that have only 1 tech linked to it
-            res_params = {'PV': 'PV', 'WIND_OFFSHORE': 'WIND_OFFSHORE', 'WIND_ONSHORE': 'WIND_ONSHORE',
-                          'HYDRO_DAM': 'HYDRO_DAM', 'HYDRO_RIVER': 'HYDRO_RIVER'}
+            res_params = self.data_indep['Misc_indep']['time_series_mapping']['res_params']
+
+            # # for resources timeseries that have only 1 tech linked to it
+            # res_params = {'PV': 'PV', 'WIND_OFFSHORE': 'WIND_OFFSHORE', 'WIND_ONSHORE': 'WIND_ONSHORE',
+            #               'HYDRO_DAM': 'HYDRO_DAM', 'HYDRO_RIVER': 'HYDRO_RIVER'}
         if res_mult_params is None:
-            # for resources timeseries that have several techs linked to it
-            res_mult_params = {'TIDAL': ['TIDAL_STREAM', 'TIDAL_RANGE'],
-                               'SOLAR': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
+            res_mult_params = self.data_indep['Misc_indep']['time_series_mapping']['res_mult_params']
+
+            # # for resources timeseries that have several techs linked to it
+            # res_mult_params = {'TIDAL': ['TIDAL_STREAM', 'TIDAL_RANGE'],
+            #                    'SOLAR': ['DHN_SOLAR', 'DEC_SOLAR', 'PT_COLLECTOR', 'ST_COLLECTOR', 'STIRLING_DISH']}
 
         # printing EUD timeseries param
         for i in eud_params.keys():
-            dp.newline(out_path=dat_file, comment=[eud_params[i]])
+            dp.newline(out_path=dat_file, comment=['param ' + eud_params[i] + ' :='])
             for r in self.regions:
                 # select the (24xNbr_TD) dataframe of region r and time series l, drop the level of index with the
                 # name of the time series, put it into ampl syntax and print it
@@ -609,32 +613,18 @@ class Esmc:
         if copy_from_ref:
             # path of the reference files for ampl
             if ref_dir is None:
-                ref_dir = self.project_dir / 'esmc' / 'energy_model' / 'dat_files'
-
+                ref_dir = self.project_dir / 'esmc' / 'energy_model'
+            # TODO get rid of this if it work without it
             # logging
-            logging.info('Copying mod and dat files from ' + str(ref_dir) + ' to ' + str(self.cs_dir))
+            logging.info('Copying mod file from ' + str(ref_dir) + ' to ' + str(self.cs_dir))
 
             # TODO automatise the names of the .dat
             # mod and data files ref path
             mod_ref = self.project_dir / 'esmc' / 'energy_model' / 'ESMC_model_AMPL.mod'
-            data_ref = [ref_dir / 'indep.dat',
-                        ref_dir / self.space_id / ('reg_' + str(self.nbr_td) + 'TD.dat'),
-                        ref_dir / self.space_id / 'reg_demands.dat',
-                        ref_dir / self.space_id / 'reg_exch.dat',
-                        ref_dir / self.space_id / 'reg_misc.dat',
-                        ref_dir / self.space_id / 'reg_resources.dat',
-                        ref_dir / self.space_id / 'reg_storage_power_to_energy.dat',
-                        ref_dir / self.space_id / 'reg_technologies.dat',
-                        ]
-
-            # [ref_dir / self.space_id / ('ESMC_' + str(self.nbr_td) + 'TD.dat'),
-            #  ref_dir / 'ESMC_indep.dat',
-            #  ref_dir / self.space_id / 'ESMC_regions.dat']
 
             # copy the files from ref_dir to case_study directory
             shutil.copyfile(mod_ref, mod_path)
-            for i in range(len(data_ref)):
-                shutil.copyfile(data_ref[i], data_path[i])
+
 
         # default ampl_options
         if ampl_options is None:
@@ -737,9 +727,9 @@ class Esmc:
             with open(directory / 'Solve_info.csv', mode='w', newline='\n') as file:
                 writer = csv.writer(file, delimiter=AMPL_SEPARATOR, quotechar=' ', quoting=csv.QUOTE_MINIMAL,
                                     lineterminator="\n")
-                writer.writerow(['ampl_elapsed_time,', self.esom.t[0]])
-                writer.writerow(['solve_elapsed_time,', self.esom.t[1]])
-                writer.writerow(['solve_result_num,', self.esom.t[2]])
+                writer.writerow(['ampl_elapsed_time', CSV_SEPARATOR, self.esom.t[0]])
+                writer.writerow(['solve_elapsed_time', CSV_SEPARATOR, self.esom.t[1]])
+                writer.writerow(['solve_result_num', CSV_SEPARATOR, self.esom.t[2]])
         return
 
     # TODO add a if none into results that need other results
@@ -894,7 +884,7 @@ class Esmc:
         exch_exp.index.rename(ind, inplace=True)
         # Get the transfer capacity
         transfer_capacity = self.esom.get_var('Transfer_capacity')
-        transfer_capacity.index.names = ['To', 'From', 'Resources']  # set names of indices
+        transfer_capacity.index.names = ['From', 'To', 'Resources']  # set names of indices
 
         # EXCHANGES RELATED COMPUTATIONS
         # Clean exchanges from double fictive fluxes due to LP formulation
@@ -915,7 +905,8 @@ class Esmc:
         exchanges_year = exchanges_year.drop(columns='Exch_imp').rename(columns={'Exch_exp': 'Exchanges_year'})
 
         # compute utilization factor of lines
-        exchanges_year['Transfer_capacity'] = transfer_capacity['Transfer_capacity']
+        # TODO check why not right Transfer_capacity with Exchanges_year for unidirectionnal exch?
+        exchanges_year = exchanges_year.merge(transfer_capacity, how='outer', left_index=True, right_index=True)
         exchanges_year['Utilization_factor'] = \
             exchanges_year['Exchanges_year'] / (transfer_capacity['Transfer_capacity'] * 8760)
 
@@ -1171,13 +1162,56 @@ class Esmc:
         logging.info('Getting Curt')
 
         # Get curtailment
-        curt = self.esom.get_var('Curt').reset_index()
+        curt = self.ta.from_td_to_year(ts_td=self.esom.get_var('Curt').reset_index().set_index(['Typical_days', 'Hours'])) \
+            .groupby(['Regions', 'Technologies']).sum()
+        # Get tech with a c_p_t defined (by addding list of res_params and flatten list of res_mult_param)
+        tech_cpt = list(self.data_indep['Misc_indep']['time_series_mapping']['res_params'].values()) \
+                   + [element for sublist in
+                      self.data_indep['Misc_indep']['time_series_mapping']['res_mult_params'].values()
+                      for element in sublist]
+        # Keep only curt for tech_cpt
+        curt = curt.loc[(slice(None), tech_cpt),:].copy()
         # Set regions as categorical data
+        curt.reset_index(inplace=True)
         curt['Regions'] = pd.Categorical(curt['Regions'], self.regions_names)
         curt = curt.set_index(['Regions'])
         curt.sort_index(inplace=True)
         # Store Curt into results
         self.results['Curt'] = curt
+        return
+
+    def read_results(self):
+        """ Reads the results printed into csv and store them into results dictionnary
+
+        """
+        # Reading the main results into csv
+        self.results['TotalCost'] = pd.read_csv(self.cs_dir / 'outputs' / 'TotalCost.csv',
+                                                header=[0], index_col=[0], sep=CSV_SEPARATOR)
+        self.results['Cost_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'Cost_breakdown.csv',
+                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+        self.results['Gwp_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'Gwp_breakdown.csv',
+                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+        self.results['Exchanges_year'] = pd.read_csv(self.cs_dir / 'outputs' / 'Exchanges_year.csv',
+                                                header=[0], index_col=[0, 1, 2], sep=CSV_SEPARATOR)
+        self.results['Resources'] = pd.read_csv(self.cs_dir / 'outputs' / 'Resources.csv',
+                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+        self.results['Assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Assets.csv',
+                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+        self.results['Sto_assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Sto_assets.csv',
+                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+        self.results['Year_balance'] = pd.read_csv(self.cs_dir / 'outputs' / 'Year_balance.csv',
+                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+        self.results['Curt'] = pd.read_csv(self.cs_dir / 'outputs' / 'Curt.csv',
+                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+
+        # reading the solving information and storing them
+        if self.esom is None:
+            # initialize empty OptiProbl if doesn't exist
+            self.esom = OptiProbl(set_ampl=False)
+
+        self.esom.t = list(pd.read_csv(self.cs_dir / 'outputs' / 'Solve_info.csv',
+                                  header=None, index_col=[0], sep=CSV_SEPARATOR).values)
+
         return
 
     def categorical_esmc(self, df: pd.DataFrame, col_name: str, el_name: str):

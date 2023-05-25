@@ -1,0 +1,11 @@
+Category;Subcategory;parameter name;HOUSEHOLDS;SERVICES;INDUSTRY;TRANSPORTATION;Units
+Electricity;baseload;ELECTRICITY;941.41;1342.81;1797.54;0;[GWh]. 
+Electricity;variable;ELECTRICITY_VAR;848.01;1209.57;1619.18;0;[GWh]
+Heat;high temperature;HEAT_HIGH_T;0.0;0.0;3279.76;0;[GWh]
+Heat;space heating;HEAT_LOW_T_SH;7985.48;3038.49;853.07;0;[GWh]
+Heat;hot water;HEAT_LOW_T_HW;2041.19;681.13;221.01;0;[GWh]
+Cold;process cooling;PROCESS_COOLING;0.0;1333.33;500.0;0;[GWh]
+Cold;space cooling;SPACE_COOLING;0.0;0.0;166.67;0;[GWh]
+Mobility;passenger;MOBILITY_PASSENGER;0.0;0.0;0.0;18000;[Mpkm]
+Mobility;freight;MOBILITY_FREIGHT;0.0;0.0;0.0;14000;[Mtkm]
+Non energy;Non energy;NON_ENERGY;0.0;0.0;1907.5400190476194;0;[GWh]

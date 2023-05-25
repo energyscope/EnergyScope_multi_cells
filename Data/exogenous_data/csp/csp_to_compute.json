@@ -1,0 +1,11 @@
+{"ES": {"repr_plant": "Extresol 1", "status": "Operational",
+        "latitude": 38.65, "longitude": -6.733},
+ "FR": {"repr_plant": "Centroid of Provence-Alpes-CotedAzur", "status": "Potential",
+		"latitude": 43.956, "longitude": 6.057},
+ "GR": {"repr_plant": "MINOS Project", "status": "Under construction",
+		"latitude": 35.003, "longitude": 26.139},
+ "IT": {"repr_plant": "Archimede", "status": "Operational",
+		"latitude": 37.134, "longitude": 15.217},
+ "PT": {"repr_plant": "NA", "status": "Planned",
+		 "latitude": 38.017, "longitude": -7.860}
+}

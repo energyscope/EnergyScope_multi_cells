@@ -1,6 +1,4 @@
-;;;Local availability
-;;units;[GWh/y]
-Category;Subcategory;parameter name;avail_local
-Renewable;Biomass;WOOD;79793.43
-Renewable;Biomass;WET_BIOMASS;57394.05
-Non-renewable;Other non-renewable;WASTE;96505.74
+parameter name;avail_local;c_op_local
+WOOD;79793.43;0.015778548
+WET_BIOMASS;57394.05;0.00713541
+WASTE;96505.74;0.008283562

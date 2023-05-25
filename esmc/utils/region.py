@@ -64,12 +64,14 @@ class Region:
 
         """
         # the Weights are redefined fully without considering the ref_region
-        self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=CSV_SEPARATOR, header=[0], index_col=[0]).dropna(axis=0, how='any')
+        self.data['Weights'] = pd.read_csv(self.data_path/'Weights.csv', sep=CSV_SEPARATOR, header=[0], index_col=[0])\
+            .dropna(axis=0, how='any')
         self.data['Weights'].index.rename('Category', inplace=True)
         self.data['Weights'] = clean_indices(self.data['Weights'])
 
         # The time series without weight into data have NaN as Weight
-        self.data['Weights'] = self.data['Weights'].reindex(self.data['Time_series'].columns, method=None, fill_value=np.nan)
+        self.data['Weights'] = self.data['Weights'].reindex(self.data['Time_series'].columns,
+                                                            method=None, fill_value=np.nan)
         return
 
     def read_eud(self):
@@ -91,54 +93,49 @@ class Region:
         -------
 
         """
-        # TODO change infinity to 1e15 and only back to infinity when printing
         r_path = self.data_path / 'Resources.csv'
         # if the file exist, update the data
         if r_path.is_file():
-            # read csv and clean df
-            df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[2], index_col=[2]).dropna(axis=1, how='all')
-            df = clean_indices(df)
-
-            # put df into attribute data
             if self.ref_region:
+                # read csv and clean df
+                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[2], index_col=[2]).dropna(axis=1, how='all')
+                df = clean_indices(df)
+                # put df into attribute data
                 self.data['Resources'] = df
             else:
+                # read csv and clean df
+                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[0]).dropna(axis=1, how='all')
+                df = clean_indices(df)
                 # using update method to replace only the data redefined in the csv of the region
                 self.data['Resources'].update(df)
 
         return
 
     def read_tech(self):
-        """Reads the technologies data of the region and stores it in the data attribute as a dataframe
-
-        Returns
-        -------
-
+        """
+        Reads the technologies data of the region and stores it in the data attribute as a dataframe
         """
         r_path = self.data_path / 'Technologies.csv'
         # if the file exist, update the data
         if r_path.is_file():
-            # read csv and clean df
-            df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[3], skiprows=[1]).drop(columns=['Comment']
-                                                                                            , errors='ignore')
-            df = clean_indices(df)
-
-            # put df into attribute data
             if self.ref_region:
+                # read csv and clean df
+                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[3], skiprows=[1]).drop(
+                    columns=['Comment']
+                    , errors='ignore')
+                df = clean_indices(df)
+                # put df into attribute data
                 self.data['Technologies'] = df
             else:
+                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[0]).dropna(how='all', axis=1)
+                df = clean_indices(df)
                 # using update method to replace only the data redefined in the csv of the region
                 self.data['Technologies'].update(df)
-
         return
 
     def read_storage_power_to_energy(self):
-        """Reads the storage power to energy ratio of the region and stores it in the data attribute as a dataframe
-
-
-        Returns
-        -------
-
+        """
+        Reads the storage power to energy ratio of the region and stores it in the data attribute as a dataframe
         """
         r_path = self.data_path / 'Storage_power_to_energy.csv'
         # if the file exist, update the data
@@ -156,12 +153,8 @@ class Region:
         return
 
     def read_misc(self):
-        """Reads the miscellaneous data of the region and store it in the data attribute as a dictionary
-
-
-        Returns
-        -------
-
+        """
+        Reads the miscellaneous data of the region and store it in the data attribute as a dictionary
         """
         r_path = (self.data_path/'Misc.json')
         # if the file exist, update the data
@@ -171,7 +164,7 @@ class Region:
                  self.data['Misc'] = d
              else:
                  # if not ref_region replace edited values
-                for key, value in d:
+                for key, value in d.items():
                     self.data['Misc'][key] = value
 
         return
@@ -179,9 +172,7 @@ class Region:
 
     def read_data(self, all=True, ):
         """
-
         Reads the data related to this region
-
         """
         logging.info('Read data from '+str(self.data_path))
 
@@ -194,7 +185,7 @@ class Region:
         self.read_misc()
         return
 
-    def compute_cell_w(self, demand_ts=None, prod_ts=None):
+    def compute_cell_w(self, time_series_mapping:dict):
         """Compute the weight of each time series in the region (Cell_w)
             
         Parameters
@@ -208,27 +199,31 @@ class Region:
         tot_ts = self.data['Time_series'].sum(axis=0)
 
         # TODO automatise this
-        # default name of demand and prod ts if not given
-        if demand_ts is None:
-            demand_ts = ['ELECTRICITY', 'HEAT_LOW_T_SH', 'SPACE_COOLING']
-        if prod_ts is None:
-            prod_ts = ['PV', 'WIND_ONSHORE', 'WIND_OFFSHORE', 'HYDRO_DAM', 'HYDRO_RIVER', 'TIDAL', 'SOLAR']
+        demand_ts = list(time_series_mapping['eud_params'].keys())
+        prod_ts = list(time_series_mapping['res_params'].keys()) \
+                       + list(time_series_mapping['res_mult_params'].keys())
+        # # default name of demand and prod ts if not given
+        # if demand_ts is None:
+        #     demand_ts = ['ELECTRICITY', 'HEAT_LOW_T_SH', 'SPACE_COOLING']
+        # if prod_ts is None:
+        #     prod_ts = ['PV', 'WIND_ONSHORE', 'WIND_OFFSHORE', 'HYDRO_DAM', 'HYDRO_RIVER', 'TIDAL', 'SOLAR']
 
         # dictionnary for time series linking with multiple entries
-        demand_map = {'ELECTRICITY':['LIGHTING']}
-        res_mult_params = {'TIDAL': ['TIDAL_STREAM', 'TIDAL_RANGE'],
-                           'SOLAR': ['PT_POWER_BLOCK', 'ST_POWER_BLOCK', 'STIRLING_DISH']} # not putting DHN_SOLAR and DEC_SOLAR because f_max is infinite...
+        # demand_map = {'ELECTRICITY':['LIGHTING']}
+        res_mult_params = time_series_mapping['res_mult_params']
             # TODO improve integration of solar_area and limits and adapt
 
         # select only simple demand and prod ts
-        demand_simple = [t for t in demand_ts if t not in demand_map.keys()]
+        # demand_simple = [t for t in demand_ts if t not in demand_map.keys()]
         prod_simple = [t for t in prod_ts if t not in res_mult_params.keys()]
 
         # multiply demand time series sum by the year consumption
-        tot_ts[demand_simple] = tot_ts[demand_simple]*self.data['Demands'].loc[demand_simple,:].sum(axis=1,numeric_only=True)
-        for t,l in demand_map.items():
-            tot_ts[t] = tot_ts[t]*self.data['Demands'].loc[l,:].sum(axis=1, numeric_only=True).sum(axis=0)
-        # multiply the sum of the production time series by the maximum potential (f_max in GW) of the corresponding technologies
+        tot_ts[demand_ts] = tot_ts[demand_ts]*self.data['Demands'].loc[demand_ts, :]\
+            .sum(axis=1,numeric_only=True)
+        # for t,l in demand_map.items():
+        #     tot_ts[t] = tot_ts[t]*self.data['Demands'].loc[l,:].sum(axis=1, numeric_only=True).sum(axis=0)
+        # multiply the sum of the production time series
+        # by the maximum potential (f_max in GW) of the corresponding technologies
         tot_ts[prod_simple] = tot_ts[prod_simple]*self.data['Technologies'].loc[prod_simple,'f_max']
         for t,l in res_mult_params.items():
             tot_ts[t] = tot_ts[t]*self.data['Technologies'].loc[l,'f_max'].sum()
@@ -236,9 +231,6 @@ class Region:
         # Add Cell_w to the Weights data
         self.data['Weights'].loc[:,'Cell_w'] = tot_ts*self.data['Weights'].loc[:,'Weights']
 
-        # TODO should be working
-        # 1. test it with Atlantic EU full temporal_agg
-        # 2. change weight info giving, give 1 if matters and nothing if not
         return
 
     def norm_ts(self, ts=None):
