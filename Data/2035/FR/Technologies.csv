@@ -88,7 +88,7 @@ Infrastructure;Infrastructure;Electrical grid cost;GRID ;446394.729;0;0;80;1;0;1
 Electricity;Electricity;Parabolic trough collectors;PT_COLLECTOR;4504.71429;62.65;0;25;1;0;1;0;39.50;
 Electricity;Electricity;Solar tower collectors;ST_COLLECTOR;100;5;0;25;1;0;1;0;39.50;
 Synthetic fuels;Synthetic fuels;Electrolysers;H2_ELECTROLYSIS;696.2025316;19.14556962;0;15;0.9;0;1;0;1000000000000000.00;
-Synthetic fuels;Synthetic fuels;Steam methane reforming; SMR ;681.2435621;64.43487218;0;25;0.86;0;1;0;1000000000000000.00;
+Synthetic fuels;Synthetic fuels;Steam methane reforming; H2_NG ;681.2435621;64.43487218;0;25;0.86;0;1;0;1000000000000000.00;
 Synthetic fuels;Synthetic fuels;Biomass to hydrogen;H2_BIOMASS;2525.386272;195.7018447;0;25;0.86;0;1;0;1000000000000000.00;
 Synthetic fuels;Synthetic fuels;Wood gasification;GASIFICATION_SNG;2743.8056;139.9381965;0;25;0.85;0;1;0;1000000000000000.00;
 Synthetic fuels;Synthetic fuels;Hydrogen methanation;SYN_METHANATION;262.1968349;66.99276316;0;40;1;0;1;0;1000000000000000.00;
