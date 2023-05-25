@@ -188,7 +188,7 @@ class Esmc:
             self.data_reg['Exch']['Misc_exch'] = a2p.read_json(r_path)
         self.data_reg['Exch']['Network_exchanges'] = pd.read_csv(data_path / 'Network_exchanges.csv', sep=CSV_SEPARATOR,
                                                       header=[0], index_col=[0, 1, 2]).loc[
-                                          (self.regions_names, self.regions_names, slice(None)), :]
+                                          (self.regions_names, self.regions_names, self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_NETWORK_R']), :]
 
     def read_data_indep(self):
         """Read data independent of the region dimension of the problem
