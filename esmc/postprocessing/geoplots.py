@@ -113,7 +113,7 @@ def create_gdf_eu(eu_country_code: list, overlay: bool = True) -> gpd.GeoDataFra
     eu_country_code_eurostat = ['UK' if i=='GB' else 'EL' if i=='GR' else i for i in eu_country_code]
 
     # read geographical data
-    eurostat_df = gpd.read_file(ex_data_path / 'gitignored' / 'NUTS_RG_20M_2021_3035.geojson')
+    eurostat_df = gpd.read_file(ex_data_path / 'gis' / 'NUTS_RG_20M_2021_3035.geojson')
 
     # select eu countries
     gdf = eurostat_df.loc[(eurostat_df['LEVL_CODE'] == 0)
@@ -124,7 +124,7 @@ def create_gdf_eu(eu_country_code: list, overlay: bool = True) -> gpd.GeoDataFra
     # adding geographical data for BA
     if 'BA' in eu_country_code:
         world_df = gpd.read_file(
-            ex_data_path / 'gitignored' / 'ne_10m_admin_0_countries' / 'ne_10m_admin_0_countries.shp')
+            ex_data_path / 'gis' / 'ne_10m_admin_0_countries' / 'ne_10m_admin_0_countries.shp')
         geo_ba = world_df.loc[world_df['ADMIN'] == 'Bosnia and Herzegovina', ['geometry']]
         geo_ba['id'] = 'BA'
         geo_ba = geo_ba.to_crs(3035)
