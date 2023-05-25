@@ -31,7 +31,7 @@ f_perc = False
 # define configuration
 config = {'case_study': 'test_new_elec_tc',
           'comment': 'none',
-          'regions_names': eu27_country_code,
+          'regions_names': ['DK-SE', 'BE-DE-LU-NL', 'IE-UK'], #eu27_country_code,
           'ref_region': 'FR',
           'gwp_limit_overall': gwp_limit_overall,
           're_share_primary': re_share_primary,
@@ -47,9 +47,9 @@ my_model.read_data_indep()
 # initialize the different regions and reads their data
 my_model.init_regions()
 
-# update some data
-for r_code, region in my_model.regions.items():
-    region.data['Misc']['gwp_limit'] = (1-reduction) * co2_1990.loc[code_2_full[r_code]]
+# # update some data
+# for r_code, region in my_model.regions.items():
+#     region.data['Misc']['gwp_limit'] = (1-reduction) * co2_1990.loc[code_2_full[r_code]]
 
 # Initialize and solve the temporal aggregation algorithm:
 # if already run, set algo='read' to read the solution of the clustering
