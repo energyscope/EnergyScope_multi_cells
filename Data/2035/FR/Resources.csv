@@ -10,7 +10,7 @@ Non-renewable;Fossil fuel;LFO;0;1E+15;0.31;0.06015058;
 Non-renewable;Fossil fuel;GAS;0;1E+15;0.27;0.04425306;
 Renewable;Renewable fuel;GAS_RE;0;1E+15;0;0.118326;
 Renewable;Biomass;WOOD;143761.29;0;0.02456;0.0225972226;
-Renewable;Biomass;WET_BIOMASS;240333.57;0;0.01056;0.0242868434;
+Renewable;Biomass;WET_BIOMASS;71822.835;0;0.01056;0.0242868434;
 Non-renewable;Fossil fuel;COAL;0;0;0.4;0.017657892;
 Non-renewable;Other non-renewable;URANIUM;0;1E+15;0;0.003876456;
 Non-renewable;Other non-renewable;WASTE;57777.84;0;0.15;0.00854573;

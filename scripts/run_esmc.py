@@ -15,8 +15,9 @@ from esmc.common import eu27_country_code, eu27_full_names, code_2_full
 co2_1990 = pd.read_excel(Path(__file__).parents[1] / 'Data' / 'exogenous_data' / 'regions' / 'Total_energy_1990.xlsx',
                          sheet_name='Total', header=[0], index_col=[0], nrows=33).loc[eu27_full_names, 'Total [ktCO2]']
 """
+
 # imposed emission reduction
-reduction = 0.9
+reduction = 0
 # number of typical days (check that tse<0.22)
 tds = 14
 
@@ -31,9 +32,9 @@ re_share_primary = None
 f_perc = False
 
 # define configuration
-config = {'case_study': 'test-90',
+config = {'case_study': 'TEST',
           'comment': 'none',
-          'regions_names': ['AT-CH-IT', 'ES-PT', 'FR', 'BE-DE-LU-NL', 'IE-UK', 'DK-SE'],
+          'regions_names': ['AT-CH-IT', 'FR', 'IE-UK', 'BE-DE-LU-NL', 'DK-SE', 'ES-PT'],
           'ref_region': 'FR',
           'gwp_limit_overall': gwp_limit_overall,
           're_share_primary': re_share_primary,
