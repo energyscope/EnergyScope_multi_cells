@@ -31,7 +31,11 @@ gwp_limit_overall = None
 re_share_primary = None
 f_perc = False
 
+i = 0
+
 for c in cases:
+
+    print(c)
 
     # define configuration
     config = {'case_study': c,
@@ -74,7 +78,11 @@ for c in cases:
     # Initialize and solve the temporal aggregation algorithm:
     # if already run, set algo='read' to read the solution of the clustering
     # else, set algo='kmedoid' to run kmedoid clustering algorithm to choose typical days (TDs)
-    my_model.init_ta(algo='kmedoid', ampl_path=ampl_path)
+    if i==0:
+        my_model.init_ta(algo='kmedoid', ampl_path=ampl_path)
+    else:
+        my_model.init_ta(algo='read', ampl_path=ampl_path)
+
 
     # Print the time related data of the energy system optimization model using the TDs to represent it
     my_model.print_td_data()
@@ -94,3 +102,5 @@ for c in cases:
 
     # delete ampl object to free resources
     my_model.esom.ampl.close()
+
+    i+=1
