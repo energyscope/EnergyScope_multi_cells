@@ -40,8 +40,6 @@ Heat;Heat low temperature centralised;Heat pump (DHN);DHN_HP_ELEC;344.7607454;11
 Heat;Heat low temperature centralised;Cogeneration gas (DHN);DHN_COGEN_GAS;1254.490121;37.53160408;490.88;25;0.85;0;1;0;1000000000000000.00;
 Heat;Heat low temperature centralised;Cogeneration wood (DHN);DHN_COGEN_WOOD;1080.794082;40.49068265;165.33;25;0.85;0;1;0;1000000000000000.00;
 Heat;Heat low temperature centralised;Cogeneration waste (DHN);DHN_COGEN_WASTE;2927.867778;111.3212848;647.82;25;0.85;0;1;0;1000000000000000.00;
-Heat;Heat low temperature centralised;Cogeneration wet biomass (DHN);DHN_COGEN_WET_BIOMASS;2287;228.7;1024;25;0.75;0;1;0;1000000000000000.00;
-Heat;Heat low temperature centralised;Cogeneration hydrolysis (DHN);DHN_COGEN_BIO_HYDROLYSIS;4536.899731;221.6894187;647.8;15;0.85;0;1;0;1000000000000000.00;
 Heat;Heat low temperature centralised;Boiler gas (DHN);DHN_BOILER_GAS;58.89128196;1.179885757;12.32;17;0.95;0;1;0;1000000000000000.00;
 Heat;Heat low temperature centralised;Boiler wood (DHN);DHN_BOILER_WOOD;115.1793239;2.303586478;28.87;17;0.9;0;1;0;1000000000000000.00;
 Heat;Heat low temperature centralised;Boiler oil (DHN);DHN_BOILER_OIL;54.85532353;1.179885757;12.32;17;0.95;0;1;0;1000000000000000.00;
