@@ -39,12 +39,12 @@ eu33_country_code_eurostat = ['AL', 'AT', 'BA', 'BE', 'BG',
                      'UK']
 eu33_country_code_iso3166_alpha2 = ['AL', 'AT', 'BA', 'BE', 'BG',
                      'CH', 'CZ', 'DE', 'DK',
-                     'EE', 'EL', 'ES', 'FI', 'FR',
+                     'EE', 'GR', 'ES', 'FI', 'FR',
                      'HR', 'HU', 'IE', 'IT',
                      'LT', 'LU', 'LV', 'ME', 'MK',
                      'NL', 'NO', 'PL', 'PT',
                      'RO', 'RS', 'SE', 'SI', 'SK',
-                     'UK']
+                     'GB']
 eu33_full_names = ['Albania', 'Austria', 'Bosnia and Herzegovina', 'Belgium', 'Bulgaria',
                    'Switzerland', 'Czech Republic', 'Germany', 'Denmark',
                    'Estonia', 'Greece', 'Spain', 'Finland', 'France',
@@ -166,7 +166,7 @@ color_dict = {
 	"H2_ELECTROLYSIS" : "violet",
 	"H2_NG" : "magenta",
 	"H2_BIOMASS" : "orchid",
-	"GASIFICATION_SNG" : "orange",
+	"GASIFICATION_SNG" : "orangered",
 	"SYN_METHANATION" : "moccasin",
 	"BIOMETHANATION" : "forestgreen",
 	"BIO_HYDROLYSIS" : "forestgreen",
@@ -183,7 +183,7 @@ color_dict = {
 	"GAS_TO_HVC": "orange",
 	"BIOMASS_TO_HVC": "peru",
 	"METHANOL_TO_HVC": "orchid",
-	"DAM_STROAGE" : "darkslateblue",
+	"DAM_STORAGE" : "darkslateblue",
 	"PHS" : "dodgerblue",
 	"BATT_LI" : "royalblue",
 	"BEV_BATT" : "deepskyblue",
@@ -225,6 +225,9 @@ color_dict = {
 	"HEAT_LOW_T_DHN": "indianred",
 	"MOB_PUBLIC": "gold",
 	"MOB_PRIVATE": "goldenrod",
+	"MOB_FREIGHT_RAIL": "blanchedalmond",
+	"MOB_FREIGHT_ROAD": "darkgoldenrod",
+	"MOB_FREIGHT_BOAT": "burlywood",
 	"INFRASTRUCTURE": "grey",
 	"HVC": "indigo",
 	"STORAGE": "chartreuse",
@@ -233,6 +236,8 @@ color_dict = {
 	"OTHER_CONS": "lightsalmon"
 }
 
+# TODO how to differantiate imports from exterior fossil gas or h2 from exchanges with other cells?
+
 plotting_names = {
 	"ELECTRICITY": "Electricity",
 	"GASOLINE": "Gasoline",
@@ -240,14 +245,14 @@ plotting_names = {
 	"BIOETHANOL": "Bioethanol",
 	"BIODIESEL": "Biodiesel",
 	"LFO": "Oil",
-	"GAS": "Fossil gas",
+	"GAS": "Gas",
 	"GAS_RE": "Re. gas",
 	"WOOD": "Wood",
 	"WET_BIOMASS": "Wet biomass",
 	"COAL" : "Coal",
 	"URANIUM" : "Uranium",
 	"WASTE" : "Waste",
-	"H2" : "Grey hydrogen",
+	"H2" : "Hydrogen",
 	"H2_RE" : "Re. hydrogen",
 	"AMMONIA" : "Ammonia",
 	"AMMONIA_RE" : "Re. ammonia",
@@ -361,7 +366,7 @@ plotting_names = {
 	"GAS_TO_HVC": "Gas to HVC",
 	"BIOMASS_TO_HVC": "Biomass to HVC",
 	"METHANOL_TO_HVC": "Methanol to HVC",
-	"DAM_STROAGE" : "Dam storage",
+	"DAM_STORAGE" : "Dam storage",
 	"PHS" : "PHS",
 	"BATT_LI" : "Li-ion batt.",
 	"BEV_BATT" : "BEV batt.",
@@ -403,10 +408,14 @@ plotting_names = {
 	"HEAT_LOW_T_DHN": "DHN low temp. heat",
 	"MOB_PUBLIC": "Public mobility",
 	"MOB_PRIVATE": "Private mobility",
+	"MOB_FREIGHT_RAIL": "Rail freight",
+	"MOB_FREIGHT_ROAD": "Road freight",
+	"MOB_FREIGHT_BOAT": "Boat freight",
 	"INFRASTRUCTURE": "Infrastructure",
 	"HVC": "HVC",
 	"STORAGE": "Storage",
 	"END_USES": "End uses",
+	"OTHER": "Other",
 	"OTHER_PROD": "Other prod.",
 	"OTHER_CONS": "Other cons."
 }
