@@ -6,7 +6,7 @@ import sys
 
 import pandas as pd
 
-sys.path.append('/home/pthiran/EnergyScope_multi_cells/')
+sys.path.append('/home/asepulchre/EnergyScope_multi_cells/')
 from esmc import Esmc
 from esmc.common import eu33_country_code_iso3166_alpha2, eu33_full_names
 
