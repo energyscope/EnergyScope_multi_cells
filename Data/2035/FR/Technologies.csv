@@ -57,8 +57,9 @@ Heat;Heat low temperature decentralised;Boiler wood (decentralised);DEC_BOILER_W
 Heat;Heat low temperature decentralised;Boiler oil (decentralised);DEC_BOILER_OIL;142.3822455;8.54012548;21.09;17;1;0;1;0;1000000000000000.00;
 Heat;Heat low temperature decentralised;Solar thermal (decentralised);DEC_SOLAR;719.0748197;8.090645191;221.22;20;1;0;1;0;630.00;
 Heat;Heat low temperature decentralised;Direct electrical heaters (decentralised);DEC_DIRECT_ELEC;39.97565315;0.177919281;1.47;15;1;0;1;0;1000000000000000.00;
-Cold;Space cooling;Split system air conditioning;BIG_SPLIT;232;9.333;0;15;1;0;1;0;1000000000000000.00;
-Cold;Process cooling;Water-cooled chillers;CHILLER_WC;119;4.76;0;20;1;0;1;0;1000000000000000.00;
+Cold;Space cooling;Electrical refrigeration cycle;DEC_ELEC_COLD;528.88;22.05;164.89;18;1;0;1;0;1000000000000000.00;
+Cold;Space cooling;Thermal refrigeration cycle gas;DEC_THHP_GAS_COLD;339.33;9.92;381.93;20;1;0;1;0;1000000000000000.00;
+Cold;Process cooling;Industrial electric cooling;IND_ELEC_COLD;664.97;5.37;174.79;20;0.95;0;1;0;1000000000000000.00;
 Mobility;Passenger public;Tram or metro;TRAMWAY_TROLLEY;625;12.5;0;30;0.342465753;0;0.3;0;1000000000000000.00;
 Mobility;Passenger public;Bus diesel;BUS_COACH_DIESEL;611.1111111;30.55555556;0;15;0.296803653;0;1;0;1000000000000000.00;
 Mobility;Passenger public;Bus diesel hybrid;BUS_COACH_HYDIESEL;833.3333333;33.33333333;0;15;0.296803653;0;1;0;1000000000000000.00;
