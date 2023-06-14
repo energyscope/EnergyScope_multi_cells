@@ -148,18 +148,18 @@ RegroupElements = {
     "Wave": ["WAVE"],
     "Geothermal": ["GEOTHERMAL"],
     "Ind Cogen": ["IND_COGEN_GAS", "IND_COGEN_WOOD", "IND_COGEN_WASTE"],
-    "Ind Boiler": ["IND_BOILER_GAS", "IND_BOILER_WOOD", "IND_BOILER_OIL",
-                   "IND_BOILER_COAL", "IND_BOILER_WASTE"],
+    "Ind Boiler": ["IND_BOILER_GAS", "IND_BOILER_WOOD", "IND_BOILER_BIOWASTE",
+                   "IND_BOILER_OIL", "IND_BOILER_COAL", "IND_BOILER_WASTE"],
     "Ind Direct Elec": ["IND_DIRECT_ELEC"],
     "HPs": ["DHN_HP_ELEC", "DEC_HP_ELEC"],
     "DHN Tech": ["DHN_COGEN_GAS", "DHN_COGEN_WOOD", "DHN_COGEN_WASTE",
-                 "DHN_COGEN_WET_BIOMASS", "DHN_COGEN_BIO_HYDROLYSIS",
+                 #"DHN_COGEN_WET_BIOMASS", "DHN_COGEN_BIO_HYDROLYSIS",
                  "DHN_BOILER_GAS", "DHN_BOILER_WOOD", "DHN_BOILER_OIL",
                  "DHN_DEEP_GEO", "DHN_SOLAR"],
     "DEC Heat": ["DEC_THHP_GAS", "DEC_COGEN_GAS", "DEC_COGEN_OIL", "DEC_ADVCOGEN_GAS",
                  "DEC_ADVCOGEN_H2", "DEC_BOILER_GAS", "DEC_BOILER_WOOD", "DEC_BOILER_OIL",
                  "DEC_SOLAR", "DEC_DIRECT_ELEC"],
-    "Cooling tech.": ["BIG_SPLIT", "CHILLER_WC"],
+    "Cooling tech.": ["DEC_THHp_GAS_COLD", "DEC_ELEC_COLD", "IND_ELEC_COLD"],
     # "Big Split":        ["BIG_SPLIT"],
     # "Chiller":          ["CHILLER_WC"],
 
@@ -188,8 +188,9 @@ RegroupElements = {
     "Solar": ["PT_COLLECTOR", "ST_COLLECTOR"],
     "H2.": ["H2_ELECTROLYSIS", "H2_NG", "H2_BIOMASS", "AMMONIA_TO_H2"],
     "Gasifi SNG": ["GASIFICATION_SNG"],
-    "To Methane": ["SYN_METHANATION", "BIOMETHANATION", "BIO_HYDROLYSIS"],
-    "Pyrolise": ["PYROLYSIS_TO_LFO", "PYROLYSIS_TO_FUELS"],
+    "To Methane": ["SYN_METHANATION", "BIOMETHANATION_WET_BIOMASS", "BIOMETHANATION_BIOWASTE"],
+    "Pyrolise": ["PYROLYSIS_LIGNO_TO_LFO", "PYROLYSIS_LIGNO_TO_FUELS",
+                 "PYROLYSIS_BIOWASTE_TO_LFO", "PYROLYSIS_BIOWASTE_TO_FUELS"],
     "To Methanol": ["SYN_METHANOLATION", "METHANE_TO_METHANOL", "BIOMASS_TO_METHANOL"],
     "Haber Bosch": ["HABER_BOSCH"],
     #"Fischer-Tropsch": ["FISCHER_TROPSCH_DIESEL", "FISCHER_TROPSCH_GASOLINE", "FISCHER_TROPSCH_JETFUEL"],
@@ -205,35 +206,37 @@ RegroupElements = {
     "LFO imports": ["LFO"],
     "Gas imports": ["GAS"],
     "Gas RE imports": ["GAS_RE"],
-    "Wood": ["WOOD"],
-    "Biomass": ["WET_BIOMASS"],
+    "Ligno. biomass": ["WOOD", "OTHER_LIGNO"],
+    "Biowaste": ["BIOWASTE", "BIOMASS_RESIDUES"],
+    "Wet biomass": ["WET_BIOMASS"],
     "Coal imports": ["COAL"],
-    "Waste imports": ["WASTE"],
+    "Waste": ["WASTE"],
     "H2 imports": ["H2"],
     "H2 RE imports": ["H2_RE"],
     "Ammonia imports": ["AMMONIA"],
     "Methanol imports": ["METHANOL"],
     "Ammonia RE imports": ["AMMONIA_RE"],
     "Methanol RE imports": ["METHANOL_RE"],
-    "DEC Sto": ["TS_DEC_DIRECT_ELEC", "TS_DEC_HP_ELEC", "TS_DEC_THHP_GAS",
+    "DEC Sto.": ["TS_DEC_DIRECT_ELEC", "TS_DEC_HP_ELEC", "TS_DEC_THHP_GAS",
                 "TS_DEC_COGEN_GAS", "TS_DEC_COGEN_OIL", "TS_DEC_ADVCOGEN_GAS",
                 "TS_DEC_ADVCOGEN_H2", "TS_DEC_BOILER_GAS", "TS_DEC_BOILER_WOOD",
                 "TS_DEC_BOILER_OIL"],
-    "DHN Sto": ["TS_DHN_DAILY", "TS_DHN_SEASONAL"],
-    "Cold Sto": ["TS_COLD"],
+    "DHN Sto.": ["TS_DHN_DAILY", "TS_DHN_SEASONAL"],
+    "Cold Sto.": ["TS_COLD"],
     "End Use": ["END_USES"]
 }
 
 # Names of the layers.
 RegroupLayers = {
-    "Elec": ["ELECTRICITY"],
+    "Elec.": ["ELECTRICITY"],
     "Oil": ["GASOLINE"],
     #"Jet Fuel": ["JET_FUEL"],
     "Diesel": ["DIESEL"],
     "LFO": ["LFO"],
     "Gas": ["GAS"],
-    "Wood": ["WOOD"],
-    "Biomass": ["WET_BIOMASS"],
+    "Ligno. biomass": ["WOOD", "OTHER_LIGNO"],
+    "Biowaste": ["BIOWASTE", "BIOMASS_RESIDUES"],
+    "Wet biomass": ["WET_BIOMASS"],
     "Coal": ["COAL"],
     "Waste": ["WASTE"],
     "H2.": ["H2"],
@@ -263,7 +266,7 @@ RegroupLayers = {
 
 
 TechLayer = {
-    "Solar PV": "RES Solar",
+    "Solar": "RES Solar",
     "Wind Onshore": "RES Wind",
     "Wind Offshore": "RES Wind",
     "Hydro": "RES Hydro",
@@ -278,12 +281,12 @@ TechLayer = {
 # It is only relevant to show storage of layer linked to end use only.
 
 EndUseStorage = {
-    "DEC Sto": ["TS_DEC_DIRECT_ELEC", "TS_DEC_HP_ELEC", "TS_DEC_THHP_GAS",
+    "DEC Sto.": ["TS_DEC_DIRECT_ELEC", "TS_DEC_HP_ELEC", "TS_DEC_THHP_GAS",
                 "TS_DEC_COGEN_GAS", "TS_DEC_COGEN_OIL", "TS_DEC_ADVCOGEN_GAS",
                 "TS_DEC_ADVCOGEN_H2", "TS_DEC_BOILER_GAS", "TS_DEC_BOILER_WOOD",
                 "TS_DEC_BOILER_OIL"],
-    "DHN Sto": ["TS_DHN_DAILY", "TS_DHN_SEASONAL"],
-    "Cold Sto": ["TS_COLD"]
+    "DHN Sto.": ["TS_DHN_DAILY", "TS_DHN_SEASONAL"],
+    "Cold Sto.": ["TS_COLD"]
 }
 
 StorageField = {
@@ -291,9 +294,9 @@ StorageField = {
 }
 
 StorageLayer = {
-    "DEC Sto": ["Heat LT DEC"],
-    "DHN Sto": ["Heat LT DHN"],
-    # "Cold Sto":         ["Space Cool"]
+    "DEC Sto.": ["Heat LT DEC"],
+    "DHN Sto.": ["Heat LT DHN"],
+    # "Cold Sto.":         ["Space Cool"]
 }
 
 # Name of the end use of the end use layer. If the layer is end use only
@@ -331,8 +334,9 @@ LayerColor = {
     "Diesel": "#D3D3D3",
     "LFO": "#8B008B",
     "Gas": "#FFD700",
-    "Wood": "#CD853F",
-    "Biomass": "#336600",
+    "Ligno. biomass": "#CD853F",
+    "Biowaste": "#3F5901"
+    "Wet biomass": "#336600",
     "Coal": "#A0522D",
     "Uranium": "#FFC0CB",
     "Waste": "#808000",
