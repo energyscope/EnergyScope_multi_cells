@@ -7,15 +7,17 @@ This script reads renewable energy potentials (REPs) data from external sources 
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from esmc.common import CSV_SEPARATOR
+from esmc.common import CSV_SEPARATOR, eu33_country_code_iso3166_alpha2, eu33_country_code_eurostat, eu33_full_names
 from esmc.utils.df_utils import clean_indices
 import json
+
+
 
 """
 Config of the script
 """
 get_enspreso = True
-read_dommisse = True
+read_dommisse = False
 update_actual = True
 print_update = True
 
@@ -32,6 +34,10 @@ year_stop = 2035
 # convert all the NED demand by this factor from comparison of Rixhon et al. and Dommisse et al. for BE demand
 ratio_ned_BE = 53115.3311 / 102332.37
 
+# max instalable nuclear in france (from RTE2022)
+nuc_max_fr = 41.3
+
+# country codes
 eu27_country_code = ['AT', 'BE', 'BG', #  'CH',
                      # Switzerland is not in data as not part of EU,
                      # for now, putting data of AT
@@ -47,13 +53,17 @@ eu27_full_names = ['Austria', 'Belgium', 'Bulgaria',  #'Switzerland',
                    'Greece', 'Croatia', 'Hungary', 'Ireland', 'Italy', 'Lithuania', 'Luxembourg', 'Latvia',
                    'Netherlands', 'Poland', 'Portugal', 'Romania', 'Sweden', 'Slovenia', 'Slovakia']
 # Switzerland is missing from ENSPRESSO... + getting rid of EU28, Cyprus, Malta
-full_2_code = dict(zip(eu27_full_names, eu27_country_code))
-code_2_full = dict(zip(eu27_country_code, eu27_full_names))
+code_2_full = dict(zip(eu33_country_code_iso3166_alpha2, eu33_full_names))
+
+
+
+
+
 
 """
 ENSPRESO DATA
 """
-if get_enspreso:
+if get_enspreso or read_dommisse or update_actual or print_update:
     # config
     enspreso_dir = ex_data_dir / 'ENSPRESO'
     enspreso_sce_wind = 'Reference - Large turbines'  # enspreso scenario considered for wind turbines
@@ -89,7 +99,24 @@ if get_enspreso:
     ground_high_irr_cat = ['natural areas agriculture high irradiation',
                            'natural areas non-agriculture high irradiation']
 
-    # ENSPRESO wind potentials
+
+    # biomass config
+    r_biom = eu33_country_code_eurostat
+    year_biom = 2050 # we take 2050 as reference year for biomass potentials
+
+    enspreso_biomass_sce = 'ENS_Med'
+    categories = {
+        'WOOD': ['MINBIOWOO', 'MINBIOWOOa', 'MINBIOWOOW1', 'MINBIOWOOW1a', 'MINBIOFRSR1'],
+        'WET_BIOMASS': ['MINBIOSLU1', 'MINBIOGAS1'],
+        'ENERGY_CROPS_2': ['MINBIOCRP31', 'MINBIOCRP41', 'MINBIOCRP41a'],
+        'BIOWASTE': ['MINBIOMUN1'],
+        'BIOMASS_RESIDUES': ['MINBIOAGRW1', 'MINBIOFRSR1a']
+    }
+    pj_2_gwh = 1/3600*1e15/1e9 # [GWh/PJ]
+    eff_minbioslu1 = 1/3.3462 # [GWh_biogas/GWh_feedstock]
+
+
+    # 1. ENSPRESO wind potentials
     won_pot = pd.read_excel(io=enspreso_dir / 'ENSPRESO_WIND_ONSHORE_OFFSHORE.xlsx',
                             sheet_name='ONSHORE SUMMARY + graph',
                             header=[2, 3], index_col=[19], nrows=29).dropna(how='all', axis=1)
@@ -109,7 +136,7 @@ if get_enspreso:
 
     wof_pot = wof_pot.loc[:, (enspreso_sce_wind, slice(None))].sum(axis=1)
 
-    # ENSPRESO solar potentials
+    # 2. ENSPRESO solar potentials
     solar_pot = pd.read_excel(io=enspreso_dir / 'ENSPRESO_SOLAR_PV_CSP.xlsx', sheet_name=enspreso_solar_sce,
                               header=[4], index_col=[1], nrows=20).drop(columns=['Technology']) \
         .dropna(how='all', axis=1).dropna(how='all', axis=0) \
@@ -140,6 +167,78 @@ if get_enspreso:
     res_pot_esmc = pd.concat([solar_pot_esmc, pd.DataFrame(won_pot, columns=['WIND_ONSHORE']).T], axis=0)
     res_pot_esmc = pd.concat([res_pot_esmc, pd.DataFrame(wof_pot, columns=['WIND_OFFSHORE']).T], axis=0).fillna(0)
 
+
+    # 3. ENSPRESO biomass potentials
+    biomass_pot = pd.read_excel(io=enspreso_dir / 'ENSPRESO_BIOMASS.xlsx',
+                                sheet_name='ENER - NUTS0 EnergyCom',
+                                header=[0])
+    biomass_costs = pd.read_excel(io=enspreso_dir / 'ENSPRESO_BIOMASS.xlsx',
+                                  sheet_name='COST - NUTS0 EnergyCom',
+                                  header=[0])
+    # correct error in the input data (missing data in 2030 is average between equivalent data in 2020 and 2040
+    biomass_costs.loc[(biomass_costs['Year'] == 2030) & (biomass_costs['Scenario'] == 'ENS_High') &
+                      (biomass_costs['NUTS0'] == 'NO') & (biomass_costs['Energy Commodity'] == 'MINBIOMUN1'),
+    'NUTS0 Energy Commodity Cost '] = (biomass_costs.loc[(biomass_costs['Year'] == 2020)
+                                                         & (biomass_costs['Scenario'] == 'ENS_High')
+                                                         & (biomass_costs['NUTS0'] == 'NO')
+                                                         & (biomass_costs['Energy Commodity'] == 'MINBIOMUN1'),
+    'NUTS0 Energy Commodity Cost '].values + biomass_costs.loc[(biomass_costs['Year'] == 2040)
+                                                               & (biomass_costs['Scenario'] == 'ENS_High')
+                                                               & (biomass_costs['NUTS0'] == 'NO')
+                                                               & (biomass_costs['Energy Commodity'] == 'MINBIOMUN1'),
+    'NUTS0 Energy Commodity Cost '].values) / 2
+    # convert into float
+    biomass_costs['NUTS0 Energy Commodity Cost '] = biomass_costs['NUTS0 Energy Commodity Cost '] \
+        .astype(float)
+
+    # merging all data in one df
+    biomass_pot = biomass_pot.merge(biomass_costs,
+                                    left_on=['Year', 'Scenario', 'NUTS0', 'Energy Commodity'],
+                                    right_on=['Year', 'Scenario', 'NUTS0', 'Energy Commodity'],
+                                    how='outer')
+    # select common scenarios to ENER and COST datasets
+    biomass_pot = biomass_pot.loc[biomass_pot['Scenario'].isin(['ENS_High', 'ENS_Med', 'ENS_Low'])]
+
+    # # checking NA values (without first generation energy crops) -> only data with potential=0
+    # df_na = biomass_pot.loc[biomass_pot.isna().any(axis=1),:]
+    # df_na = df_na[~df_na['Energy Commodity'].isin(['MINBIOLIQ1', 'MINBIOCRP11', 'MINBIOCRP21', 'MINBIORPS1'])]
+    biomass_pot = biomass_pot.fillna(0)
+
+    # selection year, scenario and regions of interest
+    biomass_pot = biomass_pot.loc[(biomass_pot['Year'] == year_biom)
+                                  & (biomass_pot['Scenario'] == enspreso_biomass_sce)
+                                  & (biomass_pot['NUTS0'].isin(r_biom))]
+
+    # convert sludge into biogas
+    biomass_pot.loc[biomass_pot['Energy Commodity'] == 'MINBIOSLU1', 'Value'] *= eff_minbioslu1
+    biomass_pot.loc[
+        biomass_pot['Energy Commodity'] == 'MINBIOSLU1', 'NUTS0 Energy Commodity Cost '] *= 1 / eff_minbioslu1
+
+    # group categories and store them into 1 df
+    new_ind = pd.MultiIndex.from_product([['avail_local', 'c_op_local'], r_biom], names=['Parameter', 'Regions'])
+    biomass_pot_final = pd.DataFrame(np.nan, index=new_ind, columns=list(categories.keys()))
+    for c, elems in categories.items():
+        elems_pot = biomass_pot.loc[biomass_pot['Energy Commodity'].isin(elems)]
+        # mult cost and pot
+        elems_pot = elems_pot.assign(mult=elems_pot['Value'] * elems_pot['NUTS0 Energy Commodity Cost '])
+        # sum potentials and average cost
+        cat_pot = elems_pot.groupby(['Year', 'NUTS0']).sum()
+        cat_pot['NUTS0 Energy Commodity Cost '] = cat_pot['mult'] / cat_pot['Value']
+        cat_pot = cat_pot.drop(columns=['mult']) \
+            .rename(columns={'Value': 'avail_local', 'NUTS0 Energy Commodity Cost ': 'c_op_local'})
+        # convert units
+        cat_pot['avail_local'] *= pj_2_gwh  # PJ to GWh
+        cat_pot['c_op_local'] *= 1e6 / pj_2_gwh / 1e6  # [€/GJ] to [M€/GWh]
+        # put into general dataframe
+        cat_pot = cat_pot.reset_index().drop(columns='Year').rename(columns={'NUTS0': 'Regions'}) \
+            .melt(id_vars='Regions', value_vars=['avail_local', 'c_op_local'], var_name='Parameter', value_name=c) \
+            .set_index(['Parameter', 'Regions'])
+        biomass_pot_final.loc[cat_pot.index, cat_pot.columns] = cat_pot
+    # fillna
+    biomass_pot_final = biomass_pot_final.fillna(0)
+    # renaming into iso3166
+    biomass_pot_final = biomass_pot_final.rename(index={'EL': 'GR', 'UK': 'GB'}, level=1).sort_index()
+
 """
 Data from Dommisse et al.
 """
@@ -159,7 +258,7 @@ tech2get.append('PV')
 tech2get.remove('PV_ROOFTOP')
 tech2get.remove('PV_UTILITY')
 # resources to get
-res2get = ['WOOD', 'WET_BIOMASS', 'WASTE']
+res2get = ['WASTE']
 
 # creating dataframes to gather all data
 demands_all = pd.DataFrame(np.nan,
@@ -167,19 +266,22 @@ demands_all = pd.DataFrame(np.nan,
                                                               'HEAT_HIGH_T', 'HEAT_LOW_T_SH', 'HEAT_LOW_T_HW',
                                                               'PROCESS_COOLING', 'SPACE_COOLING',
                                                               'MOBILITY_PASSENGER', 'MOBILITY_FREIGHT', 'NON_ENERGY'],
-                                                             eu27_country_code]),
+                                                             eu33_country_code_iso3166_alpha2]),
                            columns=['Category', 'Subcategory',
                                     'HOUSEHOLDS', 'SERVICES', 'INDUSTRY', 'TRANSPORTATION ',
                                     'Units'])
-resources_all = pd.DataFrame(np.nan, index=pd.MultiIndex.from_product([['avail_local', 'c_op_local'],eu27_country_code]),
-                             columns=res2get)
-sto_all = pd.DataFrame(np.nan, index=pd.MultiIndex.from_product([['PHS'], eu27_country_code]),
+resources_names = list(biomass_pot_final.columns)
+resources_names.extend(res2get)
+resources_all = pd.DataFrame(np.nan, index=pd.MultiIndex.from_product([['avail_local', 'c_op_local'],eu33_country_code_iso3166_alpha2]),
+                             columns=resources_names)
+sto_all = pd.DataFrame(np.nan, index=pd.MultiIndex.from_product([['PHS'], eu33_country_code_iso3166_alpha2]),
                        columns=['storage_charge_time', 'storage_discharge_time'])
-tech_all = pd.DataFrame(np.nan, index=pd.MultiIndex.from_product([['f_min', 'f_max'], eu27_country_code]),
+tech_all = pd.DataFrame(np.nan, index=pd.MultiIndex.from_product([['f_min', 'f_max'], eu33_country_code_iso3166_alpha2]),
                         columns=ordered_tech_res)
 
 for r, r_full in code_2_full.items():
-    if read_dommisse:
+    r_path = data_dir / str(year_stop) / r
+    if read_dommisse and r in eu27_country_code:
         print('Read Dommisse et al. ' + r_full)
         # read technologies f_min and f_max from data of J&JL
         tech_dommisse = clean_indices(pd.read_excel(dommisse_data / r / 'Data_management' / 'DATA.xlsx', sheet_name='3.2 TECH',
@@ -188,11 +290,7 @@ for r, r_full in code_2_full.items():
         # split PV into PV_ROOFTOP and PV_UTILITY by keeping the installed capacity into PV_ROOFTOP
         tech_dommisse.rename(index={'PV': 'PV_ROOFTOP'}, inplace=True)
         tech_dommisse.loc['PV_UTILITY', :] = 0
-        # set f_max NUCLEAR to 0 by default (except for FR)
-        if r!='FR':
-            tech_dommisse.loc['NUCLEAR', 'f_max'] = 0
-        else:
-            tech_dommisse.loc['NUCLEAR', 'f_max'] = 41.30
+
         if r_full=='Switzerland':
             solar_area['Switzerland'] = 0
             solar_area.loc['solar_area_rooftop', 'Switzerland'] =\
@@ -204,6 +302,7 @@ for r, r_full in code_2_full.items():
                                            header=[1], index_col=[0], nrows=26) \
             .rename(columns={'Unnamed: 1': 'avail_local', 'c_op [M€/GWh]': 'c_op_local'}) \
             .loc[res2get, ['avail_local', 'c_op_local']])
+        resources_dommisse.index.name = 'parameter name'
 
         # read demands
         # TODO get rid of ELECTRICITY_VAR
@@ -219,35 +318,68 @@ for r, r_full in code_2_full.items():
                                      header=[59], index_col=0, nrows=3) \
             .loc[['PHS'], ['storage_charge_time', 'storage_discharge_time']])
         sto_dommisse.index.name = 'Storage'
+    else:
+        # if not read_dommisse put actual data instead
+        demands_dommisse = clean_indices(pd.read_csv(r_path / 'Demands.csv',
+                                                     header=[0], index_col=[2], sep=CSV_SEPARATOR))
+        if r == 'FR':
+            # FR as ref regions has different csv
+            resources_dommisse = clean_indices(pd.read_csv(r_path / 'Resources.csv',
+                                                           header=[2], index_col=[2], sep=CSV_SEPARATOR))\
+                                     .loc[res2get, ['avail_local', 'c_op_local']]
+            sto_dommisse = clean_indices(pd.read_csv(r_path / 'Storage_power_to_energy.csv',
+                                                     header=[0], index_col=[0], sep=CSV_SEPARATOR))\
+                               .loc['PHS',:]
+            tech_dommisse = clean_indices(pd.read_csv(r_path / 'Technologies.csv',
+                                                      header=[0], index_col=[3], skiprows=[1], sep=CSV_SEPARATOR))\
+                .loc[ordered_tech_res, ['f_min', 'f_max']]
+        else:
+            resources_dommisse = clean_indices(pd.read_csv(r_path / 'Resources.csv',
+                                                           header=[0], index_col=[0], sep=CSV_SEPARATOR)).loc[res2get, :]
+            sto_dommisse = clean_indices(pd.read_csv(r_path / 'Storage_power_to_energy.csv',
+                                                     header=[0], index_col=[0], sep=CSV_SEPARATOR))
+
+            tech_dommisse = clean_indices(pd.read_csv(r_path / 'Technologies.csv',
+                                                      header=[0], index_col=[0], sep=CSV_SEPARATOR))
+
+    # set f_max NUCLEAR to 0 by default (except for FR)
+    if r != 'FR':
+        tech_dommisse.loc['NUCLEAR', 'f_max'] = 0
+    else:
+        tech_dommisse.loc['NUCLEAR', 'f_max'] = nuc_max_fr
 
     """
     Update and print actual data
     """
     if update_actual:
-        r_path = data_dir / str(year_stop) / r
-
         # add columns defining demand
         demands_new = clean_indices(pd.read_csv(r_path / 'Demands.csv', header=[0], index_col=[2], sep=CSV_SEPARATOR))
         demands_new.update(demands_dommisse)
 
 
         # get misc (for now only solar_area)
-        misc_new = solar_area.loc[:, r_full].to_dict()
+        if r in eu27_country_code:
+            misc_new = solar_area.loc[:, r_full].to_dict()
+        else:
+            with open(r_path / 'Misc.json', 'r') as fp:
+                misc_new = json.load(fp)
 
         # resource new
-        resources_new = resources_dommisse.copy()
-        resources_new.index.name = 'parameter name'
+        resources_new = biomass_pot_final.loc[(slice(None), r), :].droplevel(level=1, axis=0).T
+        resources_new.loc['WASTE', :] = resources_dommisse.loc['WASTE', :]
 
         # sto new
         sto_new = sto_dommisse.copy()
 
         # update the data for the res pot reevaluted
-        if r_full=='Switzerland':
-            tech_new = tech_dommisse.copy()
-        else:
+        if r in eu27_country_code:
             my_df = res_pot_esmc.loc[:, r_full].to_frame(name='f_max')
             tech_new = tech_dommisse.copy()
             tech_new.update(my_df)
+        else:
+            tech_new = tech_dommisse.copy()
+
+
         tech_new = tech_new.loc[ordered_tech_res, :]
         tech_new.index.name = 'Technologies param'
         # if f_max is smaller then f_min, we put f_min to f_max
@@ -295,7 +427,7 @@ for r, r_full in code_2_full.items():
             tech_new.to_csv(r_path / 'Technologies.csv', sep=CSV_SEPARATOR)
             weights_new.to_csv(r_path / 'Weights.csv', sep=CSV_SEPARATOR)
 
-if update_actual:
+if update_actual and print_update:
     # save into dataframes all
     demands_all.to_csv(ex_data_dir / 'regions' / 'Demands.csv', sep=CSV_SEPARATOR)
     resources_all.to_csv(ex_data_dir / 'regions' / 'Resources.csv', sep=CSV_SEPARATOR)
