@@ -96,8 +96,10 @@ class Esmc:
         self.esom = None
 
         # create empty dictionary to be filled with main results
-        self.results = dict.fromkeys(['TotalCost', 'Cost_breakdown', 'Gwp_breakdown', 'Exchanges_year', 'Resources',
+        self.results = dict.fromkeys(['TotalCost', 'Cost_breakdown', 'Gwp_breakdown', 'Transfer_capacity',
+                                      'Exchanges_year', 'Resources',
                                       'Assets', 'Sto_assets', 'Year_balance', 'Curt'])
+        self.hourly_results = dict()
 
         return
 
@@ -182,13 +184,18 @@ class Esmc:
                                         (self.regions_names, self.regions_names), :]
         self.data_reg['Exch']['Exchange_losses'] = pd.read_csv(data_path / 'Exchange_losses.csv', sep=CSV_SEPARATOR,
                                                     header=[0], index_col=[0])
-        self.data_reg['Exch']['Lhv'] = pd.read_csv(data_path / 'Lhv.csv', sep=CSV_SEPARATOR, header=[0], index_col=[0])
         r_path = (data_path / 'Misc_exch.json')
         if r_path.is_file(): # if the file exist, update the data
             self.data_reg['Exch']['Misc_exch'] = a2p.read_json(r_path)
+
+        self.data_reg['Exch']['Lhv'] = pd.read_csv(data_path / 'Lhv.csv', sep=CSV_SEPARATOR, header=[0], index_col=[0])\
+                                           .loc[self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_FREIGHT_R'], :]
+
         self.data_reg['Exch']['Network_exchanges'] = pd.read_csv(data_path / 'Network_exchanges.csv', sep=CSV_SEPARATOR,
-                                                      header=[0], index_col=[0, 1, 2]).loc[
-                                          (self.regions_names, self.regions_names, slice(None)), :]
+                                                      header=[0], index_col=[0, 1, 2, 3]).loc[
+                                          (self.regions_names, self.regions_names,
+                                           self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_NETWORK_R'],
+                                           slice(None)), :]
 
     def read_data_indep(self):
         """Read data independent of the region dimension of the problem
@@ -336,6 +343,25 @@ class Esmc:
         for n, d in self.data_reg['Exch'].items():
             if n != 'Misc_exch':
                 dp.print_df(dp.ampl_syntax(d), out_path=exch_file, name='param : ')
+            else:
+                for n2, d2 in d.items():
+                    if type(d2) is dict:
+                        if n2 != 'add_sets':
+                            df = pd.DataFrame.from_dict(d2, orient='index', columns=[n2])
+                            name = 'param : '
+                            df = df.mask(df > 1e14, 'Infinity')
+                            dp.print_df(df=dp.ampl_syntax(df),
+                                        out_path=exch_file,
+                                        name=name,
+                                        mode='a')
+                            dp.newline(out_path=exch_file)
+                        else:
+                            pass
+                    else:
+                        if d2 > 1e14:
+                            d2 = 'Infinity'
+                        dp.print_param(param=d2, out_path=exch_file, name=n2)
+                        dp.newline(out_path=exch_file)
 
         if indep:
             # Building SETS from data #
@@ -359,8 +385,8 @@ class Esmc:
             # exchanges related sets
             self.sets['EXCHANGE_FREIGHT_R'] = self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_FREIGHT_R']
             self.sets['EXCHANGE_NETWORK_R'] = self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_NETWORK_R']
-            self.sets['EXCHANGE_NETWORK_BIDIRECTIONAL'] =\
-                self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_NETWORK_BIDIRECTIONAL']
+            self.sets['NETWORK_TYPE'] = self.data_reg['Exch']['Misc_exch']['add_sets']['NETWORK_TYPE']
+
             self.sets['NOEXCHANGES'] = list(set(self.sets['RESOURCES']) - set(self.sets['EXCHANGE_FREIGHT_R'])
                                                                              - set(self.sets['EXCHANGE_NETWORK_R']))
             # technologies related sets
@@ -702,7 +728,7 @@ class Esmc:
             self.esom.ampl.eval('print "TotalCost_global", sum{c in REGIONS} (TotalCost[c]);')
         return
 
-    def prints_esom(self, inputs=True, outputs=True, solve_info=False):
+    def prints_esom(self, inputs=True, outputs=True, solve_info=False, save_hourly:list=[]):
         # TODO Update
         # if inputs:
 
@@ -720,6 +746,11 @@ class Esmc:
             for key, df in self.results.items():
                 df.to_csv(directory / (key + '.csv'), sep=CSV_SEPARATOR)
 
+            if len(save_hourly) > 0:
+                (directory/'hourly_results').mkdir(parents=True, exist_ok=True)
+                for key, df in self.hourly_results.items():
+                    df.to_csv(directory/ 'hourly_results' / (key + '.csv'), sep=CSV_SEPARATOR)
+
         if solve_info:
             # Getting and printing solve time
             if self.esom.t is None:
@@ -734,16 +765,16 @@ class Esmc:
 
     # TODO add a if none into results that need other results
 
-    def get_year_results(self):
+    def get_year_results(self, save_hourly: list=[]):
         """Wrapper function to get the year summary results"""
         logging.info('Getting year summary')
         self.get_total_cost()
         self.get_cost_breakdown()
         self.get_gwp_breakdown()
-        self.get_resources_and_exchanges()
-        self.get_assets()
+        self.get_resources_and_exchanges(save_hourly=save_hourly)
+        self.get_assets(save_hourly=save_hourly)
         self.get_year_balance()
-        self.get_curt()
+        self.get_curt(save_hourly=save_hourly)
         return
 
     def get_total_cost(self):
@@ -766,14 +797,12 @@ class Esmc:
         c_inv = self.esom.get_var('C_inv')
         c_maint = self.esom.get_var('C_maint')
         c_op = self.esom.get_var('C_op')
-        c_exch_network = self.esom.get_var('C_exch_network')
 
         # set index names (for later merging)
         index_names = ['Regions', 'Elements']
         c_inv.index.names = index_names
         c_maint.index.names = index_names
         c_op.index.names = index_names
-        c_exch_network.index.names = index_names
 
         # Annualize the investiments
         # create frames for concatenation (list of df to concat)
@@ -785,9 +814,6 @@ class Esmc:
         all_tau = pd.concat(frames, axis=0, keys=self.regions_names)
         all_tau.index.names = index_names
         c_inv_ann = c_inv.mul(all_tau, axis=0)
-
-        # concat c_exch_network to c_inv_ann
-        c_inv_ann = pd.concat([c_inv_ann, c_exch_network.rename(columns={'C_exch_network': 'C_inv'})], axis=0)
 
         # Merge costs into cost breakdown
         cost_breakdown = c_inv_ann.merge(c_maint, left_index=True, right_index=True, how='outer') \
@@ -853,7 +879,7 @@ class Esmc:
         self.results['Gwp_breakdown'] = gwp_breakdown
         return
 
-    def get_resources_and_exchanges(self):
+    def get_resources_and_exchanges(self, save_hourly: list=[]):
         """Get the Resources yearly local and exterior production, and import and exports as well as exchanges"""
         logging.info('Getting Yearly resources and exchanges')
 
@@ -865,26 +891,41 @@ class Esmc:
         r_exch.extend(freight_exch_r)
         r_list = list(self.ref_region.data['Resources'].index)  # all resources
 
+        # Get hourly data
+        r_t_local = self.esom.get_var('R_t_local')
+        r_t_exterior = self.esom.get_var('R_t_exterior')
+
         # Get results related to Resources and Exchanges and sum over all layers
         # year local production and import from exterior
-        r_year_local = self.ta.from_td_to_year(ts_td=self.esom.get_var('R_t_local')
-                                               .reset_index().set_index(['Typical_days', 'Hours'])) \
+        r_year_local = self.ta.from_td_to_year(ts_td=r_t_local.reset_index().set_index(['Typical_days', 'Hours'])) \
             .groupby(['Regions', 'Resources']).sum().rename(columns={'R_t_local': 'R_year_local'})
-        r_year_exterior = self.ta.from_td_to_year(ts_td=self.esom.get_var('R_t_exterior')
+        r_year_exterior = self.ta.from_td_to_year(ts_td=r_t_exterior
                                                   .reset_index().set_index(['Typical_days', 'Hours'])) \
             .groupby(['Regions', 'Resources']).sum().rename(columns={'R_t_exterior': 'R_year_exterior'})
-        # exchange_losses
-        exchange_losses = self.esom.ampl.get_parameter('exchange_losses').getValues().toPandas()['exchange_losses']
+
         # get exchanges over the year for r_exch
         exch_imp = self.esom.get_var('Exch_imp').loc[(slice(None), slice(None), r_exch, slice(None), slice(None)), :]
         exch_exp = self.esom.get_var('Exch_exp').loc[(slice(None), slice(None), r_exch, slice(None), slice(None)), :]
+        # # adding exchange_losses
+        # exchange_losses = self.esom.ampl.get_parameter('exchange_losses').getValues().toPandas()['exchange_losses']
+        # dist = self.esom.ampl.get_parameter('dist').getValues().toPandas()['dist']
+        # exch_exp = exch_exp.mul((dist/1000), axis=0, level=['From', 'To'])\
+        #     .mul((1 + exchange_losses), axis=0, level='Resources')
         # rename indices to have
         ind = ['From', 'To', 'Resources', 'Hours', 'Typical_days']
         exch_imp.index.rename(ind, inplace=True)
         exch_exp.index.rename(ind, inplace=True)
         # Get the transfer capacity
         transfer_capacity = self.esom.get_var('Transfer_capacity')
-        transfer_capacity.index.names = ['From', 'To', 'Resources']  # set names of indices
+        transfer_capacity.index.names = ['From', 'To', 'Resources', 'Network_type']  # set names of indices
+        all_tc = transfer_capacity.copy()
+        transfer_capacity = transfer_capacity.groupby(['From', 'To', 'Resources']).sum()
+
+        # save all transfer capacity
+        # put very small values as nan
+        treshold = 1e-3
+        all_tc = all_tc.mask((all_tc > -treshold) & (all_tc < treshold), np.nan)
+
 
         # EXCHANGES RELATED COMPUTATIONS
         # Clean exchanges from double fictive fluxes due to LP formulation
@@ -905,7 +946,6 @@ class Esmc:
         exchanges_year = exchanges_year.drop(columns='Exch_imp').rename(columns={'Exch_exp': 'Exchanges_year'})
 
         # compute utilization factor of lines
-        # TODO check why not right Transfer_capacity with Exchanges_year for unidirectionnal exch?
         exchanges_year = exchanges_year.merge(transfer_capacity, how='outer', left_index=True, right_index=True)
         exchanges_year['Utilization_factor'] = \
             exchanges_year['Exchanges_year'] / (transfer_capacity['Transfer_capacity'] * 8760)
@@ -924,14 +964,13 @@ class Esmc:
         # exchanges_year.dropna(axis=0, how='all', inplace=True)
 
         # RESOURCES RELATED COMPUTATIONS
-        # add to r_exch_region the losses due to fictive exchanges
-        exp_year = self.ta.from_td_to_year(ts_td=exch_exp.reset_index().set_index(['Typical_days', 'Hours'])) \
-            .groupby(['From', 'To', 'Resources']).sum()
-        diff_exp = (exp_year['Exch_exp'] - exchanges_year['Exchanges_year']).groupby(['From', 'Resources']).sum()
+        # # add to r_exch_region the losses due to fictive exchanges
+        # exp_year = self.ta.from_td_to_year(ts_td=exch_exp.reset_index().set_index(['Typical_days', 'Hours'])) \
+        #     .groupby(['From', 'To', 'Resources']).sum()
+        # diff_exp = (exp_year['Exch_exp'] - exchanges_year['Exchanges_year']).groupby(['From', 'Resources']).sum()
+
         # compute R_year_import and R_year_export from the exchanges_year computed
-        r_year_export = pd.DataFrame(r_exch_region['Exch_exp'].mul((1 + exchange_losses), axis=0, level='Resources')
-                                     + diff_exp.mul(exchange_losses, axis=0, level='Resources'),
-                                     columns=['R_year_export'])
+        r_year_export = pd.DataFrame(r_exch_region['Exch_exp']).rename(columns={'Exch_exp': 'R_year_export'})
         r_year_export.index.set_names(r_year_local.index.names, inplace=True)  # set proper name to index
         r_year_import = pd.DataFrame(r_exch_region['Exch_imp']).rename(columns={'Exch_imp': 'R_year_import'})
         r_year_import.index.set_names(r_year_local.index.names, inplace=True)  # set proper name to index
@@ -960,11 +999,23 @@ class Esmc:
         # resources.dropna(axis=0, how='all', inplace=True)
 
         # store into results
+        self.results['Transfer_capacity'] = all_tc['Transfer_capacity'] = all_tc
         self.results['Exchanges_year'] = exchanges_year
         self.results['Resources'] = resources
+
+        if 'Exchanges' in save_hourly:
+            self.hourly_results['Exchanges'] = exch.reset_index()\
+                .set_index(['Resources', 'From', 'To', 'Typical_days', 'Hours']).sort_index()
+        if 'Resources' in save_hourly:
+            self.hourly_results['R_t_local'] = r_t_local.reset_index()\
+                .set_index(['Regions', 'Resources', 'Typical_days', 'Hours']).sort_index()
+            self.hourly_results['R_t_exterior'] = r_t_exterior.reset_index()\
+                .set_index(['Regions', 'Resources', 'Typical_days', 'Hours']).sort_index()
+            # TODO ? add R_t_import et R_t_export?
+
         return
 
-    def get_assets(self):
+    def get_assets(self, save_hourly:list=[]):
         """Gets the assets and stores it into the results,
         for storage assets, and additional data set is created (Sto_assets)
 
@@ -1004,8 +1055,8 @@ class Esmc:
         # installed capacity
         f = self.esom.get_var('F')
         # energy produced by the technology
-        f_year = self.ta.from_td_to_year(ts_td=self.esom.get_var('F_t')
-                                         .reset_index().set_index(['Typical_days', 'Hours'])) \
+        f_t = self.esom.get_var('F_t')
+        f_year = self.ta.from_td_to_year(ts_td=f_t.reset_index().set_index(['Typical_days', 'Hours'])) \
             .groupby(['Regions', 'Technologies']).sum() \
             .rename(columns={'F_t': 'F_year'})
         # Get Storage_power (power balance at each hour)
@@ -1038,10 +1089,11 @@ class Esmc:
         # compute the balance
         storage_power = storage_out.merge(-storage_in, left_index=True, right_index=True)
         storage_power['Storage_power'] = storage_power['Storage_out'] + storage_power['Storage_in']
+        storage_power.index.rename(['Regions', 'Storage_tech', 'Hours', 'Typical_days'], inplace=True)
         # losses are the sum of the balance over the year
         sto_losses = self.ta.from_td_to_year(ts_td=storage_power['Storage_power']
                                              .reset_index().set_index(['Typical_days', 'Hours'])) \
-            .groupby(['Regions', 'I in storage_tech']).sum()
+            .groupby(['Regions', 'Storage_tech']).sum()
         # Update F_year in assets df for STORAGE_TECH
         assets.loc[sto_losses.index, 'F_year'] = sto_losses['Storage_power']
         # replace Storage_in and Storage_out by values deduced from Storage_power
@@ -1053,7 +1105,7 @@ class Esmc:
                                                                            np.nan)
         # Compute total over the year by mapping TD
         sto_flux_year = self.ta.from_td_to_year(ts_td=storage_power.reset_index().set_index(['Typical_days', 'Hours'])) \
-            .groupby(['Regions', 'I in storage_tech']).sum() \
+            .groupby(['Regions', 'Storage_tech']).sum() \
             .rename(columns={'Storage_out': 'Year_energy_flux'}).drop(columns=['Storage_in', 'Storage_power'])
         # create sto_assets from copy() of assets
         sto_assets = assets.copy()
@@ -1085,6 +1137,15 @@ class Esmc:
         # Store into results
         self.results['Assets'] = assets
         self.results['Sto_assets'] = sto_assets
+
+        if 'Assets' in save_hourly:
+            self.hourly_results['F_t'] = f_t.reset_index()\
+                .set_index(['Regions', 'Technologies', 'Typical_days', 'Hours']).sort_index()
+        if 'Storage' in save_hourly:
+            self.hourly_results['Storage_level'] = self.esom.get_var('Storage_level')
+            self.hourly_results['Storage_power'] = storage_power.reset_index()\
+                .set_index(['Regions', 'Storage_tech', 'Typical_days', 'Hours']).sort_index()
+
         return
 
     def get_year_balance(self):
@@ -1157,12 +1218,13 @@ class Esmc:
         self.results['Year_balance'] = year_balance
         return
 
-    def get_curt(self):
+    def get_curt(self, save_hourly:list=[]):
         """Gets the yearly curtailment of renewables"""
         logging.info('Getting Curt')
 
         # Get curtailment
-        curt = self.ta.from_td_to_year(ts_td=self.esom.get_var('Curt').reset_index().set_index(['Typical_days', 'Hours'])) \
+        curt_t = self.esom.get_var('Curt')
+        curt = self.ta.from_td_to_year(ts_td=curt_t.reset_index().set_index(['Typical_days', 'Hours'])) \
             .groupby(['Regions', 'Technologies']).sum()
         # Get tech with a c_p_t defined (by addding list of res_params and flatten list of res_mult_param)
         tech_cpt = list(self.data_indep['Misc_indep']['time_series_mapping']['res_params'].values()) \
@@ -1178,6 +1240,11 @@ class Esmc:
         curt.sort_index(inplace=True)
         # Store Curt into results
         self.results['Curt'] = curt
+
+        if 'Curt' in save_hourly:
+            self.hourly_results['Curt'] = curt_t.reset_index()\
+                .set_index(['Regions', 'Technologies', 'Typical_days', 'Hours']).sort_index()
+
         return
 
     def read_results(self):

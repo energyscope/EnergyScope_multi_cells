@@ -224,9 +224,9 @@ class Region:
         #     tot_ts[t] = tot_ts[t]*self.data['Demands'].loc[l,:].sum(axis=1, numeric_only=True).sum(axis=0)
         # multiply the sum of the production time series
         # by the maximum potential (f_max in GW) of the corresponding technologies
-        tot_ts[prod_simple] = tot_ts[prod_simple]*self.data['Technologies'].loc[prod_simple,'f_max']
+        tot_ts[prod_simple] = tot_ts[prod_simple] * self.data['Technologies'].loc[prod_simple,'f_max']
         for t,l in res_mult_params.items():
-            tot_ts[t] = tot_ts[t]*self.data['Technologies'].loc[l,'f_max'].sum()
+            tot_ts[t] = tot_ts[t] * self.data['Technologies'].loc[l,'f_max'].sum()
 
         # Add Cell_w to the Weights data
         self.data['Weights'].loc[:,'Cell_w'] = tot_ts*self.data['Weights'].loc[:,'Weights']
