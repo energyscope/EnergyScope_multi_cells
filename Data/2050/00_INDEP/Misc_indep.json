@@ -1,0 +1,48 @@
+{
+    "i_rate" : 0.015,
+	"gwp_limit_overall": 1e15,
+	"power_density_pv" : 0.170,
+    "power_density_solar_thermal" : 0.7,
+	"sm_max" : 4,
+	"c_grid_extra" : 367.8,
+	"loss_network" : {"ELECTRICITY": 4.7E-02, "HEAT_LOW_T_DHN": 5.0E-02},
+
+
+	"vehicule_capacity": {"CAR_PHEV": 5.04E+01, "CAR_BEV": 5.04E+01},
+	"batt_per_car": {"CAR_PHEV": 10.0, "CAR_BEV":	50.0},
+    "state_of_charge_ev" :	{
+			"CAR_PHEV" : [0.0,0.0,0.0,0.0,0.0,0.0,0.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+			"CAR_BEV" :  [0.0,0.0,0.0,0.0,0.0,0.0,0.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+	},
+	"time_series_mapping": {
+		"eud_params" : {"ELECTRICITY": "electricity_time_series",
+                          "HEAT_LOW_T_SH": "heating_time_series",
+                          "SPACE_COOLING": "cooling_time_series",
+                          "MOBILITY_PASSENGER": "mob_pass_time_series",
+                          "MOBILITY_FREIGHT": "mob_freight_time_series"},
+		"res_params": {"WIND_OFFSHORE": "WIND_OFFSHORE", "WIND_ONSHORE": "WIND_ONSHORE", "HYDRO_DAM": "HYDRO_DAM", "HYDRO_RIVER": "HYDRO_RIVER"},
+		"res_mult_params": {
+			"PV": ["PV_ROOFTOP", "PV_UTILITY"], 
+			"TIDAL": ["TIDAL_STREAM", "TIDAL_RANGE"],
+            "SOLAR": ["DHN_SOLAR", "DEC_SOLAR"],
+            "CSP": ["PT_COLLECTOR", "ST_COLLECTOR"]}
+		
+	},
+	"add_sets": {"END_USES_CATEGORIES" : {
+					  "ELECTRICITY" : ["ELECTRICITY"],
+					  "HEAT_HIGH_T" : ["HEAT_HIGH_T"],
+					  "HEAT_LOW_T" : ["HEAT_LOW_T_DHN", "HEAT_LOW_T_DECEN"],
+					  "SPACE_COOLING" : ["SPACE_COOLING"],
+					  "PROCESS_COOLING" : ["PROCESS_COOLING"],
+					  "MOBILITY_PASSENGER" : ["MOB_PUBLIC", "MOB_PRIVATE"],
+					  "MOBILITY_FREIGHT" : ["MOB_FREIGHT_RAIL", "MOB_FREIGHT_BOAT", "MOB_FREIGHT_ROAD"],
+					  "NON_ENERGY" : ["AMMONIA", "METHANOL", "HVC"]
+				  },
+				  "EVs_BATT": ["PHEV_BATT", "BEV_BATT"],
+		          "NOT_LAYERS": ["BIOETHANOL", "BIODIESEL", "GAS_RE", "H2_RE", "AMMONIA_RE", "METHANOL_RE", "CO2_EMISSIONS","BIOMASS_RESIDUES","ENERGY_CROPS_2"],
+	              "STORAGE_DAILY" : ["TS_DEC_HP_ELEC", "TS_DEC_THHP_GAS", "TS_DEC_COGEN_GAS", "TS_DEC_COGEN_OIL",
+                    "TS_DEC_ADVCOGEN_GAS", "TS_DEC_ADVCOGEN_H2", "TS_DEC_BOILER_GAS", "TS_DEC_BOILER_WOOD", "TS_DEC_BOILER_OIL",
+                    "TS_DEC_DIRECT_ELEC", "TS_DHN_DAILY", "BATT_LI", "TS_HIGH_TEMP"],
+				  "V2G": ["CAR_PHEV", "CAR_BEV"]	  
+	}				
+}

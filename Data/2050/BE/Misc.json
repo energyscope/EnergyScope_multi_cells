@@ -1,0 +1,10 @@
+{
+    "share_ned": {
+        "AMMONIA": 0.19234205853405184,
+        "HVC": 0.7787569625870779,
+        "METHANOL": 0.028900978878870283
+    },
+    "solar_area_ground": 188.5423529,
+    "solar_area_ground_high_irr": 0.0,
+    "solar_area_rooftop": 159.69332494082323
+}
