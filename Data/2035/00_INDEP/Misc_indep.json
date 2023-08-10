@@ -15,7 +15,7 @@
 			"CAR_BEV" :  [0.0,0.0,0.0,0.0,0.0,0.0,0.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
 	},
 	"time_series_mapping": {
-		"eud_params" : {"ELECTRICITY_VAR": "electricity_time_series",
+		"eud_params" : {"ELECTRICITY": "electricity_time_series",
                           "HEAT_LOW_T_SH": "heating_time_series",
                           "SPACE_COOLING": "cooling_time_series",
                           "MOBILITY_PASSENGER": "mob_pass_time_series",

@@ -246,7 +246,7 @@ var TC_gas_retrofit{c1 in REGIONS, c2 in REGIONS, g in NETWORK_TYPE["GAS"]} >= 0
 subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 	End_uses [c, l, h, td] = (if l == "ELECTRICITY" 
 		then
-			(end_uses_input[c,l] / total_time + end_uses_input[c,"ELECTRICITY_VAR"] * electricity_time_series [c, h, td] / t_op [h, td] ) + Network_losses [c,l,h,td]
+			(end_uses_input[c,l] * electricity_time_series [c, h, td] / t_op [h, td] ) + Network_losses [c,l,h,td]
 		else (if l == "HEAT_LOW_T_DHN" then
 			(end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td] ) * Share_heat_dhn[c] + Network_losses [c,l,h,td]
 		else (if l == "HEAT_LOW_T_DECEN" then
