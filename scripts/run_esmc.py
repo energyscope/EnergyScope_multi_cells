@@ -19,7 +19,7 @@ cases = ['fossil_free_ref']#, 'fossil_free_no_ned', 'fossil_free_no_h2_network',
 no_imports = ['GASOLINE', 'DIESEL', 'LFO', 'GAS', 'COAL', 'H2', 'AMMONIA', 'METHANOL']
 
 # number of typical days (check that tse<0.22)
-tds = 14
+tds = 42
 
 print('Nbr_TDs', tds)
 
