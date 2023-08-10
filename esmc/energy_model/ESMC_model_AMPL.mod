@@ -121,7 +121,7 @@ param heating_time_series {REGIONS, HOURS, TYPICAL_DAYS} >= 0, <= 1; # %_sh [-]:
 param cooling_time_series {REGIONS, HOURS, TYPICAL_DAYS} >= 0, <= 1;
 param mob_pass_time_series {REGIONS, HOURS, TYPICAL_DAYS} >= 0, <= 1; # %_pass [-]: factor for sharing passenger transportation across Typical days (adding up to 1) based on https://www.fhwa.dot.gov/policy/2013cpr/chap1.cfm
 param mob_freight_time_series {REGIONS, HOURS, TYPICAL_DAYS} >= 0, <= 1; # %_fr [-]: factor for sharing freight transportation across Typical days (adding up to 1)
-param c_p_t {TECHNOLOGIES, REGIONS, HOURS, TYPICAL_DAYS} default 1; #Hourly capacity factor [-]. If = 1 (default value) <=> no impact.
+param c_p_t {TECHNOLOGIES, REGIONS, HOURS, TYPICAL_DAYS} >= 0 default 1; #Hourly capacity factor [-]. If = 1 (default value) <=> no impact.
 
 ## Parameters added to define scenarios and technologies [Table 2]
 param end_uses_demand_year {REGIONS, END_USES_INPUT, SECTORS} >= 0 default 0; # end_uses_year [GWh]: table end-uses demand vs sectors (input to the model). Yearly values. [Mpkm] or [Mtkm] for passenger or freight mobility.
