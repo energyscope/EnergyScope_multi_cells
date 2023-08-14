@@ -13,20 +13,34 @@ AMPL_SEPARATOR = '\t'
 
 # defining 2 letter country codes and full country names (ISO3166_alpha2)
 eu27_country_code = ['AT', 'BE', 'BG', 'CH', 'CZ',
-                     'DE', 'DK', 'EE', 'GR', 'ES', 'FI',
-                     'FR',  'HR', 'HU',
+                     'DE', 'DK', 'EE', 'ES', 'FI',
+                     'FR',  'HR', 'HU', 'GR', 'GB',
                      'IE', 'IT', 'LT', 'LU', 'LV',
                      'NL', 'PL', 'PT', 'RO', 'SE',
-                     'SI', 'SK', 'GB']
+                     'SI', 'SK']
 eu27_full_names = ['Austria', 'Belgium', 'Bulgaria',  'Switzerland', 'Czech Republic',
-                   'Germany', 'Denmark', 'Estonia', 'Greece', 'Spain', 'Finland',
-                   'France', 'Croatia', 'Hungary',
-                   'Ireland', 'Italy', 'Lithuania', 'Luxembourg', 'Latvia',
+                   'Germany', 'Denmark', 'Estonia', 'Spain', 'Finland',
+                   'France', 'Croatia', 'Hungary', 'Greece', 'United Kingdom',
+				   'Ireland', 'Italy', 'Lithuania', 'Luxembourg', 'Latvia',
                    'Netherlands', 'Poland', 'Portugal', 'Romania', 'Sweden',
-                   'Slovenia', 'Slovakia', 'United Kingdom']
+                   'Slovenia', 'Slovakia']
 
-full_2_code = dict(zip(eu27_full_names, eu27_country_code))
-code_2_full = dict(zip(eu27_country_code, eu27_full_names))
+# defining 2 letter country codes and full country names (ISO3166_alpha2)
+eu28_country_code = ['AT', 'BE', 'BG', 'CH', 'CZ',
+					 'DE', 'DK', 'EE', 'ES', 'FI',
+					 'FR',  'HR', 'HU', 'GR', 'GB',
+					 'IE', 'IT', 'LT', 'LU', 'LV',
+					 'NL', 'NO', 'PL', 'PT', 'RO', 'SE',
+					 'SI', 'SK']
+eu28_full_names = ['Austria', 'Belgium', 'Bulgaria',  'Switzerland', 'Czech Republic',
+				   'Germany', 'Denmark', 'Estonia', 'Spain', 'Finland',
+				   'France', 'Croatia', 'Hungary', 'Greece', 'United Kingdom',
+				   'Ireland', 'Italy', 'Lithuania', 'Luxembourg', 'Latvia',
+				   'Netherlands', 'Norway', 'Poland', 'Portugal', 'Romania', 'Sweden',
+				   'Slovenia', 'Slovakia']
+
+full_2_code = dict(zip(eu28_full_names, eu28_country_code))
+code_2_full = dict(zip(eu28_country_code, eu28_full_names))
 
 # with additional countries
 eu33_country_code_eurostat = ['AL', 'AT', 'BA', 'BE', 'BG',
