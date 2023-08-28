@@ -97,7 +97,7 @@ class Esmc:
 
         # create empty dictionary to be filled with main results
         self.results = dict.fromkeys(['TotalCost', 'Cost_breakdown', 'Gwp_breakdown', 'Transfer_capacity',
-                                      'Exchanges_year', 'Resources',
+                                      'Exchanges_year', 'Resources', 'Exch_freight_border', 'Exch_freight'
                                       'Assets', 'Sto_assets', 'Year_balance', 'Curt'])
         self.hourly_results = dict()
 
@@ -895,6 +895,10 @@ class Esmc:
         r_t_local = self.esom.get_var('R_t_local')
         r_t_exterior = self.esom.get_var('R_t_exterior')
 
+        # Get freight due to exchanges
+        exch_freight_border = self.esom.get_var('Exch_freight_border')
+        exch_freight = self.esom.get_var('Exch_freight')
+
         # Get results related to Resources and Exchanges and sum over all layers
         # year local production and import from exterior
         r_year_local = self.ta.from_td_to_year(ts_td=r_t_local.reset_index().set_index(['Typical_days', 'Hours'])) \
@@ -1002,6 +1006,9 @@ class Esmc:
         self.results['Transfer_capacity'] = all_tc['Transfer_capacity'] = all_tc
         self.results['Exchanges_year'] = exchanges_year
         self.results['Resources'] = resources
+        self.results['Exch_freight_border'] = exch_freight_border
+        self.results['Exch_freight'] = exch_freight
+
 
         if 'Exchanges' in save_hourly:
             self.hourly_results['Exchanges'] = exch.reset_index()\
@@ -1247,7 +1254,7 @@ class Esmc:
 
         return
 
-    def read_results(self):
+    def read_results(self, read_hourly:list=[]):
         """ Reads the results printed into csv and store them into results dictionnary
 
         """
@@ -1260,16 +1267,18 @@ class Esmc:
                                                 header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
         self.results['Exchanges_year'] = pd.read_csv(self.cs_dir / 'outputs' / 'Exchanges_year.csv',
                                                 header=[0], index_col=[0, 1, 2], sep=CSV_SEPARATOR)
+        self.results['Transfer_capacity'] = pd.read_csv(self.cs_dir / 'outputs' / 'Transfer_capacity.csv',
+                                                     header=[0], index_col=[0, 1, 2, 3], sep=CSV_SEPARATOR)
         self.results['Resources'] = pd.read_csv(self.cs_dir / 'outputs' / 'Resources.csv',
-                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
         self.results['Assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Assets.csv',
-                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
         self.results['Sto_assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Sto_assets.csv',
-                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
         self.results['Year_balance'] = pd.read_csv(self.cs_dir / 'outputs' / 'Year_balance.csv',
-                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
         self.results['Curt'] = pd.read_csv(self.cs_dir / 'outputs' / 'Curt.csv',
-                                                header=[0], index_col=[0,1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
 
         # reading the solving information and storing them
         if self.esom is None:
@@ -1278,6 +1287,17 @@ class Esmc:
 
         self.esom.t = list(pd.read_csv(self.cs_dir / 'outputs' / 'Solve_info.csv',
                                   header=None, index_col=[0], sep=CSV_SEPARATOR).values)
+
+        for h in read_hourly:
+            if h == 'Exchanges':
+                self.hourly_results[h] = pd.read_csv(self.cs_dir / 'outputs' / 'hourly_results' / (h + '.csv'),
+                                                     header=[0], index_col=[0, 1, 2, 3, 4], sep=CSV_SEPARATOR)
+            elif h == 'Storage_level':
+                self.hourly_results[h] = pd.read_csv(self.cs_dir / 'outputs' / 'hourly_results' / (h + '.csv'),
+                                                     header=[0], index_col=[0, 1, 2], sep=CSV_SEPARATOR)
+            else:
+                self.hourly_results[h] = pd.read_csv(self.cs_dir / 'outputs' / 'hourly_results' / (h + '.csv'),
+                                                     header=[0], index_col=[0, 1, 2, 3], sep=CSV_SEPARATOR)
 
         return
 
