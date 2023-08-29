@@ -97,7 +97,7 @@ class Esmc:
 
         # create empty dictionary to be filled with main results
         self.results = dict.fromkeys(['TotalCost', 'Cost_breakdown', 'Gwp_breakdown', 'Transfer_capacity',
-                                      'Exchanges_year', 'Resources', 'Exch_freight_border', 'Exch_freight'
+                                      'Exchanges_year', 'Resources', 'Exch_freight_border', 'Exch_freight',
                                       'Assets', 'Sto_assets', 'Year_balance', 'Curt'])
         self.hourly_results = dict()
 
@@ -1008,7 +1008,6 @@ class Esmc:
         self.results['Resources'] = resources
         self.results['Exch_freight_border'] = exch_freight_border
         self.results['Exch_freight'] = exch_freight
-
 
         if 'Exchanges' in save_hourly:
             self.hourly_results['Exchanges'] = exch.reset_index()\

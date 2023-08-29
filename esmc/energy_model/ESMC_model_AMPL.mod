@@ -108,7 +108,7 @@ param loss_network {END_USES_TYPES} >= 0 default 0; # %_net_loss: Losses coeffic
 param c_grid_extra >=0, default 359; # Cost to reinforce the grid due to IRE penetration [M€2015/GW_intermittentRE].
 
 # Attributes of exchanges
-param exchange_losses {RESOURCES} >=0 default 0; #losses on network for exchanges [%]
+param exchange_losses {EXCHANGE_R} >=0 default 0; #losses on network for exchanges [%]
 param  lhv{EXCHANGE_FREIGHT_R}>=0; #lhv of fuels transported by freight
 
 ##Additional parameter (not presented in the paper)
@@ -183,7 +183,7 @@ param sm_max >= 0 default 4; # Maximum solar multiple for csp plants
 
 
 # Parameters for additional freight due to exchanges calcultations
-param  dist{REGIONS, REGIONS} >=0 default 1E+09; #travelled distance by fuels exchanged in each region
+param  dist{REGIONS, REGIONS} >=0 default 0; #travelled distance by fuels exchanged in each region
 
 
 #################################
@@ -226,14 +226,13 @@ var GWP_op {REGIONS, RESOURCES} >= 0; #  GWP_op [ktCO2-eq.]: Total yearly emissi
 var CO2_net {REGIONS, RESOURCES} >=0;
 var Network_losses {REGIONS, END_USES_TYPES, HOURS, TYPICAL_DAYS} >= 0; # Net_loss [GW]: Losses in the networks (normally electricity grid and DHN)
 var Storage_level {REGIONS, STORAGE_TECH, PERIODS} >= 0; # Sto_level [GWh]: Energy stored at each period
-var Exch_imp{REGIONS,REGIONS, EXCHANGE_R, HOURS, TYPICAL_DAYS} >= 0; # (Import of c1 from c2) Positive part (import) of the exchanges of ressource between regions during a certain period t [GW]
-var Exch_exp{REGIONS,REGIONS, EXCHANGE_R, HOURS, TYPICAL_DAYS} >= 0; # (Export of c1 to c2) Negative part (export) of the exchanges of ressource between regions during a certain period t [GW]
-var Exch_freight_border{REGIONS, REGIONS}>=0; # yearly additional freight due to exchanges accross each border
-var Exch_freight{REGIONS}>=0; # yearly additional freight due to exchanges for each region
+var Exch_imp{REGIONS, REGIONS, EXCHANGE_R, HOURS, TYPICAL_DAYS} >= 0; # (Import of c1 from c2) Positive part (import) of the exchanges of ressource between regions during a certain period t [GW]
+var Exch_exp{REGIONS, REGIONS, EXCHANGE_R, HOURS, TYPICAL_DAYS} >= 0; # (Export of c1 to c2) Negative part (export) of the exchanges of ressource between regions during a certain period t [GW]
+var Exch_freight_border{REGIONS, REGIONS} >= 0; # yearly additional freight due to exchanges accross each border
+var Exch_freight{REGIONS} >= 0; # yearly additional freight due to exchanges for each region
 var Transfer_capacity{c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, n in NETWORK_TYPE[i]} >= 0; # Optimal transer capacity from c2 to c1
-var TC_gas_build{c1 in REGIONS, c2 in REGIONS, g in NETWORK_TYPE["GAS"]} >= 0; # gas pipeline build (include already existing ones and new ones)
-var TC_gas_retrofit{c1 in REGIONS, c2 in REGIONS, g in NETWORK_TYPE["GAS"]} >= 0; # gas pipeline retrofitted to hydrogen pipelines
-#var Curt{REGIONS} >=0;
+#var TC_gas_build{c1 in REGIONS, c2 in REGIONS, g in NETWORK_TYPE["GAS"]} >= 0; # gas pipeline build (include already existing ones and new ones)
+#var TC_gas_retrofit{c1 in REGIONS, c2 in REGIONS, g in NETWORK_TYPE["GAS"]} >= 0; # gas pipeline retrofitted to hydrogen pipelines
 
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
@@ -258,7 +257,7 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 		else (if l == "MOB_FREIGHT_RAIL" then
 			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_train[c]
 		else (if l == "MOB_FREIGHT_ROAD" then
-			((end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_road[c] + Exch_freight [c] / total_time
+			((end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_road[c] + Exch_freight [c] / total_time )
 		else (if l == "MOB_FREIGHT_BOAT" then
 			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_boat[c]
 		else (if l == "HEAT_HIGH_T" then
@@ -576,6 +575,11 @@ subject to importation {c1 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICA
 	R_t_import[c1, i, h, td]  = sum{c2 in REGIONS} Exch_imp[c1,c2,i,h,td];
 subject to exportation {c1 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS}:
 	R_t_export[c1, i, h, td]  = sum{c2 in REGIONS} Exch_exp[c1,c2,i,h,td];
+	
+subject to exchanges_only_between_neighbours {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS : dist[c1, c2] == 0} :
+	Exch_imp[c1,c2,i,h,td] = 0;
+subject to exchanges_only_between_neighbours2 {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS : dist[c1, c2] == 0} :
+	Exch_exp[c1,c2,i,h,td] = 0;
 
 # resources without exchanges
 subject to resources_no_exchanges {c1 in REGIONS, n in NOEXCHANGES, h in HOURS, td in TYPICAL_DAYS} :
@@ -616,7 +620,15 @@ subject to freight_of_exchanges{c1 in REGIONS} :
 #subject to additional_freight{c in REGIONS} :
 #	sum{j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} (Shares_mobility_freight [c,j]) = (Exch_freight[c] + end_uses_input[c,"MOBILITY_FREIGHT"])/(end_uses_input[c,"MOBILITY_FREIGHT"]);
 
+# fixing Exch_freight_border to 0 when same region 
+#let {c1 in REGIONS} Exch_freight_border[c1, c1] := 0;
+#fix {c1 in REGIONS} Exch_freight_border[c1, c1];
 
+
+#let {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS} Exch_imp[c1, c2, i, h, td] := 0;
+#fix {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS: dist[c1, c2] == 0} Exch_imp[c1, c2, i, h, td];
+#let {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS} Exch_exp[c1, c2, i, h, td] := 0;
+#fix {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS: dist[c1, c2] == 0} Exch_exp[c1, c2, i, h, td];
 ##########################
 ### OBJECTIVE FUNCTION ###
 ##########################
