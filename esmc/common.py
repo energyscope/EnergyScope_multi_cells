@@ -278,7 +278,7 @@ plotting_names = {
 	"LFO": "Oil",
 	"GAS": "Gas",
 	"GAS_RE": "Re. gas",
-	"WOOD": "Wood",
+	"WOOD": "Woody biomass",
 	"ENERGY_CROPS_2": "Energy crops (gen. 2)",
 	"WET_BIOMASS": "Wet biomass",
 	"BIOMASS_RESIDUES": "Biomass residues",
