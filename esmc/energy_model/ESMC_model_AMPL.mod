@@ -548,12 +548,12 @@ subject to solar_area_rooftop_limited {c in REGIONS} :
 
 subject to solar_area_ground_limited {c in REGIONS} :
 	(F[c,"PV_UTILITY"])/power_density_pv
-		+ (layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"]*F[c,"PT_COLLECTOR"]+layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"]*F[c,"ST_COLLECTOR"])/power_density_pv
+		+ (-F[c,"PT_COLLECTOR"]/layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"] - F[c,"ST_COLLECTOR"]/layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"])/power_density_pv
 <= solar_area_ground [c];
 
 subject to solar_area_ground_high_irr_limited {c in REGIONS} :
-	(layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"]*F[c,"PT_COLLECTOR"]
-		+layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"]*F[c,"ST_COLLECTOR"])/power_density_pv
+	(-F[c,"PT_COLLECTOR"]/layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"]
+		-F[c,"ST_COLLECTOR"]/layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"])/power_density_pv
 <= solar_area_ground_high_irr [c];
 
 # Limit on solar multiple of csp plants (by definition, sm = (F_coll*eta_pb)/F_pb
