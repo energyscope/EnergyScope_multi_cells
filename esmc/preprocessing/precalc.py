@@ -48,8 +48,9 @@ def compute_csp_ts(lat: float, long: float, year: int=2015,
     """
     # getting the irradiance and tempurature data
     data, meta, inputs = pvlib.iotools.get_pvgis_hourly(latitude=lat, longitude=long, start=year, end=year,
-                                                        raddatabase='PVGIS-SARAH', trackingtype=2,
-                                                        usehorizon=True, map_variables=False)
+                                                        raddatabase='PVGIS-SARAH2', trackingtype=2,
+                                                        usehorizon=True, map_variables=False,
+                                                        url='https://re.jrc.ec.europa.eu/api/v5_2/')
 
 
     # Parameters of the csp plant
@@ -136,6 +137,7 @@ def generate_all_csp_ts(year: int=2015, land_use_csp: float=1/0.170, eta_pb: flo
     land_use_csp_coll = land_use_csp * eta_pb
 
     # compute ts for each location
+    leap_yr = ((year % 4) == 0)
     dt_index = pd.date_range(start=datetime(year,1,1), periods=8760, tz='UTC', freq='H')
     ts = pd.DataFrame(0, index=dt_index, columns=csp_to_compute.keys())
     all_meta = dict.fromkeys(csp_to_compute.keys())
@@ -145,6 +147,8 @@ def generate_all_csp_ts(year: int=2015, land_use_csp: float=1/0.170, eta_pb: flo
                             year=year, additional_losses=additional_losses,
                             eff_improvements=eff_improvements, land_use_csp_coll=land_use_csp_coll)
 
+        if leap_yr:
+            ser = ser.loc[~((ser.index.month == 2) & (ser.index.day == 29))]
         ts.loc[:, k] = ser.values
         all_meta[k] = meta
 
