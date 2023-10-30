@@ -10,6 +10,8 @@
     "share_freight_train_min": 0.109,
     "share_heat_dhn_max": 0.37,
     "share_heat_dhn_min": 0.02,
+    "share_intra_eu_flight_max": 0.04234617420307007,
+    "share_intra_eu_flight_min": 0.042246174203070065,
     "share_mobility_public_max": 0.5,
     "share_mobility_public_min": 0.199,
     "share_ned": {
