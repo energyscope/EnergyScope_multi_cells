@@ -54,6 +54,7 @@ class Region:
         # read the csv
         self.data['Time_series'] = pd.read_csv(self.data_path/'Time_series.csv', sep=CSV_SEPARATOR, header=[0], index_col=0)
         self.data['Time_series'] = clean_indices(self.data['Time_series'])
+        self.data['Time_series'].set_index(np.arange(1, 8761), inplace=True) # setting index from 1 to 8760 hours
         return
 
     def read_weights(self):

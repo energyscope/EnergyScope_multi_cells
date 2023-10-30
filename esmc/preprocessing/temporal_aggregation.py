@@ -71,7 +71,7 @@ class TemporalAggregation:
 
         logging.info('The typical days clustering has an time series error of ' + str(self.e_ts))
         self.t_h_td = pd.DataFrame()
-
+        self.generate_t_h_td()
         return
 
     def read_td_of_days(self, td_file=None):

@@ -11,7 +11,7 @@ A first time to recompute mean_eta_th and a second time to get the time series
 """
 
 # TODO
-#   Recompute final_elec_ts once I have new time series for space heaitng and cooling from Staffell et al. (2023)
+#   Recompute final_elec_ts once I have new time series for space heating and cooling from Staffell et al. (2023)
 
 import pandas as pd
 import numpy as np
@@ -44,11 +44,11 @@ dt_utc = pd.date_range(start=datetime(ref_year, 1, 1), end=datetime(ref_year, 12
 if leap_yr:
     dt_utc = dt_utc[~((dt_utc.month == 2) & (dt_utc.day == 29))]
 
-compute_csp = True
-read_csp = False
+compute_csp = False
+read_csp = True
 read_dommisse = False
 read_actual = True
-update_ts = False
+update_ts = True
 plot_final = False
 
 expected_cp_tidal = 0.2223 # from Hammons T.J. (2011)
@@ -112,7 +112,7 @@ r_full = 'Spain'
 # TODO put into datetime
 all_ts = pd.DataFrame(np.nan, index=np.arange(1,8761),
                       columns=pd.MultiIndex.from_product([eu28_country_code,
-                                                          ['ELECTRICITY_VAR', 'HEAT_LOW_T_SH',
+                                                          ['ELECTRICITY', 'HEAT_LOW_T_SH',
                                                            'SPACE_COOLING', 'MOBILITY_PASSENGER',
                                                            'MOBILITY_FREIGHT', 'PV', 'WIND_ONSHORE',
                                                            'WIND_OFFSHORE', 'HYDRO_DAM', 'HYDRO_RIVER',
@@ -127,7 +127,7 @@ for r, r_full in code_2_full.items():
         # read technologies f_min and f_max from data of J&JL
         ts_dommisse = clean_indices(pd.read_excel(dommisse_data / r / 'Data_management' / 'DATA.xlsx',
                                                   sheet_name='1.1 Time Series', header=[1], nrows=8760)) \
-            .drop(columns=['period_duration [h]']).rename(columns={'Electricity (%_elec)': 'ELECTRICITY_VAR',
+            .drop(columns=['period_duration [h]']).rename(columns={'Electricity (%_elec)': 'ELECTRICITY',
                                                                    'Space Heating (%_sh)': 'HEAT_LOW_T_SH',
                                                                    'Space Cooling': 'SPACE_COOLING',
                                                                    'Passanger mobility (%_pass)': 'MOBILITY_PASSENGER',
@@ -360,7 +360,7 @@ elec_c_map = {'AL': 'GR', 'BA': 'HR', 'ME': 'HR', 'MK': 'BG', 'RS': 'RO'}
 for i,j in elec_c_map.items():
     final_elec_ts[i] = final_elec_ts[j]
 
-final_elec_ts.columns = pd.MultiIndex.from_product([eu33_country_code_iso3166_alpha2, ['ELECTRICITY_VAR']])
+final_elec_ts.columns = pd.MultiIndex.from_product([eu33_country_code_iso3166_alpha2, ['ELECTRICITY']])
 """
 Reading PV, WIND_ONSHORE and WIND_OFFSHORE ts
 """
