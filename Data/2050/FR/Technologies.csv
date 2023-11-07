@@ -67,6 +67,9 @@ Mobility;Passenger public;Bus diesel hybrid;BUS_COACH_HYDIESEL;833.3333333;33.33
 Mobility;Passenger public;Bus gas;BUS_COACH_CNG_STOICH;611.1111111;30.55555556;0;15;0.296803653;0;1;0;1.00E+15;
 Mobility;Passenger public;Bus fuel cell (H2);BUS_COACH_FC_HYBRIDH2;1041.666667;31.25;0;15;0.296803653;0;1;0;1.00E+15;
 Mobility;Passenger public;Train (passenger);TRAIN_PUB;1506.024096;54.35274934;0;40;0.275072894;0;0.5;0;1.00E+15;
+Mobility;Passenger aviation;Plane diesel Intra-EU;PLANE_DIESEL_INTRA_EU;1456.05;39.82;0;35;0.4999;0;1;0;1.00E+15;
+Mobility;Passenger aviation;Plane hydrogen Intra-EU;PLANE_H2_INTRA_EU;1639.69;44.84;0;35;0.4999;0;0.1;0;1.00E+15;
+Mobility;Passenger aviation;Plane diesel Extra-EU;PLANE_DIESEL_EXTRA_EU;1343.77;36.75;0;35;0.5374;0;1;0;1.00E+15;
 Mobility;Passenger private;Car gasoline;CAR_GASOLINE;420.29;24;0;10;0.051369863;0;1;0;1.00E+15;
 Mobility;Passenger private;Car diesel;CAR_DIESEL;434.45;24;0;10;0.051369863;0;1;0;1.00E+15;
 Mobility;Passenger private;Car gas;CAR_NG;429.38;24;0;10;0.051369863;0;1;0;1.00E+15;
@@ -79,6 +82,14 @@ Mobility;Freight;Train (freight);TRAIN_FREIGHT;104.4155844;2.088311688;0;40;0.34
 Mobility;Freight;Boat diesel;BOAT_FREIGHT_DIESEL;76.38888889;3.819444444;0;40;0.114155251;0;1;0;1.00E+15;
 Mobility;Freight;Boat gas;BOAT_FREIGHT_NG;76.38888889;3.819444444;0;40;0.114155251;0;1;0;1.00E+15;
 Mobility;Freight;Boat methanol;BOAT_FREIGHT_METHANOL ;76.38888889;3.819444444;0;40;0.114155251;0;1;0;1.00E+15;
+Mobility;International shipping;Container shipping diesel;CARGO_LFO;18.6763;1.8563;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International shipping;Container shipping LNG;CARGO_LNG;21.6645;2.1533;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International shipping;Container shipping fuelcell;CARGO_METHANOL;20.7307;2.0605;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International shipping;Container shipping fuelcell;CARGO_AMMONIA;21.6645;2.1533;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International shipping;Container shipping fuelcell;CARGO_FUELCELL_LH2;26.9219;2.6758;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International shipping;Container shipping fuelcell;CARGO_FUELCELL_AMMONIA;26.9219;2.6758;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International shipping;Container shipping fuelcell;CARGO_RETRO_METHANOL;3.1127;2.1464;0;40;0.739666854;0;1;0;1.00E+15;
+Mobility;International shipping;Container shipping fuelcell;CARGO_RETRO_AMMONIA;4.8353;2.3229;0;40;0.739666854;0;1;0;1.00E+15;
 Mobility;Freight;Trucks diesel;TRUCK_DIESEL;371.1111111;18.55555556;0;15;0.092592593;0;1;0;1.00E+15;
 Mobility;Freight;Truck methanol; TRUCK_METHANOL ;371.1111111;18.55555556;0;15;0.092592593;0;1;0;1.00E+15;
 Mobility;Freight;Truck fuel cell (hydrogen);TRUCK_FUEL_CELL;402.2222222;12.06666667;0;15;0.092592593;0;1;0;1.00E+15;
@@ -96,28 +107,39 @@ Infrastructure;Infrastructure;Hydrogen new pipeline;H2_NEW;0.452;0.005;0;40;1;0;
 Infrastructure;Infrastructure;Hydrogen subsea retrofitted pipeline;H2_SUBSEA_RETRO;0.533066683;0.007;0;40;1;0;1;0;1.00E+15;
 Infrastructure;Infrastructure;Hydrogen subsea new pipeline;H2_SUBSEA_NEW;0.726;0.007;0;40;1;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Electrolysers;H2_ELECTROLYSIS;696.2025316;19.14556962;0;15;0.9;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Regenerative electrolyser;H2_REG_ELECTROLYSER;1091.4875;32.7446;0;15;0.9;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Regenerative fuelcell;H2_REG_FUELCELL;0;0;0;15;0.9;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Steam methane reforming; H2_NG ;681.2435621;64.43487218;0;25;0.86;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Biomass to hydrogen;H2_BIOMASS;2525.386272;195.7018447;0;25;0.86;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Lignocellulosic biomass gasification;GASIFICATION_LIGNO;2743.8056;139.9381965;0;25;0.85;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Biowaste gasification;GASIFICATION_BIOWASTE;2743.8056;139.9381965;0;25;0.85;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch Ligno Gasoline;FT_LIGNO_GASOLINE;3757.262474;111.8691615;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch Ligno Diesel;FT_LIGNO_DIESEL;5009.683299;149.1588821;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch Ligno LFO;FT_LIGNO_LFO;5009.683299;149.1588821;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch bio waste Gasoline;FT_BIOWASTE_GASOLINE;3757.262474;111.8691615;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch bio waste Diesel;FT_BIOWASTE_DIESEL;5009.683299;149.1588821;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer Tropsch bio waste LFO;FT_BIOWASTE_LFO;5009.683299;149.1588821;0;25;0.91;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Hydrogen methanation;SYN_METHANATION;262.1968349;66.99276316;0;40;1;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Wet biomass methanation;BIOMETHANATION_WET_BIOMASS;986.0473827;13.65909091;0;20;0.85;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Biowaste methanation;BIOMETHANATION_BIOWASTE;986.0473827;13.65909091;0;20;0.85;0;1;0;1.00E+15;
-Synthetic fuels;Synthetic fuels;Lignocellulosic biomass pyrolysis to LFO;PYROLYSIS_LIGNO_TO_LFO ;1344.22;61.09697026;0;25;0.85;0;1;0;1.00E+15;OIL
+Synthetic fuels;Synthetic fuels;Lignocellulosic biomass pyrolysis to LFO;PYROLYSIS_LIGNO_TO_LFO ;1344.22;61.09697026;0;25;0.85;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Lignocellulosic biomass pyrolysis to gasoline and diesel;PYROLYSIS_LIGNO_TO_FUELS;1365;38;0;25;0.85;0;1;0;1.00E+15;
-Synthetic fuels;Synthetic fuels;Biowaste pyrolysis to LFO;PYROLYSIS_BIOWASTE_TO_LFO ;1344.22;61.09697026;0;25;0.85;0;1;0;1.00E+15;OIL
+Synthetic fuels;Synthetic fuels;Biowaste pyrolysis to LFO;PYROLYSIS_BIOWASTE_TO_LFO ;1344.22;61.09697026;0;25;0.85;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Biowaste pyrolysis to gasoline and diesel;PYROLYSIS_BIOWASTE_TO_FUELS;1365;38;0;25;0.85;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Carbon capture atmospheric;ATM_CCS;5160;129.6;0;40;1;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Carbon capture from industry;INDUSTRY_CCS;2580;64.8;0;40;1;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Hydrogen methanolation;SYN_METHANOLATION;1679.651653;47.66486711;0;20;0.95;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Methane to methanol;METHANE_TO_METHANOL;958.5822643;41.91520353;0;25;0.85;0;1;0;1.00E+15;
-Synthetic fuels;Synthetic fuels;Biomass methanolation;BIOMASS_TO_METHANOL ;4536;69.3;0;20;1;0;1;0;1.00E+15;METHANOL
-Synthetic fuels;Synthetic fuels;Haber bosch (H2 to amonia);HABER_BOSCH ;847;16.56;0;20;1;0;1;0;1.00E+15;AMMONIA
-Synthetic fuels;Synthetic fuels;Amonia to H2;AMMONIA_TO_H2 ;681.24;62.8658412;0;25;0.86;0;1;0;1.00E+15;AMMONIA
-Synthetic fuels;Synthetic fuels;Oil to HVC;OIL_TO_HVC ;395;2.1;0;15;1;0;1;0;1.00E+15;HVC
-Synthetic fuels;Synthetic fuels;Gas to HVC;GAS_TO_HVC ;797.6;19.93997837;0;25;1;0;1;0;1.00E+15;HVC
-Synthetic fuels;Synthetic fuels;Biomass to HVC;BIOMASS_TO_HVC ;1743;52;0;20;1;0;1;0;1.00E+15;HVC
-Synthetic fuels;Synthetic fuels;Methanol to HVC;METHANOL_TO_HVC ;697.2;62.748;0;20;1;0;1;0;1.00E+15;HVC
+Synthetic fuels;Synthetic fuels;Biomass methanolation;BIOMASS_TO_METHANOL ;4536;69.3;0;20;1;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Haber bosch (H2 to amonia);HABER_BOSCH ;847;16.56;0;20;1;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L Gasoline;FT_P2GASOLINE;2339.48;143.0592778;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L Diesel;FT_P2DIESEL;3119.306667;190.7457038;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L LFO;FT_P2LFO;3119.306667;190.7457038;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Amonia to H2;AMMONIA_TO_H2 ;681.24;62.8658412;0;25;0.86;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Oil to HVC;OIL_TO_HVC ;395;2.1;0;15;1;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Gas to HVC;GAS_TO_HVC ;797.6;19.93997837;0;25;1;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Biomass to HVC;BIOMASS_TO_HVC ;1743;52;0;20;1;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Methanol to HVC;METHANOL_TO_HVC ;697.2;62.748;0;20;1;0;1;0;1.00E+15;
 Storage;Electricity storage;Batteries;BATT_LI;302;0.62;61.3;15;1;0;1;0;10;
 Storage;Electricity storage;Compressed air energy storage;CAES;38.938;3.1799;0;50;1;0;1;0;1.00E+15;
 Storage;Electricity storage;Batteries of electric cars;BEV_BATT;0;0;0;1;1;0;1;0;1.00E+15;

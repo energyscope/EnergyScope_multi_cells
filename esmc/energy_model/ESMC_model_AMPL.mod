@@ -129,9 +129,12 @@ param end_uses_input {c in REGIONS, i in END_USES_INPUT} := sum {s in SECTORS} (
 param re_share_primary {REGIONS} >= 0; # re_share [-]: minimum share of primary energy coming from RE
 param gwp_limit {REGIONS} >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 
-# Share public vs private mobility
+
+# Share public vs private mobility vs intra-EU aviation
 param share_mobility_public_min{REGIONS} >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max{REGIONS} >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
+param share_intra_eu_flight_min{REGIONS} >= 0, <= 1; # %_aviation,min [-]: min limit for share of intra-EU flight over total mobility 
+param share_intra_eu_flight_max{REGIONS} >= 0, <= 1; # %_aviation,max [-]: max limit for share of intra-EU flight over total mobility 
 
 # Share train vs truck vs boat in freight transportation
 param share_freight_train_min{REGIONS} >= 0, <= 1; # %_rail,min [-]: min limit for penetration of train in freight transportation
@@ -193,6 +196,7 @@ param  dist{REGIONS, REGIONS} >=0 default 0; #travelled distance by fuels exchan
 
 ##Independent variables [Table 3] :
 var Share_mobility_public{c in REGIONS} >= share_mobility_public_min[c], <= share_mobility_public_max[c]; # %_Public: Ratio [0; 1] public mobility over total passenger mobility
+var Share_intra_eu_flight{c in REGIONS} >= share_intra_eu_flight_min[c], <= share_intra_eu_flight_max[c]; # %_intraEU aviation: Ratio [0; 1] intraEU aviation mobility over total passenger mobility
 var Share_freight_train{c in REGIONS}, >= share_freight_train_min[c], <= share_freight_train_max[c]; # %_Rail: Ratio [0; 1] rail transport over total freight transport
 var Share_freight_road{c in REGIONS}, >= share_freight_road_min[c], <= share_freight_road_max[c]; # %_Road: Ratio [0; 1] Road transport over total freight transport
 var Share_freight_boat{c in REGIONS}, >= share_freight_boat_min[c], <= share_freight_boat_max[c]; # %_Boat: Ratio [0; 1] boat transport over total freight transport
@@ -243,7 +247,7 @@ var Transfer_capacity{c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, n i
 
 # [Figure 4] From annual energy demand to hourly power demand. End_Uses is non-zero only for demand layers.
 subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
-	End_uses [c, l, h, td] = (if l == "ELECTRICITY" 
+	End_uses [c, l, h, td] >= (if l == "ELECTRICITY"
 		then
 			(end_uses_input[c,l] * electricity_time_series [c, h, td] / t_op [h, td] ) + Network_losses [c,l,h,td]
 		else (if l == "HEAT_LOW_T_DHN" then
@@ -252,14 +256,20 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 			(end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td] ) * (1 - Share_heat_dhn[c])
 		else (if l == "MOB_PUBLIC" then
 			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * Share_mobility_public[c]
+		else (if l == "INTRA_EU_AVIATION" then
+			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * Share_intra_eu_flight[c]
+		else (if l == "EXTRA_EU_AVIATION" then
+			(end_uses_input[c,"EXTRA_EU_AVIATION"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) 
 		else (if l == "MOB_PRIVATE" then
-			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * (1 - Share_mobility_public[c])
+			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * (1 - Share_mobility_public[c]-Share_intra_eu_flight[c])
 		else (if l == "MOB_FREIGHT_RAIL" then
-			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_train[c]
+			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] + Exch_freight [c] / total_time ) *  Share_freight_train[c]
 		else (if l == "MOB_FREIGHT_ROAD" then
-			((end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_road[c] + Exch_freight [c] / total_time )
+			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] + Exch_freight [c] / total_time ) *  Share_freight_road[c]
 		else (if l == "MOB_FREIGHT_BOAT" then
-			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_boat[c]
+			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] + Exch_freight [c] / total_time ) *  Share_freight_boat[c]
+		else (if l == "INTERNATIONAL_SHIPPING" then
+			end_uses_input[c,l] / total_time
 		else (if l == "HEAT_HIGH_T" then
 			end_uses_input[c,l] / total_time
 		else (if l == "SPACE_COOLING" then
@@ -273,7 +283,7 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 		else (if l == "METHANOL" then
 			end_uses_input[c, "NON_ENERGY"] * share_ned [c, "METHANOL"] / total_time
 		else 
-			0 )))))))))))))); # For all layers which don't have an end-use demand
+			0 ))))))))))))))))); # For all layers which don't have an end-use demand
 
 
 ## Cost
@@ -350,7 +360,7 @@ subject to layer_balance {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_D
 		+ sum {k in TECHNOLOGIES diff STORAGE_TECH} (layers_in_out[k, l] * F_t [c, k, h, td]) 
 		+ sum {j in STORAGE_TECH} ( Storage_out [c, j, l, h, td] - Storage_in [c, j, l, h, td] )
 		- End_uses [c, l, h, td]
-		= 0;
+		>= 0;
 		
 	
 ## Storage	
@@ -478,6 +488,10 @@ subject to peak_lowT_dhn {c in REGIONS}:
 # [Eq. 34] Peak in space cooling
 subject to peak_space_cooling {c in REGIONS, j in TECHNOLOGIES_OF_END_USES_TYPE["SPACE_COOLING"], h in HOURS, td in TYPICAL_DAYS}:
 	F [c,j] >= peak_sc_factor[c] * F_t [c, j, h, td] ;
+	
+# For reversible technologies :
+subject to reversible_H2_tech_installed_power {c in REGIONS}:
+	F [c, "H2_REG_ELECTROLYSER"] = F [c, "H2_REG_FUELCELL"];
 
 ## Adaptation for the case study: Constraints needed for the application to Switzerland (not needed in standard LP formulation)
 #-----------------------------------------------------------------------------------------------------------------------
