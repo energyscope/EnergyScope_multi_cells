@@ -263,11 +263,11 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 		else (if l == "MOB_PRIVATE" then
 			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * (1 - Share_mobility_public[c]-Share_intra_eu_flight[c])
 		else (if l == "MOB_FREIGHT_RAIL" then
-			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] + Exch_freight [c] / total_time ) *  Share_freight_train[c]
+			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_train[c]
 		else (if l == "MOB_FREIGHT_ROAD" then
-			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] + Exch_freight [c] / total_time ) *  Share_freight_road[c]
+			((end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_road[c] + Exch_freight [c] / total_time)
 		else (if l == "MOB_FREIGHT_BOAT" then
-			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] + Exch_freight [c] / total_time ) *  Share_freight_boat[c]
+			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_boat[c]
 		else (if l == "INTERNATIONAL_SHIPPING" then
 			end_uses_input[c,l] / total_time
 		else (if l == "HEAT_HIGH_T" then
