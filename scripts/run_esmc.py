@@ -1,9 +1,6 @@
 import numpy as np
 from pathlib import Path
 
-from memory_profiler import memory_usage
-
-
 # additional line for VS studio
 import sys
 

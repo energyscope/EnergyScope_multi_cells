@@ -1,6 +1,6 @@
 {
-    "share_intra_eu_flight_max": NaN,
-    "share_intra_eu_flight_min": NaN,
+    "share_intra_eu_flight_max": 0.13296102488692746,
+    "share_intra_eu_flight_min": 0.13286102488692747,
     "share_ned": {
         "AMMONIA": 0.08785475463420814,
         "HVC": 0.8734506463378643,

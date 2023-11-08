@@ -18,8 +18,8 @@ Config of the script
 """
 get_enspreso = True
 read_dommisse = False
-update_actual = True
-print_update = True
+update_actual = False
+print_update = False
 
 # path
 project_dir = Path(__file__).parents[2]
@@ -29,7 +29,7 @@ dommisse_data = Path(r'C:\Users\pathiran\Documents\energy_system_modelling\ESTD\
 
 # parameters
 year_start = 2020
-year_stop = 2035
+year_stop = 2050
 
 # convert all the NED demand by this factor from comparison of Rixhon et al. and Dommisse et al. for BE demand
 ratio_ned_BE = 53115.3311 / 102332.37
@@ -104,7 +104,7 @@ if get_enspreso or read_dommisse or update_actual or print_update:
     r_biom = eu33_country_code_eurostat
     year_biom = 2050 # we take 2050 as reference year for biomass potentials
 
-    enspreso_biomass_sce = 'ENS_Med'
+    enspreso_biomass_sce = 'ENS_Low'
     categories = {
         'WOOD': ['MINBIOWOO', 'MINBIOWOOa', 'MINBIOWOOW1', 'MINBIOWOOW1a', 'MINBIOFRSR1'],
         'WET_BIOMASS': ['MINBIOSLU1', 'MINBIOGAS1'],
