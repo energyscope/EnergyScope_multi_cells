@@ -100,6 +100,9 @@ class Esmc:
                                       'Exchanges_year', 'Resources', 'Exch_freight_border', 'Exch_freight',
                                       'Assets', 'Sto_assets', 'Year_balance', 'Curt'])
         self.hourly_results = dict()
+        self.results_all = dict.fromkeys(['TotalCost', 'Cost_breakdown', 'Gwp_breakdown', 'Transfer_capacity',
+                                          'Exchanges_year', 'Resources', 'Exch_freight',
+                                          'Assets', 'Sto_assets', 'Year_balance', 'Curt'])
 
         return
 
@@ -744,6 +747,9 @@ class Esmc:
             directory.mkdir(parents=True, exist_ok=True)
 
             for key, df in self.results.items():
+                df.to_csv(directory / 'regional_results' / (key + '.csv'), sep=CSV_SEPARATOR)
+
+            for key, df in self.results_all.items():
                 df.to_csv(directory / (key + '.csv'), sep=CSV_SEPARATOR)
 
             if len(save_hourly) > 0:
@@ -788,6 +794,7 @@ class Esmc:
         total_cost = total_cost.set_index(['Regions'])
         total_cost.sort_index(inplace=True)
         self.results['TotalCost'] = total_cost
+        self.results_all['TotalCost'] = total_cost.sum()
 
     def get_cost_breakdown(self):
         """Gets the cost breakdown and stores it into the results"""
@@ -831,6 +838,8 @@ class Esmc:
 
         # Store into results
         self.results['Cost_breakdown'] = cost_breakdown
+        self.results_all['Cost_breakdown'] = cost_breakdown.groupby('Elements').sum()
+
         return
 
     def get_gwp_breakdown(self):
@@ -877,6 +886,8 @@ class Esmc:
 
         # store into results
         self.results['Gwp_breakdown'] = gwp_breakdown
+        self.results_all['Gwp_breakdown'] = gwp_breakdown.groupby('Elements').sum()
+
         return
 
     def get_resources_and_exchanges(self, save_hourly: list=[]):
@@ -910,11 +921,7 @@ class Esmc:
         # get exchanges over the year for r_exch
         exch_imp = self.esom.get_var('Exch_imp').loc[(slice(None), slice(None), r_exch, slice(None), slice(None)), :]
         exch_exp = self.esom.get_var('Exch_exp').loc[(slice(None), slice(None), r_exch, slice(None), slice(None)), :]
-        # # adding exchange_losses
-        # exchange_losses = self.esom.ampl.get_parameter('exchange_losses').getValues().toPandas()['exchange_losses']
-        # dist = self.esom.ampl.get_parameter('dist').getValues().toPandas()['dist']
-        # exch_exp = exch_exp.mul((dist/1000), axis=0, level=['From', 'To'])\
-        #     .mul((1 + exchange_losses), axis=0, level='Resources')
+
         # rename indices to have
         ind = ['From', 'To', 'Resources', 'Hours', 'Typical_days']
         exch_imp.index.rename(ind, inplace=True)
@@ -941,9 +948,12 @@ class Esmc:
         threshold = 1e-6
         exch['Exch_imp'] = exch['Balance'].mask((exch['Balance'] > -threshold), np.nan)
         exch['Exch_exp'] = exch['Balance'].mask((exch['Balance'] < threshold), np.nan)
-        # compute total over the year
+        exch['Balance'] = exch['Balance'].mask((exch['Balance'].abs() < threshold), np.nan)
+
+        # compute total over the year for each LINK
         exchanges_year = self.ta.from_td_to_year(ts_td=exch.reset_index().set_index(['Typical_days', 'Hours'])) \
             .groupby(['From', 'To', 'Resources']).sum().drop(columns=['Balance'])
+        # compute total over the year for each REGION
         r_exch_region = exchanges_year.groupby(['From', 'Resources']).sum().abs()
 
         # keep only one direction per link
@@ -965,14 +975,20 @@ class Esmc:
         # put very small values as nan
         treshold = 1e-3
         exchanges_year = exchanges_year.mask((exchanges_year > -treshold) & (exchanges_year < treshold), np.nan)
-        # exchanges_year.dropna(axis=0, how='all', inplace=True)
+
+        # TOTAL FLUXES COMPUTATIONS
+        # compute balance by REGION at each hour
+        r_t = exch.groupby(['Resources', 'From', 'Hours', 'Typical_days']).sum()
+        # keep only net exporter
+        r_t['Balance'] = r_t['Balance'].mask(r_t['Balance'] < 0, 0)
+        # sum over all regions and all hours to get total fluxes
+        r_t = r_t.groupby(['Resources', 'Hours', 'Typical_days']).sum()
+        exchanges_year_all = self.ta.from_td_to_year(ts_td=r_t.reset_index().set_index(['Typical_days', 'Hours'])) \
+            .groupby(['Resources']).sum()
+        exchanges_year_all = exchanges_year_all.drop(columns=['Exch_exp', 'Exch_imp'])\
+            .rename(columns={'Balance': 'Exchanges_year'})
 
         # RESOURCES RELATED COMPUTATIONS
-        # # add to r_exch_region the losses due to fictive exchanges
-        # exp_year = self.ta.from_td_to_year(ts_td=exch_exp.reset_index().set_index(['Typical_days', 'Hours'])) \
-        #     .groupby(['From', 'To', 'Resources']).sum()
-        # diff_exp = (exp_year['Exch_exp'] - exchanges_year['Exchanges_year']).groupby(['From', 'Resources']).sum()
-
         # compute R_year_import and R_year_export from the exchanges_year computed
         r_year_export = pd.DataFrame(r_exch_region['Exch_exp']).rename(columns={'Exch_exp': 'R_year_export'})
         r_year_export.index.set_names(r_year_local.index.names, inplace=True)  # set proper name to index
@@ -1003,11 +1019,16 @@ class Esmc:
         # resources.dropna(axis=0, how='all', inplace=True)
 
         # store into results
-        self.results['Transfer_capacity'] = all_tc['Transfer_capacity'] = all_tc
+        self.results['Transfer_capacity'] = all_tc
         self.results['Exchanges_year'] = exchanges_year
         self.results['Resources'] = resources
         self.results['Exch_freight_border'] = exch_freight_border
         self.results['Exch_freight'] = exch_freight
+
+        self.results_all['Transfer_capacity'] = all_tc.groupby(['Resources', 'Network_type']).sum() # TODO could be computed into GW*km too
+        self.results_all['Exchanges_year'] = exchanges_year_all
+        self.results_all['Resources'] = resources.groupby('Resources').sum()
+        self.results_all['Exch_freight'] = exch_freight.sum()
 
         if 'Exchanges' in save_hourly:
             self.hourly_results['Exchanges'] = exch.reset_index()\
@@ -1018,6 +1039,7 @@ class Esmc:
             self.hourly_results['R_t_exterior'] = r_t_exterior.reset_index()\
                 .set_index(['Regions', 'Resources', 'Typical_days', 'Hours']).sort_index()
             # TODO ? add R_t_import et R_t_export?
+            # TODO update accounting of exchanges the balance of each region should be computed at each hour to not count several times a commodity that crosses several regions
 
         return
 
@@ -1144,6 +1166,9 @@ class Esmc:
         self.results['Assets'] = assets
         self.results['Sto_assets'] = sto_assets
 
+        self.results_all['Assets'] = assets.groupby('Technologies').sum()
+        self.results_all['Sto_assets'] = sto_assets.groupby('Technologies').sum()
+
         if 'Assets' in save_hourly:
             self.hourly_results['F_t'] = f_t.reset_index()\
                 .set_index(['Regions', 'Technologies', 'Typical_days', 'Hours']).sort_index()
@@ -1222,6 +1247,8 @@ class Esmc:
 
         # Store into results
         self.results['Year_balance'] = year_balance
+        self.results_all['Year_balance'] = year_balance.groupby('Elements').sum()
+
         return
 
     def get_curt(self, save_hourly:list=[]):
@@ -1246,6 +1273,7 @@ class Esmc:
         curt.sort_index(inplace=True)
         # Store Curt into results
         self.results['Curt'] = curt
+        self.results_all['Curt'] = curt.groupby('Technologies').sum()
 
         if 'Curt' in save_hourly:
             self.hourly_results['Curt'] = curt_t.reset_index()\
@@ -1258,26 +1286,48 @@ class Esmc:
 
         """
         # Reading the main results into csv
-        self.results['TotalCost'] = pd.read_csv(self.cs_dir / 'outputs' / 'TotalCost.csv',
+        self.results['TotalCost'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'TotalCost.csv',
                                                 header=[0], index_col=[0], sep=CSV_SEPARATOR)
-        self.results['Cost_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'Cost_breakdown.csv',
+        self.results['Cost_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Cost_breakdown.csv',
                                                 header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
-        self.results['Gwp_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'Gwp_breakdown.csv',
+        self.results['Gwp_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Gwp_breakdown.csv',
                                                 header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
-        self.results['Exchanges_year'] = pd.read_csv(self.cs_dir / 'outputs' / 'Exchanges_year.csv',
+        self.results['Exchanges_year'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Exchanges_year.csv',
                                                 header=[0], index_col=[0, 1, 2], sep=CSV_SEPARATOR)
-        self.results['Transfer_capacity'] = pd.read_csv(self.cs_dir / 'outputs' / 'Transfer_capacity.csv',
+        self.results['Transfer_capacity'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Transfer_capacity.csv',
                                                      header=[0], index_col=[0, 1, 2, 3], sep=CSV_SEPARATOR)
-        self.results['Resources'] = pd.read_csv(self.cs_dir / 'outputs' / 'Resources.csv',
+        self.results['Resources'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Resources.csv',
                                                 header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
-        self.results['Assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Assets.csv',
+        self.results['Assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Assets.csv',
                                                 header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
-        self.results['Sto_assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Sto_assets.csv',
+        self.results['Sto_assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Sto_assets.csv',
                                                 header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
-        self.results['Year_balance'] = pd.read_csv(self.cs_dir / 'outputs' / 'Year_balance.csv',
+        self.results['Year_balance'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Year_balance.csv',
                                                 header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
-        self.results['Curt'] = pd.read_csv(self.cs_dir / 'outputs' / 'Curt.csv',
+        self.results['Curt'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Curt.csv',
                                                 header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+
+        # Reading the main results_all into csv
+        self.results_all['TotalCost'] = pd.read_csv(self.cs_dir / 'outputs' / 'TotalCost.csv',
+                                                header=[0], index_col=[0], sep=CSV_SEPARATOR)
+        self.results_all['Cost_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'Cost_breakdown.csv',
+                                                     header=[0], index_col=[0], sep=CSV_SEPARATOR)
+        self.results_all['Gwp_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'Gwp_breakdown.csv',
+                                                    header=[0], index_col=[0], sep=CSV_SEPARATOR)
+        self.results_all['Exchanges_year'] = pd.read_csv(self.cs_dir / 'outputs' / 'Exchanges_year.csv',
+                                                     header=[0], index_col=[0], sep=CSV_SEPARATOR)
+        self.results_all['Transfer_capacity'] = pd.read_csv(self.cs_dir / 'outputs' / 'Transfer_capacity.csv',
+                                                        header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+        self.results_all['Resources'] = pd.read_csv(self.cs_dir / 'outputs' / 'Resources.csv',
+                                                header=[0], index_col=[0], sep=CSV_SEPARATOR)
+        self.results_all['Assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Assets.csv',
+                                             header=[0], index_col=[0], sep=CSV_SEPARATOR)
+        self.results_all['Sto_assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Sto_assets.csv',
+                                                 header=[0], index_col=[0], sep=CSV_SEPARATOR)
+        self.results_all['Year_balance'] = pd.read_csv(self.cs_dir / 'outputs' / 'Year_balance.csv',
+                                                   header=[0], index_col=[0], sep=CSV_SEPARATOR)
+        self.results_all['Curt'] = pd.read_csv(self.cs_dir / 'outputs' / 'Curt.csv',
+                                           header=[0], index_col=[0], sep=CSV_SEPARATOR)
 
         # reading the solving information and storing them
         if self.esom is None:
