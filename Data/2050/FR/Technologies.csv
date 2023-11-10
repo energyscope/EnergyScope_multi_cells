@@ -21,7 +21,7 @@ Electricity;Electricity;Solar tower collectors;ST_COLLECTOR;100;5;0;25;1;0;1;0;3
 Electricity;Electricity;Parabolic trough power block;PT_POWER_BLOCK;1044.57;62.65;0;25;1;0;1;0;15;
 Electricity;Electricity;Solar tower power block;ST_POWER_BLOCK;50;5;0;25;1;0;1;0;15;
 Electricity;Electricity;Wind onshore;WIND_ONSHORE;1010;16.82;622.85;30;1;0;1;10.311;812.8;
-Electricity;Electricity;Wind offshore;WIND_OFFSHORE;1667.432296;51.87199798;622.85;30;1;0;1;0;15.6;
+Electricity;Electricity;Wind offshore;WIND_OFFSHORE;1667.432296;51.87199798;622.85;30;1;0;1;0;17;
 Electricity;Electricity;Hydro dam;HYDRO_DAM;4200.6993;21.0018;1692.88;40;1;0;1;14.2357;14.24;
 Electricity;Electricity;Hydro river;HYDRO_RIVER;5044.919936;50.4447982;1262.82;40;1;0;1;6.6094;6.61;
 Electricity;Electricity;Tidal stream;TIDAL_STREAM;3752;165;0;20;1;0;1;0;5;
