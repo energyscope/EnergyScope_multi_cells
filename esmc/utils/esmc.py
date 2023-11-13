@@ -745,7 +745,8 @@ class Esmc:
             # Printing self.results into outputs
             logging.info('Printing results into outputs')
             directory.mkdir(parents=True, exist_ok=True)
-
+            (directory / 'regional_results').mkdir(parents=True, exist_ok=True)
+        
             for key, df in self.results.items():
                 df.to_csv(directory / 'regional_results' / (key + '.csv'), sep=CSV_SEPARATOR)
 
