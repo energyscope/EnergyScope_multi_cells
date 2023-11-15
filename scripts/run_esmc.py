@@ -11,9 +11,9 @@ from esmc import Esmc
 from esmc.common import eu28_country_code
 
 # defining cases
-cases = ['fossil_free_v2']#, 'fossil_free_no_ned', 'fossil_free_no_h2_network',
-         #'fossil_free_tc_max_elec_2.5GW', 'fossil_free_recycling_for_NED']
-no_imports = ['GASOLINE', 'DIESEL', 'LFO', 'GAS', 'COAL', 'H2', 'AMMONIA', 'METHANOL']
+cases = ['100perc_re', '100perc_re_plus_waste', '100perc_re_no_plane_and_shipping',
+         '100perc_re_no_ned', '100perc_re_no_plane_shipping_ned']
+no_imports = ['GASOLINE', 'DIESEL', 'LFO', 'JET_FUEL', 'GAS', 'COAL', 'H2', 'AMMONIA', 'METHANOL']
 
 # number of typical days (check that tse<0.22)
 tds = 14
@@ -30,7 +30,7 @@ f_perc = False
 
 save_hourly = ['Resources', 'Exchanges', 'Assets', 'Storage', 'Curt']
 
-i = 0
+i = 1
 
 for c in cases:
 
@@ -56,9 +56,34 @@ for c in cases:
     my_model.init_regions()
 
     # update some data
-    # force to be fossil free
+    # force to be 100% renewable
     for r_code, region in my_model.regions.items():
+        # fossil-free
         region.data['Resources'].loc[no_imports, 'avail_exterior'] = 0
+        # nuclear free
+        region.data['Technologies'].loc['NUCLEAR', 'f_min'] = 0
+        region.data['Technologies'].loc['NUCLEAR', 'f_max'] = 0
+        # no waste incineration
+        if c != '100perc_re_plus_waste':
+            region.data['Resources'].loc['WASTE', 'avail_local'] = 0
+
+    # according to case change some inputs
+    if c == '100perc_re_no_plane_and_shipping':
+        for r_code, region in my_model.regions.items():
+            region.data['Demands'].loc['EXTRA_EU_AVIATION', 'TRANSPORTATION'] = 0
+            region.data['Demands'].loc['INTERNATIONAL_SHIPPING', 'TRANSPORTATION'] = 0
+            region.data['Misc']['share_intra_eu_flight_min'] = 0
+            region.data['Misc']['share_intra_eu_flight_max'] = 0
+    elif c == '100perc_re_no_ned':
+        for r_code, region in my_model.regions.items():
+            region.data['Demands'].loc['NON_ENERGY', 'INDUSTRY'] = 0
+    elif c == '100perc_re_no_plane_shipping_ned':
+        for r_code, region in my_model.regions.items():
+            region.data['Demands'].loc['EXTRA_EU_AVIATION', 'TRANSPORTATION'] = 0
+            region.data['Demands'].loc['INTERNATIONAL_SHIPPING', 'TRANSPORTATION'] = 0
+            region.data['Misc']['share_intra_eu_flight_min'] = 0
+            region.data['Misc']['share_intra_eu_flight_max'] = 0
+            region.data['Demands'].loc['NON_ENERGY', 'INDUSTRY'] = 0
 
     # Initialize and solve the temporal aggregation algorithm:
     # if already run, set algo='read' to read the solution of the clustering
@@ -73,8 +98,6 @@ for c in cases:
 
     # Print data
     my_model.print_data(indep=True)
-
-
 
     # Set the Energy System Optimization Model (ESOM) as an ampl formulated problem
     my_model.set_esom(ampl_path=ampl_path)

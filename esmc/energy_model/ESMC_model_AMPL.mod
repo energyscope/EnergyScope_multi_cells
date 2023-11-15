@@ -130,11 +130,11 @@ param re_share_primary {REGIONS} >= 0; # re_share [-]: minimum share of primary 
 param gwp_limit {REGIONS} >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 
 
-# Share public vs private mobility vs intra-EU aviation
+# Share public vs private mobility vs short-haul aviation
 param share_mobility_public_min{REGIONS} >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max{REGIONS} >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
-param share_intra_eu_flight_min{REGIONS} >= 0, <= 1; # %_aviation,min [-]: min limit for share of intra-EU flight over total mobility 
-param share_intra_eu_flight_max{REGIONS} >= 0, <= 1; # %_aviation,max [-]: max limit for share of intra-EU flight over total mobility 
+param share_short_haul_flights_min{REGIONS} >= 0, <= 1; # %_aviation,min [-]: min limit for share of short-haul flight over total mobility 
+param share_short_haul_flights_max{REGIONS} >= 0, <= 1; # %_aviation,max [-]: max limit for share of short-haul flight over total mobility 
 
 # Share train vs truck vs boat in freight transportation
 param share_freight_train_min{REGIONS} >= 0, <= 1; # %_rail,min [-]: min limit for penetration of train in freight transportation
@@ -196,7 +196,7 @@ param  dist{REGIONS, REGIONS} >=0 default 0; #travelled distance by fuels exchan
 
 ##Independent variables [Table 3] :
 var Share_mobility_public{c in REGIONS} >= share_mobility_public_min[c], <= share_mobility_public_max[c]; # %_Public: Ratio [0; 1] public mobility over total passenger mobility
-var Share_intra_eu_flight{c in REGIONS} >= share_intra_eu_flight_min[c], <= share_intra_eu_flight_max[c]; # %_intraEU aviation: Ratio [0; 1] intraEU aviation mobility over total passenger mobility
+var Share_short_haul_flights{c in REGIONS} >= share_short_haul_flights_min[c], <= share_short_haul_flights_max[c]; # %_short_haul aviation: Ratio [0; 1] short_haul aviation mobility over total passenger mobility
 var Share_freight_train{c in REGIONS}, >= share_freight_train_min[c], <= share_freight_train_max[c]; # %_Rail: Ratio [0; 1] rail transport over total freight transport
 var Share_freight_road{c in REGIONS}, >= share_freight_road_min[c], <= share_freight_road_max[c]; # %_Road: Ratio [0; 1] Road transport over total freight transport
 var Share_freight_boat{c in REGIONS}, >= share_freight_boat_min[c], <= share_freight_boat_max[c]; # %_Boat: Ratio [0; 1] boat transport over total freight transport
@@ -256,12 +256,12 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 			(end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td] ) * (1 - Share_heat_dhn[c])
 		else (if l == "MOB_PUBLIC" then
 			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * Share_mobility_public[c]
-		else (if l == "INTRA_EU_AVIATION" then
-			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * Share_intra_eu_flight[c]
-		else (if l == "EXTRA_EU_AVIATION" then
-			(end_uses_input[c,"EXTRA_EU_AVIATION"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) 
+		else (if l == "AVIATION_SHORT_HAUL" then
+			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * Share_short_haul_flights[c]
+		else (if l == "AVIATION_LONG_HAUL" then
+			(end_uses_input[c,"AVIATION_LONG_HAUL"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) 
 		else (if l == "MOB_PRIVATE" then
-			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * (1 - Share_mobility_public[c]-Share_intra_eu_flight[c])
+			(end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td]  ) * (1 - Share_mobility_public[c]-Share_short_haul_flights[c])
 		else (if l == "MOB_FREIGHT_RAIL" then
 			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_train[c]
 		else (if l == "MOB_FREIGHT_ROAD" then
@@ -488,10 +488,7 @@ subject to peak_lowT_dhn {c in REGIONS}:
 # [Eq. 34] Peak in space cooling
 subject to peak_space_cooling {c in REGIONS, j in TECHNOLOGIES_OF_END_USES_TYPE["SPACE_COOLING"], h in HOURS, td in TYPICAL_DAYS}:
 	F [c,j] >= peak_sc_factor[c] * F_t [c, j, h, td] ;
-	
-# For reversible technologies :
-subject to reversible_H2_tech_installed_power {c in REGIONS}:
-	F [c, "H2_REG_ELECTROLYSER"] = F [c, "H2_REG_FUELCELL"];
+
 
 ## Adaptation for the case study: Constraints needed for the application to Switzerland (not needed in standard LP formulation)
 #-----------------------------------------------------------------------------------------------------------------------

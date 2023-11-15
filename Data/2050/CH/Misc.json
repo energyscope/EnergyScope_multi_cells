@@ -1,11 +1,11 @@
 {
-    "share_intra_eu_flight_max": 0.12272955449584111,
-    "share_intra_eu_flight_min": 0.1226295544958411,
     "share_ned": {
         "AMMONIA": 0.06015555029020928,
         "HVC": 0.8915645594489556,
         "METHANOL": 0.04827989026083494
     },
+    "share_short_haul_flights_max": 0.12272955449584111,
+    "share_short_haul_flights_min": 0.1226295544958411,
     "solar_area_ground": 126.7647059,
     "solar_area_ground_high_irr": 0.0,
     "solar_area_rooftop": 20.29411765

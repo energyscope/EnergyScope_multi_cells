@@ -51,12 +51,12 @@ pc_cop = 1 / 0.4965 # COP of process cooling
 # creat df for results
 eui_names = ['ELECTRICITY', 'HEAT_HIGH_T', 'HEAT_LOW_T_SH', 'HEAT_LOW_T_HW',
              'PROCESS_COOLING', 'SPACE_COOLING',
-             'MOBILITY_PASSENGER', 'MOBILITY_FREIGHT', 'EXTRA_EU_AVIATION', 'INTERNATIONAL_SHIPPING',
+             'MOBILITY_PASSENGER', 'MOBILITY_FREIGHT', 'AVIATION_LONG_HAUL', 'SHIPPING',
              'NON_ENERGY'] #end-uses inputs
 eui_categories = ['Electricity', 'Heat', 'Heat', 'Heat', 'Cold', 'Cold',
                   'Mobility', 'Mobility', 'Mobility', 'Mobility', 'Non-energy']
 eui_subcat = ['Electricity', 'High temperature', 'Space heating', 'Hot water', 'Process cooling', 'Space cooling',
-              'Passenger', 'Freight', 'International passenger flights', 'International shipping', 'Non-energy']
+              'Passenger', 'Freight', 'Long-haul passenger flights', 'International shipping', 'Non-energy']
 sector_names = ['HOUSEHOLDS', 'SERVICES', 'INDUSTRY', 'TRANSPORTATION']
 all_eud = pd.DataFrame(np.nan, index=pd.MultiIndex.from_product([years, eu33_country_code_iso3166_alpha2, eui_names]),
                        columns=sector_names)
@@ -109,8 +109,8 @@ if compute_ind_shares:
     # adding null columns to have all eun-uses inputs
     ind_shares['MOBILITY_PASSENGER'] = 0
     ind_shares['MOBILITY_FREIGHT'] = 0
-    ind_shares['EXTRA_EU_AVIATION'] = 0
-    ind_shares['INTERNATIONAL_SHIPPING'] = 0
+    ind_shares['AVIATION_LONG_HAUL'] = 0
+    ind_shares['SHIPPING'] = 0
     ind_shares['NON_ENERGY'] = 0
     ind_shares = ind_shares[eui_names]
     ind_shares_stat = ind_shares.describe()
@@ -135,8 +135,8 @@ av_growth = pd.read_csv(data_path / eurocontrol_file, header=0, index_col=0, sep
 av_growth_mul = pd.DataFrame(1, index=av_growth.index, columns=years)
 av_growth_mul = av_growth_mul.apply(lambda col: col.add(av_growth['Average growth per year [%]']), axis=0)
 av_growth_mul = av_growth_mul.apply(lambda col: col**(col.name-2019))
-av_intra_eu = av_growth_mul.copy().mul(av_2019['Intra-EU aviation demand [Gpkm](Eurostat 2019)'], axis=0)
-av_extra_eu = av_growth_mul.copy().mul(av_2019['Extra-EU aviation demand [Gpkm](Eurostat 2019)'], axis=0)
+av_short_haul = av_growth_mul.copy().mul(av_2019['Intra-EU aviation demand [Gpkm](Eurostat 2019)'], axis=0)
+av_long_haul = av_growth_mul.copy().mul(av_2019['Extra-EU aviation demand [Gpkm](Eurostat 2019)'], axis=0)
 
 for r in regions:
     print('Computing ' + r)
@@ -166,12 +166,12 @@ for r in regions:
         euref_fec.loc[['INDUSTRY', 'HOUSEHOLDS', 'SERVICES', 'NON_ENERGY'], :] *= 1/ktoe_per_twh
         euref_transport = euref_b.loc[['MOBILITY_PASSENGER', 'MOBILITY_FREIGHT', 'Intra-EU aviation']]
         # add internationnal shipping (assuming same ratio as IE)
-        euref_transport.loc['INTERNATIONAL_SHIPPING', :] = euref_transport.loc['MOBILITY_FREIGHT', :]\
-            .mul(all_eud.loc[(years, 'IE', 'INTERNATIONAL_SHIPPING'), 'TRANSPORTATION'].values / all_eud.loc[(years, 'IE', 'MOBILITY_FREIGHT'), 'TRANSPORTATION'].values)
+        euref_transport.loc['SHIPPING', :] = euref_transport.loc['MOBILITY_FREIGHT', :]\
+            .mul(all_eud.loc[(years, 'IE', 'SHIPPING'), 'TRANSPORTATION'].values / all_eud.loc[(years, 'IE', 'MOBILITY_FREIGHT'), 'TRANSPORTATION'].values)
         # add aviation
         euref_transport.loc['MOBILITY_PASSENGER', :] += (-euref_transport.loc['Intra-EU aviation', :]
-                                                         + av_intra_eu.loc[r, :])
-        euref_transport.loc['EXTRA_EU_AVIATION', :] = av_extra_eu.loc[r, :]
+                                                         + av_short_haul.loc[r, :])
+        euref_transport.loc['AVIATION_LONG_HAUL', :] = av_long_haul.loc[r, :]
     else:
         euref_fec = pd.read_excel(data_path / euref_file, sheet_name=(r2 + '_A'), header=1, index_col=0)\
             .loc[['Population (in million)', 'Industry', 'Residential', 'Tertiary (8)', 'Non-Energy Uses (ktoe)'],
@@ -187,15 +187,15 @@ for r in regions:
                            'Freight transport (3)': 'TOTAL_FREIGHT_ENERGY',
                            'Freight transport (toe/Mtkm) (3)': 'TOTAL_FREIGHT_INTENSITY'})
         # computing international shipping
-        euref_transport.loc['INTERNATIONAL_SHIPPING', :] = euref_transport.loc['TOTAL_FREIGHT_ENERGY', :]\
+        euref_transport.loc['SHIPPING', :] = euref_transport.loc['TOTAL_FREIGHT_ENERGY', :]\
                                                               .div(euref_transport.loc['TOTAL_FREIGHT_INTENSITY', :])\
                                                           - euref_transport.loc['MOBILITY_FREIGHT', :]
-        euref_transport.loc['INTERNATIONAL_SHIPPING', :] = euref_transport.loc['INTERNATIONAL_SHIPPING', :]\
-            .mask(euref_transport.loc['INTERNATIONAL_SHIPPING', :] < 0.1, 0)
+        euref_transport.loc['SHIPPING', :] = euref_transport.loc['SHIPPING', :]\
+            .mask(euref_transport.loc['SHIPPING', :] < 0.1, 0)
 
         euref_transport.loc['MOBILITY_PASSENGER', :] += (-euref_transport.loc['Intra-EU aviation', :]
-                                                         + av_intra_eu.loc[r, :])
-        euref_transport.loc['EXTRA_EU_AVIATION', :] = av_extra_eu.loc[r, :]
+                                                         + av_short_haul.loc[r, :])
+        euref_transport.loc['AVIATION_LONG_HAUL', :] = av_long_haul.loc[r, :]
 
 
     if r == 'BE':
@@ -248,8 +248,8 @@ for r in regions:
                      'SPACE_COOLING': ['Electricity space cooling', 'Fuels for space cooling'],
                      'MOBILITY_PASSENGER': [],
                      'MOBILITY_FREIGHT': [],
-                     'EXTRA_EU_AVIATION': [],
-                     'INTERNATIONAL_SHIPPING': [],
+                     'AVIATION_LONG_HAUL': [],
+                     'SHIPPING': [],
                      'NON_ENERGY': []
                      }
     mapping_ser = {'ELECTRICITY': ['Electricity home appliances  SERVICES', 'Electricity lighting SERVICES',
@@ -261,8 +261,8 @@ for r in regions:
                    'SPACE_COOLING': ['Electricity space cooling SERVICES', 'Fuels for space cooling SERVICES'],
                    'MOBILITY_PASSENGER': [],
                    'MOBILITY_FREIGHT': [],
-                   'EXTRA_EU_AVIATION': [],
-                   'INTERNATIONAL_SHIPPING': [],
+                   'AVIATION_LONG_HAUL': [],
+                   'SHIPPING': [],
                    'NON_ENERGY': []}
 
     for key, elems in mapping_house.items():
@@ -300,22 +300,22 @@ for r in regions:
         = euref_transport.loc['MOBILITY_PASSENGER', years].values
     all_eud.loc[(years, r, 'MOBILITY_FREIGHT'), 'TRANSPORTATION'] =\
         euref_transport.loc['MOBILITY_FREIGHT', years].values
-    all_eud.loc[(years, r, 'EXTRA_EU_AVIATION'), 'TRANSPORTATION'] =\
-        euref_transport.loc['EXTRA_EU_AVIATION', years].values
-    all_eud.loc[(years, r, 'INTERNATIONAL_SHIPPING'), 'TRANSPORTATION'] =\
-        euref_transport.loc['INTERNATIONAL_SHIPPING', years].values
+    all_eud.loc[(years, r, 'AVIATION_LONG_HAUL'), 'TRANSPORTATION'] =\
+        euref_transport.loc['AVIATION_LONG_HAUL', years].values
+    all_eud.loc[(years, r, 'SHIPPING'), 'TRANSPORTATION'] =\
+        euref_transport.loc['SHIPPING', years].values
 
 # for CH and NO
-all_eud.loc[(years, 'CH', 'EXTRA_EU_AVIATION'), :] = 0
-all_eud.loc[(years, 'NO', 'EXTRA_EU_AVIATION'), :] = 0
-all_eud.loc[(years, 'CH', 'EXTRA_EU_AVIATION'), 'TRANSPORTATION'] = av_extra_eu.loc['CH', years].values
-all_eud.loc[(years, 'NO', 'EXTRA_EU_AVIATION'), 'TRANSPORTATION'] = av_extra_eu.loc['NO', years].values
+all_eud.loc[(years, 'CH', 'AVIATION_LONG_HAUL'), :] = 0
+all_eud.loc[(years, 'NO', 'AVIATION_LONG_HAUL'), :] = 0
+all_eud.loc[(years, 'CH', 'AVIATION_LONG_HAUL'), 'TRANSPORTATION'] = av_long_haul.loc['CH', years].values
+all_eud.loc[(years, 'NO', 'AVIATION_LONG_HAUL'), 'TRANSPORTATION'] = av_long_haul.loc['NO', years].values
 
 
-""" Computing share_intra_eu_flight"""
-mob_pass_df = all_eud.loc[(years, av_intra_eu.index, 'MOBILITY_PASSENGER'), 'TRANSPORTATION'].droplevel(level=2, axis=0)\
+""" Computing share_short_haul_flight"""
+mob_pass_df = all_eud.loc[(years, av_short_haul.index, 'MOBILITY_PASSENGER'), 'TRANSPORTATION'].droplevel(level=2, axis=0)\
     .reset_index().pivot(index='level_1', columns='level_0').droplevel(level=0, axis=1)
-share_intra_eu_flight = av_intra_eu.div(mob_pass_df)
+share_short_haul_flight = av_short_haul.div(mob_pass_df)
 
 """Putting all_eud in GWh, Mpkm and Mtkm"""
 all_eud *= 1000
@@ -325,8 +325,8 @@ if save_results:
     # saving all demands together
     all_eud.to_csv(project_path / 'Data' / 'exogenous_data' / 'regions' / 'Demands.csv', sep=CSV_SEPARATOR)
     ned_shares.to_csv(project_path / 'Data' / 'exogenous_data' / 'regions' / 'ned_shares.csv', sep=CSV_SEPARATOR)
-    share_intra_eu_flight.to_csv(project_path / 'Data' / 'exogenous_data' / 'regions' / 'share_intra_eu_flight.csv',
-                                 sep=CSV_SEPARATOR)
+    share_short_haul_flight.to_csv(project_path / 'Data' / 'exogenous_data' / 'regions' / 'share_short_haul_flight.csv',
+                                   sep=CSV_SEPARATOR)
 
     # saving into each year and region directory
     for y in save_years:
@@ -343,7 +343,7 @@ if save_results:
                            'HOUSEHOLDS', 'SERVICES', 'INDUSTRY', 'TRANSPORTATION', 'Units']]
             my_df.to_csv(my_dir / 'Demands.csv', sep=CSV_SEPARATOR, index=False)
 
-        # saving ned shares intra_eu_flight_shares
+        # saving ned shares short_haul_flight shares
         for r in ned_shares.index:
             my_dir = project_path / 'Data' / str(y) / r
             my_ned_shares = ned_shares.loc[r, :].to_dict()
@@ -351,8 +351,8 @@ if save_results:
                 misc = json.load(f)
 
             misc['share_ned'] = my_ned_shares
-            misc['share_intra_eu_flight_min'] = share_intra_eu_flight.loc[r, y]
-            misc['share_intra_eu_flight_max'] = share_intra_eu_flight.loc[r, y] + 1e-4
+            misc['share_short_haul_flights_min'] = share_short_haul_flight.loc[r, y]
+            misc['share_short_haul_flights_max'] = share_short_haul_flight.loc[r, y] + 1e-4
 
             with open((my_dir / 'Misc.json'), 'w') as f:
                 json.dump(misc, f, indent=4, sort_keys=True)
