@@ -18,7 +18,7 @@ Config of the script
 """
 get_enspreso = True
 read_dommisse = False
-update_actual = False
+update_actual = True
 print_update = False
 
 # path
@@ -63,6 +63,8 @@ code_2_full = dict(zip(eu33_country_code_iso3166_alpha2, eu33_full_names))
 """
 ENSPRESO DATA
 """
+# TODO add data for Ostende Declaration
+
 if get_enspreso or read_dommisse or update_actual or print_update:
     # config
     enspreso_dir = ex_data_dir / 'ENSPRESO'
@@ -104,13 +106,13 @@ if get_enspreso or read_dommisse or update_actual or print_update:
     r_biom = eu33_country_code_eurostat
     year_biom = 2050 # we take 2050 as reference year for biomass potentials
 
-    enspreso_biomass_sce = 'ENS_Low'
+    enspreso_biomass_sce = 'ENS_Med'
     categories = {
-        'WOOD': ['MINBIOWOO', 'MINBIOWOOa', 'MINBIOWOOW1', 'MINBIOWOOW1a', 'MINBIOFRSR1'],
+        'WOOD': ['MINBIOWOO', 'MINBIOWOOa', 'MINBIOWOOW1', 'MINBIOWOOW1a', 'MINBIOFRSR1' , 'MINBIOFRSR1a'],
         'WET_BIOMASS': ['MINBIOSLU1', 'MINBIOGAS1'],
         'ENERGY_CROPS_2': ['MINBIOCRP31', 'MINBIOCRP41', 'MINBIOCRP41a'],
         'BIOWASTE': ['MINBIOMUN1'],
-        'BIOMASS_RESIDUES': ['MINBIOAGRW1', 'MINBIOFRSR1a']
+        'BIOMASS_RESIDUES': ['MINBIOAGRW1']
     }
     pj_2_gwh = 1/3600*1e15/1e9 # [GWh/PJ]
     eff_minbioslu1 = 1/3.3462 # [GWh_biogas/GWh_feedstock]
@@ -262,10 +264,11 @@ res2get = ['WASTE']
 
 # creating dataframes to gather all data
 demands_all = pd.DataFrame(np.nan,
-                           index=pd.MultiIndex.from_product([['ELECTRICITY', 'ELECTRICITY_VAR',
+                           index=pd.MultiIndex.from_product([['ELECTRICITY',
                                                               'HEAT_HIGH_T', 'HEAT_LOW_T_SH', 'HEAT_LOW_T_HW',
                                                               'PROCESS_COOLING', 'SPACE_COOLING',
-                                                              'MOBILITY_PASSENGER', 'MOBILITY_FREIGHT', 'NON_ENERGY'],
+                                                              'MOBILITY_PASSENGER', 'MOBILITY_FREIGHT',
+                                                              'AVIATION_LONG_HAUL', 'SHIPPING', 'NON_ENERGY'],
                                                              eu33_country_code_iso3166_alpha2]),
                            columns=['Category', 'Subcategory',
                                     'HOUSEHOLDS', 'SERVICES', 'INDUSTRY', 'TRANSPORTATION ',
@@ -358,11 +361,11 @@ for r, r_full in code_2_full.items():
 
 
         # get misc (for now only solar_area)
+        with open(r_path / 'Misc.json', 'r') as fp:
+            misc_new = json.load(fp)
         if r in eu27_country_code:
-            misc_new = solar_area.loc[:, r_full].to_dict()
-        else:
-            with open(r_path / 'Misc.json', 'r') as fp:
-                misc_new = json.load(fp)
+            for i,j in solar_area.loc[:, r_full].to_dict().items():
+                misc_new[i] = j
 
         # resource new
         resources_new = biomass_pot_final.loc[(slice(None), r), :].droplevel(level=1, axis=0).T
