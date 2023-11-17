@@ -420,8 +420,8 @@ for r, r_full in code_2_full.items():
 
         if print_update and r!='FR':
             print('print update ' + r_full)
-            demands_new.reset_index().set_index(['Category', 'Subcategory', 'parameter name'])\
-                .to_csv(r_path / 'Demands.csv', sep=CSV_SEPARATOR)
+            # demands_new.reset_index().set_index(['Category', 'Subcategory', 'parameter name'])\
+            #     .to_csv(r_path / 'Demands.csv', sep=CSV_SEPARATOR)
             misc_f = r_path / 'Misc.json'
             with open(misc_f, mode='w') as my_file:
                 json.dump(misc_new, my_file, indent=6)
@@ -432,7 +432,7 @@ for r, r_full in code_2_full.items():
 
 if update_actual and print_update:
     # save into dataframes all
-    demands_all.to_csv(ex_data_dir / 'regions' / 'Demands.csv', sep=CSV_SEPARATOR)
+    # demands_all.to_csv(ex_data_dir / 'regions' / 'Demands.csv', sep=CSV_SEPARATOR)
     resources_all.to_csv(ex_data_dir / 'regions' / 'Resources.csv', sep=CSV_SEPARATOR)
     sto_all.to_csv(ex_data_dir / 'regions' / 'Storage_power_to_energy.csv', sep=CSV_SEPARATOR)
     tech_all.to_csv(ex_data_dir / 'regions' / 'Technologies.csv', sep=CSV_SEPARATOR)
