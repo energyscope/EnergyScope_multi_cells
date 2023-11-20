@@ -10,9 +10,14 @@
 model ESMC_model_AMPL.mod;
 
 # Load standard data
-data ESMC_indep.dat # not TDs depending data, not REGIONS depending data
-data ESMC_regions.dat   # not TDs depending data, but REGIONS depending data
-data ESMC_38TD.dat; # TDs depending data
+data reg_14TD.dat; # TDs depending data
+data indep.dat # not TDs depending data, not REGIONS depending data
+data reg_demands.dat   # not TDs depending data, but REGIONS depending data
+data reg_resources.dat
+data reg_technologies.dat
+data reg_storage_power_to_energy.dat
+data reg_misc.dat
+data reg_exch.dat
 
 #solution solution.sol;
 
@@ -31,7 +36,7 @@ option solver cplex;
 option show_stats 3; # show statistics
 option times 1; # show time
 option gentimes 1; # show time
-option presolve 0;
+option presolve 200;
 
 option log_file 'output/log.txt';   #write the log in a .txt file. Create the file before running.
 
