@@ -76,7 +76,7 @@ class Esmc:
         self.cs_dir.mkdir(parents=True, exist_ok=True)
 
         # create and initialize regions
-        self.ref_region_name = config['ref_region']
+        self.ref_region_name = '02_REF_REGION' #  config['ref_region']
         self.ref_region = None
         self.regions = dict.fromkeys(self.regions_names, None)
         # create and initialize data dictionnaries

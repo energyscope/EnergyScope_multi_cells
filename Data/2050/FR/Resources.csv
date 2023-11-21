@@ -1,38 +1,7 @@
-;;;Local availability;Exterior availability;Direct and indirect emissions for local resource;Price for local resource;
-;;units;[GWh/y];[GWh/y];[ktCO2-eq./GWh];[Meuro/GWh];
-Category;Subcategory;parameter name;avail_local;avail_exterior;gwp_op_local;c_op_local;Comment
-Non-renewable;Other non-renewable;ELECTRICITY;0;0;0;0.104928;
-Non-renewable;Fossil fuel;GASOLINE;0;1.00E+15;0.3448;0.094047856;
-Non-renewable;Fossil fuel;DIESEL;0;1.00E+15;0.3148;0.09105369;
-Renewable;Renewable fuels;GASOLINE_RE;0;1.00E+15;0;0.12863;
-Renewable;Renewable fuel;DIESEL_RE;0;1.00E+15;0;0.12863;
-Non-renewable;Fossil fuel;LFO;0;1.00E+15;0.3115;0.068681616;
-Renewable;Renewable fuel;LFO_RE;0;1.00E+15;0;0.12863;
-Non-renewable;Fossil fuel;JET_FUEL;0;1.00E+15;0.3148;0.09105369;
-Renewable;Renewable fuel;JET_FUEL_RE;0;1.00E+15;0;0.12863;
-Non-renewable;Fossil fuel;GAS;0;1.00E+15;0.2666;0.053298668;
-Renewable;Renewable fuel;GAS_RE;0;1.00E+15;0;0.104306364;
-Renewable;Biomass;WOOD;174300.56;0;0.02456;0.0176566;
-Renewable;Biomass;WET_BIOMASS;71822.835;0;0.01056;0.022641;
-Renewable;Biomass;ENERGY_CROPS_2;71972.536;0;0.00756;0.019083;
-Renewable;Biomass;BIOWASTE;31515.361;0;0.01488;0.0001996;
-Renewable;Biomass;BIOMASS_RESIDUES;52998.417;0;0.00324;0.008162;
-Non-renewable;Fossil fuel;COAL;0;0;0.4014;0.01814538;
-Non-renewable;Other non-renewable;URANIUM;0;1.00E+15;0.0039;0.003876456;
-Non-renewable;Other non-renewable;WASTE;57777.84;0;0.1501;0.00854573;
-Non-renewable;Other non-renewable;H2;0;1.00E+15;0.336562583;0.095506697;
-Renewable;Renewable fuel;H2_RE;0;1.00E+15;0;0.100630378;
-Non-renewable;Other non-renewable;AMMONIA;0;1.00E+15;0.285;0.114074182;
-Non-renewable;Other non-renewable;METHANOL;0;1.00E+15;0.35;0.116450269;
-Renewable;Renewable fuel;AMMONIA_RE;0;1.00E+15;0;0.070895279;
-Renewable;Renewable fuel;METHANOL_RE;0;1.00E+15;0;0.100145113;
-Export;Export;CO2_EMISSIONS;0;1.00E+15;0;0;
-Renewable;Non-biomass;RES_WIND;1.00E+15;0;0;0;
-Renewable;Non-biomass;RES_SOLAR;1.00E+15;0;0;0;
-Renewable;Non-biomass;RES_HYDRO;1.00E+15;0;0;0;
-Renewable;Non-biomass;RES_GEO;1.00E+15;0;0;0;
-Others;Others;CO2_ATM ;0;1.00E+15;0;0;
-Others;Others;CO2_INDUSTRY ;0;0;0;0;
-Others;Others;CO2_CAPTURED;0;0;0;0;
-Others;Others;PT_HEAT;0;0;0;0;
-Others;Others;ST_HEAT;0;0;0;0;
+;avail_local;c_op_local
+WOOD;174300.56;0.0176566
+WET_BIOMASS;71822.835;0.022641
+ENERGY_CROPS_2;71972.536;0.019083
+BIOWASTE;31515.361;0.0001996
+BIOMASS_RESIDUES;52998.417;0.008162
+WASTE;57777.84;0.00854573

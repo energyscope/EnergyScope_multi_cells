@@ -19,7 +19,7 @@ Renewable;Biomass;BIOMASS_RESIDUES;0.01488;0.000121736;0;
 Renewable;Biomass;BIOWASTE;0.00324;0.011873285;0;
 Non-renewable;Fossil fuel;COAL;0.4014;0.01814538;0.36;
 Non-renewable;Other non-renewable;URANIUM;0.0039;0.003876456;0;
-Non-renewable;Other non-renewable;WASTE;0.1501;0.02497388;0.26;
+Non-renewable;Other non-renewable;WASTE;0.1501;0.008096237;0.26;
 Non-renewable;Other non-renewable;H2;0.336562583;0.095506697;0;
 Renewable;Renewable fuel;H2_RE;0;0.100630378;0;
 Non-renewable;Other non-renewable;AMMONIA;0.285;0.114074182;0;

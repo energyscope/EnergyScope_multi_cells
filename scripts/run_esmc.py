@@ -30,7 +30,7 @@ f_perc = False
 
 save_hourly = ['Resources', 'Exchanges', 'Assets', 'Storage', 'Curt']
 
-i = 1
+i = 0
 
 for c in cases:
 
@@ -40,7 +40,6 @@ for c in cases:
     config = {'case_study': c,
               'comment': 'none',
               'regions_names': eu28_country_code,
-              'ref_region': 'FR',
               'gwp_limit_overall': gwp_limit_overall,
               're_share_primary': re_share_primary,
               'f_perc': f_perc,
