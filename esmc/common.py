@@ -110,6 +110,7 @@ color_dict = {
 	"CCGT_AMMONIA":"slateblue",
 	"COAL_US" : "black",
 	"COAL_IGCC" : "dimgray",
+	"BIOMASS_TO_POWER": "peru",
 	"PV_ROOFTOP" : "yellow",
 	"PV_UTILITY": "gold",
 	"ST_POWER_BLOCK": "goldenrod",
@@ -341,6 +342,7 @@ plotting_names = {
 	"CCGT_AMMONIA":"Ammonia CCGT",
 	"COAL_US" : "Coal",
 	"COAL_IGCC" : "Coal",
+	"BIOMASS_TO_POWER": "Biomass power plant"
 	"PV_ROOFTOP" : "Rooftop PV",
 	"PV_UTILITY": "Utility PV",
 	"ST_POWER_BLOCK": "CSP power block",
