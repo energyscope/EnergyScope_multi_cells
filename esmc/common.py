@@ -342,7 +342,7 @@ plotting_names = {
 	"CCGT_AMMONIA":"Ammonia CCGT",
 	"COAL_US" : "Coal",
 	"COAL_IGCC" : "Coal",
-	"BIOMASS_TO_POWER": "Biomass power plant"
+	"BIOMASS_TO_POWER": "Biomass power plant",
 	"PV_ROOFTOP" : "Rooftop PV",
 	"PV_UTILITY": "Utility PV",
 	"ST_POWER_BLOCK": "CSP power block",
@@ -466,7 +466,7 @@ plotting_names = {
 	"POWER_TO_GASOLINE": "Power to gasoline",
 	"POWER_TO_DIESEL": "Power to diesel",
 	"POWER_TO_JET_FUEL": "Power to jet fuel",
-	"POWER_TO_LFO": "Powerto oil",
+	"POWER_TO_LFO": "Power to oil",
 	"AMMONIA_TO_H2": "Ammonia to H2",
 	"OIL_TO_HVC": "Oil to HVC",
 	"GAS_TO_HVC": "Gas to HVC",
