@@ -69,19 +69,19 @@ for c in cases:
     # according to case change some inputs
     if c == '100perc_re_no_plane_and_shipping':
         for r_code, region in my_model.regions.items():
-            region.data['Demands'].loc['EXTRA_EU_AVIATION', 'TRANSPORTATION'] = 0
-            region.data['Demands'].loc['INTERNATIONAL_SHIPPING', 'TRANSPORTATION'] = 0
-            region.data['Misc']['share_intra_eu_flight_min'] = 0
-            region.data['Misc']['share_intra_eu_flight_max'] = 0
+            region.data['Demands'].loc['AVIATION_LONG_HAUL', 'TRANSPORTATION'] = 0
+            region.data['Demands'].loc['SHIPPING', 'TRANSPORTATION'] = 0
+            region.data['Misc']['share_short_haul_flights_min'] = 0
+            region.data['Misc']['share_short_haul_flights_max'] = 0
     elif c == '100perc_re_no_ned':
         for r_code, region in my_model.regions.items():
             region.data['Demands'].loc['NON_ENERGY', 'INDUSTRY'] = 0
     elif c == '100perc_re_no_plane_shipping_ned':
         for r_code, region in my_model.regions.items():
-            region.data['Demands'].loc['EXTRA_EU_AVIATION', 'TRANSPORTATION'] = 0
-            region.data['Demands'].loc['INTERNATIONAL_SHIPPING', 'TRANSPORTATION'] = 0
-            region.data['Misc']['share_intra_eu_flight_min'] = 0
-            region.data['Misc']['share_intra_eu_flight_max'] = 0
+            region.data['Demands'].loc['AVIATION_LONG_HAUL', 'TRANSPORTATION'] = 0
+            region.data['Demands'].loc['SHIPPING', 'TRANSPORTATION'] = 0
+            region.data['Misc']['share_short_haul_flights_min'] = 0
+            region.data['Misc']['share_short_haul_flights_max'] = 0
             region.data['Demands'].loc['NON_ENERGY', 'INDUSTRY'] = 0
 
     # Initialize and solve the temporal aggregation algorithm:

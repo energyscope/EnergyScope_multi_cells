@@ -70,7 +70,7 @@ Mobility;Passenger public;Bus gas;BUS_COACH_CNG_STOICH;627.96;30.55555556;0;15;0
 Mobility;Passenger public;Bus fuel cell (H2);BUS_COACH_FC_HYBRIDH2;1048.43;31.25;0;15;0.296803653;0;1;0;1.00E+15;
 Mobility;Passenger public;Train (passenger);TRAIN_PUB;1506.02;54.35274934;0;40;0.275072894;0;0.5;0;1.00E+15;
 Mobility;Passenger aviation;Plane short_haul;PLANE_SHORT_HAUL;1456.05;39.82;0;35;0.4999;0;1;0;1.00E+15;
-Mobility;Passenger aviation;Plane hydrogen short-haul;PLANE_H2_SHORT_HAUL;1639.69;44.84;0;35;0.4999;0;0.1;0;1.00E+15;
+Mobility;Passenger aviation;Plane hydrogen short-haul;PLANE_H2_SHORT_HAUL;1639.69;44.84;0;35;0.4999;0;0.1;0;0.00E+00;
 Mobility;Passenger aviation;Plane long_haul;PLANE_LONG_HAUL;1343.77;36.75;0;35;0.5374;0;1;0;1.00E+15;
 Mobility;Passenger private;Car gasoline;CAR_GASOLINE;434.63;24;0;10;0.051369863;0;1;0;1.00E+15;
 Mobility;Passenger private;Car diesel;CAR_DIESEL;449.28;24;0;10;0.051369863;0;1;0;1.00E+15;
