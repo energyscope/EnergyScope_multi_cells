@@ -268,7 +268,7 @@ subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS
 			((end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_road[c] + Exch_freight [c] / total_time)
 		else (if l == "MOB_FREIGHT_BOAT" then
 			(end_uses_input[c,"MOBILITY_FREIGHT"]   * mob_freight_time_series [c, h, td] / t_op [h, td] ) *  Share_freight_boat[c]
-		else (if l == "INTERNATIONAL_SHIPPING" then
+		else (if l == "SHIPPING" then
 			end_uses_input[c,l] / total_time
 		else (if l == "HEAT_HIGH_T" then
 			end_uses_input[c,l] / total_time

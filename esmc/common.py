@@ -452,7 +452,7 @@ plotting_names = {
 	"BIOWASTE_TO_DIESEL": "Biowaste to diesel",
 	"BIOWASTE_TO_JET_FUEL": "Biowaste to jet fuel",
 	"BIOWASTE_TO_LFO": "Biowaste to oil",
-	"DIESEL_TO_JET_FUEL": "Diesl to jet fuel",
+	"DIESEL_TO_JET_FUEL": "Diesel to jet fuel",
 	"ATM_CCS" : "Atmospheric CC",
 	"INDUSTRY_CCS" : "Industrial CC",
 	"SYN_METHANOLATION" : "H2 methanolation",
