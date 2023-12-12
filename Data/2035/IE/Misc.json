@@ -1,5 +1,12 @@
 {
-      "solar_area_rooftop": 65.9372121077879,
-      "solar_area_ground": 1267.08,
-      "solar_area_ground_high_irr": 0.0
+    "share_ned": {
+        "AMMONIA": 0.03356770974890059,
+        "HVC": 0.9118044860389671,
+        "METHANOL": 0.05462780421213226
+    },
+    "share_short_haul_flights_max": 0.19420636403089586,
+    "share_short_haul_flights_min": 0.19410636403089587,
+    "solar_area_ground": 1267.08,
+    "solar_area_ground_high_irr": 0.0,
+    "solar_area_rooftop": 65.9372121077879
 }

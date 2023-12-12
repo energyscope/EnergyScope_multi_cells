@@ -55,6 +55,7 @@ class OptiProbl:
         self.vars = list()
         self.params = list()
         self.sets = dict()
+        self.inputs = dict()
         self.t = None
         self.outputs = dict()
 
@@ -190,6 +191,39 @@ class OptiProbl:
         self.outputs = dict()
         for name, var in amplpy_sol:
             self.outputs[name] = self.to_pd(var.getValues())
+
+    def get_param(self, param_name: str):
+        """Function to extract the mentioned parameter and store it into self.inputs
+
+        Parameters
+        ----------
+        param_name: str
+        Name of the parameter to extract from the optimisation problem results. Should be written as in the .mod file
+
+        Returns
+        -------
+        param: pd.DataFrame()
+        DataFrame containing the values of the different elements of the parameter.
+        The n first columns give the n sets on which it is indexed
+        and the last column give the value obtained from the optimization.
+
+        """
+        ampl_param = self.ampl.getParameter(param_name)
+        # Getting the names of the sets
+        indexing_sets = [s.capitalize() for s in ampl_param.getIndexingSets()]
+        # Getting the data of the variable into a pandas dataframe
+        amplpy_df = ampl_param.getValues()
+        param = amplpy_df.toPandas()
+        # getting the number of indices. If var has more then 1 index, we set it as a MultiIndex
+        n_indices = amplpy_df.getNumIndices()
+        if n_indices > 1:
+            param.index = pd.MultiIndex.from_tuples(param.index, names=indexing_sets)
+        else:
+            param.index = pd.Index(param.index, name=indexing_sets[0])
+        # self.to_pd(ampl_var.getValues()).rename(columns={(var_name+'.val'):var_name})
+        self.inputs[param_name] = param
+        return param
+
 
     def get_var(self, var_name:str):
         """Function to extract the mentioned variable and store it into self.outputs
