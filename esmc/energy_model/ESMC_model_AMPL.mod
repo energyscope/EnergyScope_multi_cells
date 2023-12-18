@@ -569,10 +569,10 @@ subject to solar_area_ground_high_irr_limited {c in REGIONS} :
 
 # Limit on solar multiple of csp plants (by definition, sm = (F_coll*eta_pb)/F_pb
 subject to sm_limit_solar_tower {c in REGIONS}:
-	layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"] * F[c,"ST_COLLECTOR"] <= sm_max * F[c,"ST_POWER_BLOCK"];
+	-F[c,"ST_COLLECTOR"]/layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"] <= sm_max * F[c,"ST_POWER_BLOCK"];
 
 subject to sm_limit_parabolic_trough {c in REGIONS}:
-	layers_in_out ["PT_POWER_BLOCK", "ST_HEAT"] * F[c,"PT_COLLECTOR"] <= sm_max * F[c,"PT_POWER_BLOCK"];
+	-F[c,"PT_COLLECTOR"]/layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"] <= sm_max * F[c,"PT_POWER_BLOCK"];
 
 
 
