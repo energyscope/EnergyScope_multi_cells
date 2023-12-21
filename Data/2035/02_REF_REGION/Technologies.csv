@@ -99,7 +99,7 @@ Mobility;Freight;Truck electric;TRUCK_ELEC;771.1111111;23.13333333;0;15;0.092592
 Mobility;Freight;Truck gas;TRUCK_NG;371.1111111;18.55555556;0;15;0.092592593;0;1;0;1.00E+15;
 Infrastructure;Infrastructure;Efficiency mesures in energy system;EFFICIENCY;3320;0;0;1;1;0;1;0;1.00E+15;
 Infrastructure;Infrastructure;Distric heating network;DHN;825.8825733;0;0;60;1;0;1;0;1.00E+15;
-Infrastructure;Infrastructure;Electrical grid cost;GRID ;446394.729;0;0;80;1;0;1;0;1.00E+15;
+Infrastructure;Infrastructure;Electrical grid cost;GRID ;74919.06;0;0;80;1;0;1;0;1.00E+15;
 Infrastructure;Infrastructure;HVAC line;HVAC_LINE;2;0.04;0;40;1;0;1;0;1.00E+15;
 Infrastructure;Infrastructure;HVDC subsea cable;HVDC_SUBSEA;3.24;0.06;0;40;1;0;1;0;1.00E+15;
 Infrastructure;Infrastructure;Gas pipeline;GAS_PIPELINE;0.134;0.001;0;55;1;0;1;0;1.00E+15;
