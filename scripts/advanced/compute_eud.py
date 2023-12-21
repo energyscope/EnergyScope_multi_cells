@@ -115,6 +115,12 @@ if compute_ind_shares:
     ind_shares = ind_shares[eui_names]
     ind_shares_stat = ind_shares.describe()
 
+    # adding CH and NO (computed exogenously)
+    ind_shares.loc['CH', :] = [0.31145807, 0.505999653, 0.131627479, 0.034103967, 0.01482971, 0.001981121,
+                               0, 0, 0, 0, 0]
+    ind_shares.loc['NO', :] = [0.318189474, 0.566637077, 0.067452337, 0.035719488, 0.011508427, 0.000493198,
+                               0, 0, 0, 0, 0]
+
     if save_ind_shares:
         ind_shares.to_csv(data_path / 'ind_shares.csv')
 else:
