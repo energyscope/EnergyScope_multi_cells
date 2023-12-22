@@ -8,11 +8,11 @@ import pandas as pd
 
 sys.path.append('/home/pthiran/EnergyScope_multi_cells/')
 from esmc import Esmc
-from esmc.common import eu28_country_code
+from esmc.common import eu28_country_code, CSV_SEPARATOR
 
 # defining cases
-cases = ['100perc_re', '100perc_re_plus_waste', '100perc_re_no_plane_and_shipping',
-         '100perc_re_no_ned', '100perc_re_no_plane_shipping_ned']
+cases = ['ref', 'ref_epsilon_onshore_re', 'ref_epsilon_local_biomass',
+         'low_demand', 'low_demand_epsilon_onshore_re', 'low_demand_epsilon_local_biomass']
 no_imports = ['GASOLINE', 'DIESEL', 'LFO', 'JET_FUEL', 'GAS', 'COAL', 'H2', 'AMMONIA', 'METHANOL']
 
 # number of typical days (check that tse<0.22)
@@ -39,7 +39,7 @@ for c in cases:
     # define configuration
     config = {'case_study': c,
               'comment': 'none',
-              'regions_names': eu28_country_code,
+              'regions_names': ['BE', 'DE', 'FR'], #eu28_country_code,
               'gwp_limit_overall': gwp_limit_overall,
               're_share_primary': re_share_primary,
               'f_perc': f_perc,
@@ -67,22 +67,25 @@ for c in cases:
             region.data['Resources'].loc['WASTE', 'avail_local'] = 0
 
     # according to case change some inputs
-    if c == '100perc_re_no_plane_and_shipping':
-        for r_code, region in my_model.regions.items():
-            region.data['Demands'].loc['AVIATION_LONG_HAUL', 'TRANSPORTATION'] = 0
-            region.data['Demands'].loc['SHIPPING', 'TRANSPORTATION'] = 0
-            region.data['Misc']['share_short_haul_flights_min'] = 0
-            region.data['Misc']['share_short_haul_flights_max'] = 0
-    elif c == '100perc_re_no_ned':
-        for r_code, region in my_model.regions.items():
-            region.data['Demands'].loc['NON_ENERGY', 'INDUSTRY'] = 0
-    elif c == '100perc_re_no_plane_shipping_ned':
-        for r_code, region in my_model.regions.items():
-            region.data['Demands'].loc['AVIATION_LONG_HAUL', 'TRANSPORTATION'] = 0
-            region.data['Demands'].loc['SHIPPING', 'TRANSPORTATION'] = 0
-            region.data['Misc']['share_short_haul_flights_min'] = 0
-            region.data['Misc']['share_short_haul_flights_max'] = 0
-            region.data['Demands'].loc['NON_ENERGY', 'INDUSTRY'] = 0
+    if c.startswith('low_demand'):
+       ld_all = pd.read_csv(my_model.project_dir / 'Data' / 'exogenous_data' / 'regions' / 'Low_demands_2050.csv',
+                            header=0, index_col=[0, 1], sep=CSV_SEPARATOR)
+       for r_code, region in my_model.regions.items():
+           region.data['Demands'].update(ld_all.loc[(r_code, slice(None)), :].droplevel(level=0, axis=0))
+
+    # for sub-optimal space exploration with epsilon optimality
+    if 'epsilon' in c:
+        my_model.data_indep['Misc_indep']['total_cost_optimum'] = obj
+        my_model.data_indep['Misc_indep']['epsilon'] = 0.01
+
+    if c.endswith('epsilon_onshore_re'):
+        my_model.sets['ONSHORE_RE'] = ['PV_UTILITY', 'PT_POWER_BLOCK', 'ST_POWER_BLOCK', 'WIND_ONSHORE']
+        mod_path = [my_model.cs_dir / 'ESMC_model_AMPL.mod',
+                    my_model.cs_dir / 'epsilon_models' / 'epsilon_onshore_re.mod']
+    elif c.endswith('epsilon_local_biomass'):
+        my_model.sets['BIOMASS'] = ['WOOD', 'WET_BIOMASS', 'ENERGY_CROPS_2', 'BIOMASS_RESIDUES', 'BIOWASTE']
+        mod_path = [my_model.cs_dir / 'ESMC_model_AMPL.mod',
+                    my_model.cs_dir / 'epsilon_models' / 'epsilon_local_biomass.mod']
 
     # Initialize and solve the temporal aggregation algorithm:
     # if already run, set algo='read' to read the solution of the clustering
@@ -99,7 +102,11 @@ for c in cases:
     my_model.print_data(indep=True)
 
     # Set the Energy System Optimization Model (ESOM) as an ampl formulated problem
-    my_model.set_esom(ampl_path=ampl_path)
+    if 'epsilon' in c:
+        mod_path[1].parent.mkdir(parents=True, exist_ok=True)
+        my_model.set_esom(ampl_path=ampl_path, mod_path=mod_path)
+    else:
+        my_model.set_esom(ampl_path=ampl_path)
 
     # Solving the ESOM
     my_model.solve_esom()
@@ -107,6 +114,10 @@ for c in cases:
     # Getting and printing year results
     my_model.get_year_results(save_hourly=save_hourly)
     my_model.prints_esom(inputs=True, outputs=True, solve_info=True, save_hourly=save_hourly)
+
+    # getting objective value
+    if 'epsilon' not in c:
+        obj = my_model.results_all['TotalCost'].values[0]
 
     # delete ampl object to free resources
     my_model.esom.ampl.close()

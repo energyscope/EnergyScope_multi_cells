@@ -27,7 +27,7 @@ class OptiProbl:
 
     """
 
-    def __init__(self, mod_path=None, data_path=list(), options=dict(), solver='cplex', ampl_path=None, set_ampl=True):
+    def __init__(self, mod_path=list(), data_path=list(), options=dict(), solver='cplex', ampl_path=None, set_ampl=True):
         """
 
         Parameters
@@ -40,10 +40,10 @@ class OptiProbl:
         set_ampl
         """
         # instantiate different attributes
-        if mod_path is None:
+        if len(mod_path) == 0:
             self.dir = Path()
         else:
-            self.dir = mod_path.parent
+            self.dir = mod_path[0].parent
 
         self.mod_path = mod_path
         self.data_path = data_path
@@ -336,15 +336,15 @@ class OptiProbl:
     #############################
 
     @staticmethod
-    def set_ampl(mod_path, data_path, solver='cplex', ampl_path=None):
+    def set_ampl(mod_path=list(), data_path=list(), solver='cplex', ampl_path=None):
         """
 
         Initialize the AMPL() object containing the LP problem
 
         Parameters
         ----------
-         mod_path : pathlib.Path
-        Specifies the path of the .mod file defining the LP problem in ampl syntax
+         mod_path : list(pathlib.Path)
+        Specifies the path of the .mod files defining the LP problem in ampl syntax
 
         data_path : list(pathlib.Path)
         List specifying the path of the different .dat files with the data of the LP problem
@@ -378,7 +378,8 @@ class OptiProbl:
                 ampl.setOption('solver', str(ampl_path / solver))
 
             # Read the model and data files.
-            ampl.read(mod_path)
+            for m in mod_path:
+                ampl.read(m)
             for d in data_path:
                 ampl.readData(d)
         except Exception as e:

@@ -247,7 +247,7 @@ class TemporalAggregation:
                          'cplex_options': cplex_options_str}
 
         # create and run optimization problem
-        my_optimizer = OptiProbl(mod_path, [data_path], options, ampl_path=ampl_path)
+        my_optimizer = OptiProbl(mod_path=[mod_path], data_path=[data_path], options=options, ampl_path=ampl_path)
         my_optimizer.run_ampl()
         # get cluster_matrix, compute td_of_days and print it
         # TODO make,it more efficient and get rid of get_outputs?

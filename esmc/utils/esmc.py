@@ -618,15 +618,17 @@ class Esmc:
         dp.end_table(out_path=dat_file)
         return
 
-    def set_esom(self, ref_dir=None, ampl_options=None, copy_from_ref=True, solver='cplex', ampl_path=None):
+    def set_esom(self, ref_dir=None, ampl_options=None, copy_from_ref=True, solver='cplex', ampl_path=None, mod_path=list()):
         """
 
         Set the energy system optimisation model (esom) with the mod and dat files from ref_dir that are copied into the
 
         """
 
-        # path where to copy them for this case study
-        mod_path = self.cs_dir / 'ESMC_model_AMPL.mod'
+        if len(mod_path) == 0:
+            # path where to copy them for this case study
+            mod_path = [self.cs_dir / 'ESMC_model_AMPL.mod',
+                        self.cs_dir / 'ESMC_obj_TotalCost.mod']
         data_path = [self.cs_dir / 'indep.dat',
                      self.cs_dir / ('reg_' + str(self.nbr_td) + 'TD.dat'),
                      self.cs_dir / 'reg_demands.dat',
@@ -637,7 +639,6 @@ class Esmc:
                      self.cs_dir / 'reg_technologies.dat',
                      ]
 
-        # TODO adapt for the case where we print regions.dat and indep.dat from data
         # if new case study, we copy ref files if not, we keep the ones that exist
         if copy_from_ref:
             # path of the reference files for ampl
@@ -647,13 +648,13 @@ class Esmc:
             # logging
             logging.info('Copying mod file from ' + str(ref_dir) + ' to ' + str(self.cs_dir))
 
-            # TODO automatise the names of the .dat
-            # mod and data files ref path
-            mod_ref = self.project_dir / 'esmc' / 'energy_model' / 'ESMC_model_AMPL.mod'
-
-            # copy the files from ref_dir to case_study directory
-            shutil.copyfile(mod_ref, mod_path)
-
+            # mod files ref path and copy them
+            mod_ref = list()
+            for m in mod_path:
+                n = self.project_dir / 'esmc' / 'energy_model' / m.relative_to(self.cs_dir)
+                mod_ref.append(n)
+                # copy the files from ref_dir to case_study directory
+                shutil.copyfile(n, m)
 
         # default ampl_options
         if ampl_options is None:

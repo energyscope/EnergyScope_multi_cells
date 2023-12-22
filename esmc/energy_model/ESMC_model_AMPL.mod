@@ -640,13 +640,4 @@ subject to freight_of_exchanges{c1 in REGIONS} :
 #fix {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS: dist[c1, c2] == 0} Exch_imp[c1, c2, i, h, td];
 #let {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS} Exch_exp[c1, c2, i, h, td] := 0;
 #fix {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS: dist[c1, c2] == 0} Exch_exp[c1, c2, i, h, td];
-##########################
-### OBJECTIVE FUNCTION ###
-##########################
 
-# Can choose between TotalGWP and TotalCost
-minimize obj:  sum{c in REGIONS} TotalCost[c];
-
-## formula for GWP_op optimization
-# sum{c in REGIONS, r in RESOURCES} (GWP_op [c,r]);
-# 
