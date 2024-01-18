@@ -43,30 +43,30 @@ full_2_code = dict(zip(eu28_full_names, eu28_country_code))
 code_2_full = dict(zip(eu28_country_code, eu28_full_names))
 
 # with additional countries
-eu33_country_code_eurostat = ['AL', 'AT', 'BA', 'BE', 'BG',
+eu34_country_code_eurostat = ['AL', 'AT', 'BA', 'BE', 'BG',
                      'CH', 'CZ', 'DE', 'DK',
                      'EE', 'EL', 'ES', 'FI', 'FR',
                      'HR', 'HU', 'IE', 'IT',
                      'LT', 'LU', 'LV', 'ME', 'MK',
                      'NL', 'NO', 'PL', 'PT',
                      'RO', 'RS', 'SE', 'SI', 'SK',
-                     'UK']
-eu33_country_code_iso3166_alpha2 = ['AL', 'AT', 'BA', 'BE', 'BG',
+                     'UK', 'XK']
+eu34_country_code_iso3166_alpha2 = ['AL', 'AT', 'BA', 'BE', 'BG',
                      'CH', 'CZ', 'DE', 'DK',
                      'EE', 'GR', 'ES', 'FI', 'FR',
                      'HR', 'HU', 'IE', 'IT',
                      'LT', 'LU', 'LV', 'ME', 'MK',
                      'NL', 'NO', 'PL', 'PT',
                      'RO', 'RS', 'SE', 'SI', 'SK',
-                     'GB']
-eu33_full_names = ['Albania', 'Austria', 'Bosnia and Herzegovina', 'Belgium', 'Bulgaria',
+                     'GB', 'XK']
+eu34_full_names = ['Albania', 'Austria', 'Bosnia and Herzegovina', 'Belgium', 'Bulgaria',
                    'Switzerland', 'Czech Republic', 'Germany', 'Denmark',
                    'Estonia', 'Greece', 'Spain', 'Finland', 'France',
                    'Croatia', 'Hungary', 'Ireland', 'Italy',
-                   'Lithuania', 'Luxembourg', 'Latvia', 'Montenegro', 'Macedonia',
+                   'Lithuania', 'Luxembourg', 'Latvia', 'Montenegro', 'North Macedonia',
                    'Netherlands', 'Norway', 'Poland', 'Portugal',
                    'Romania', 'Serbia', 'Sweden', 'Slovenia', 'Slovakia',
-                   'United Kingdom']
+                   'United Kingdom', 'Kosovo']
 
 # dictionnary for plotting
 color_dict = {

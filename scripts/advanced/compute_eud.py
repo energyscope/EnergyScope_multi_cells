@@ -10,9 +10,9 @@ import json
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from esmc.common import eu33_country_code_iso3166_alpha2, eu33_full_names, eu27_country_code, eu28_country_code, CSV_SEPARATOR
+from esmc.common import eu34_country_code_iso3166_alpha2, eu34_full_names, eu27_country_code, eu28_country_code, CSV_SEPARATOR
 
-full_2_code = dict(zip(eu33_full_names, eu33_country_code_iso3166_alpha2))
+full_2_code = dict(zip(eu34_full_names, eu34_country_code_iso3166_alpha2))
 
 # case
 compute_ind_shares = False
@@ -58,7 +58,7 @@ eui_categories = ['Electricity', 'Heat', 'Heat', 'Heat', 'Cold', 'Cold',
 eui_subcat = ['Electricity', 'High temperature', 'Space heating', 'Hot water', 'Process cooling', 'Space cooling',
               'Passenger', 'Freight', 'Long-haul passenger flights', 'International shipping', 'Non-energy']
 sector_names = ['HOUSEHOLDS', 'SERVICES', 'INDUSTRY', 'TRANSPORTATION']
-all_eud = pd.DataFrame(np.nan, index=pd.MultiIndex.from_product([years, eu33_country_code_iso3166_alpha2, eui_names]),
+all_eud = pd.DataFrame(np.nan, index=pd.MultiIndex.from_product([years, eu34_country_code_iso3166_alpha2, eui_names]),
                        columns=sector_names)
 all_eud.update(pd.read_csv(project_path / 'Data' / 'exogenous_data' / 'regions' / 'Demands.csv',
                       header=0, index_col=[0, 1, 2], sep=CSV_SEPARATOR) / 1000) # fill with existing values
@@ -124,7 +124,7 @@ if compute_ind_shares:
     if save_ind_shares:
         ind_shares.to_csv(data_path / 'ind_shares.csv')
 else:
-    ind_shares = pd.read_csv(data_path / 'ind_shares.csv', header=0, index_col=0)
+    ind_shares = pd.read_csv(data_path / 'ind_shares.csv', header=0, index_col=0, sep=CSV_SEPARATOR)
 
 """ Reading NED data """
 ned_2019 = pd.read_excel(ned_path / ned_file, sheet_name='results', header=1, index_col=0, usecols="A,P:R")
@@ -296,7 +296,7 @@ for r in regions:
     ref_year = 2015 # taking 2015 to avoid covid effect
 
     for y in years:
-        evol = 1+ ((euref_fec.loc['NON_ENERGY', y] - euref_fec.loc['NON_ENERGY', ref_year])\
+        evol = 1 + ((euref_fec.loc['NON_ENERGY', y] - euref_fec.loc['NON_ENERGY', ref_year])\
                / euref_fec.loc['NON_ENERGY', ref_year])
         all_eud.loc[(y, r, 'NON_ENERGY'), 'INDUSTRY'] = ned_2019_tot.loc[r] * evol
 
@@ -336,7 +336,7 @@ if save_results:
 
     # saving into each year and region directory
     for y in save_years:
-        for r in eu28_country_code:
+        for r in eu34_country_code_iso3166_alpha2:
             my_dir = project_path / 'Data' / str(y) / r
             my_dir.mkdir(exist_ok=True, parents=True)
             my_df = all_eud.loc[(y, r, slice(None)), :].reset_index().drop(columns=['level_0', 'level_1'])\
