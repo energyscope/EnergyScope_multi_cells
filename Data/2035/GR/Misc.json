@@ -1,12 +1,12 @@
 {
-    "share_ned": {
-        "AMMONIA": 0.188168116946779,
-        "HVC": 0.7249804280485553,
-        "METHANOL": 0.0868514550046656
-    },
-    "share_short_haul_flights_max": 0.20646496552817983,
-    "share_short_haul_flights_min": 0.20636496552817984,
-    "solar_area_ground": 1702.92,
-    "solar_area_ground_high_irr": 56.459999999999994,
-    "solar_area_rooftop": 143.10199175377673
+      "share_ned": {
+            "AMMONIA": 0.188168116946779,
+            "HVC": 0.7249804280485553,
+            "METHANOL": 0.0868514550046656
+      },
+      "share_short_haul_flights_max": 0.20646496552817983,
+      "share_short_haul_flights_min": 0.20636496552817984,
+      "solar_area_ground": 1702.92,
+      "solar_area_ground_high_irr": 56.46,
+      "solar_area_rooftop": 143.10199175377673
 }
