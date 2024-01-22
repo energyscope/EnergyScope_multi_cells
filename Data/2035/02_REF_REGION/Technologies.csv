@@ -16,8 +16,8 @@ Electricity;Electricity;Amonia combined cycle gas turbine;CCGT_AMMONIA ;771.99;1
 Electricity;Electricity;Ultra-supercritical coal power plant;COAL_US;2516.705684;29.70315573;331.6;35;0.868;0;1;0;1.00E+15;
 Electricity;Electricity;Intagrated gasification combined cycle with coal;COAL_IGCC;3245.809533;48.94653057;331.6;35;0.856;0;1;0;1.00E+15;
 Electricity;Electricity;Biomass power plant;BIOMASS_TO_POWER;1677.0152;69.9431;331.6;35;0.868;0;1;0;1.00E+15;
-Electricity;Electricity;Photovoltaic rooftop;PV_ROOFTOP;737.8867059;9.726688396;2081.43;40;1;0;1;0;1.00E+15;
-Electricity;Electricity;Photovoltaic utility scale;PV_UTILITY;335.4030481;8.432990925;2081.43;40;1;0;1;0;1.00E+15;
+Electricity;Electricity;Photovoltaic rooftop;PV_ROOFTOP;737.8867059;9.726688396;2081.43;25;1;0;1;0;1.00E+15;
+Electricity;Electricity;Photovoltaic utility scale;PV_UTILITY;335.4030481;8.432990925;2081.43;25;1;0;1;0;1.00E+15;
 Electricity;Electricity;Parabolic trough collectors;PT_COLLECTOR;4504.71429;62.65;0;25;1;0;1;0;1.00E+15;
 Electricity;Electricity;Solar tower collectors;ST_COLLECTOR;5517.02;63;0;25;1;0;1;0;1.00E+15;
 Electricity;Electricity;Parabolic trough power block;PT_POWER_BLOCK;1044.57;62.65;0;25;1;0;1;0;1.00E+15;
