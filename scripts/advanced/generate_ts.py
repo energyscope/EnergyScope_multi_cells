@@ -16,10 +16,11 @@ A first time to recompute mean_eta_th and a second time to get the time series
 import pandas as pd
 import numpy as np
 import pytz
+import json
 
 from datetime import datetime, date, timedelta
 from pathlib import Path
-from esmc.common import eu28_country_code, eu28_full_names, code_2_full, CSV_SEPARATOR, eu33_country_code_iso3166_alpha2
+from esmc.common import eu28_country_code, eu28_full_names, code_2_full, CSV_SEPARATOR, eu34_country_code_iso3166_alpha2
 from esmc.utils.df_utils import clean_indices
 # plotly imports
 import plotly.express as px
@@ -48,10 +49,18 @@ compute_csp = False
 read_csp = True
 read_dommisse = False
 read_actual = True
-update_ts = True
+update_ts = False
 plot_final = False
 
 expected_cp_tidal = 0.2223 # from Hammons T.J. (2011)
+
+# mapping of EU+ countries if no data in data sources
+mapping_eu_plus = {'AL': 'GR',
+                   'BA': 'HR',
+                   'ME': 'HR',
+                   'MK': 'BG',
+                   'RS': 'RO',
+                   'XK': 'BG'}
 
 # path
 project_dir = Path(__file__).parents[2]
@@ -102,7 +111,7 @@ elif read_csp:
 
 # regrouping into final_csp_ts df
 final_csp_ts = pd.DataFrame(1e-4, index=dt_utc,
-                            columns=pd.MultiIndex.from_product([eu28_country_code, ['CSP']]))
+                            columns=pd.MultiIndex.from_product([eu34_country_code_iso3166_alpha2, ['CSP']]))
 final_csp_ts.loc[:, final_csp_ts.columns.get_level_values(0).isin(list(csp_ts.columns))] = csp_ts.values
 """
 Reading time series from Dommisse et al.
@@ -119,7 +128,7 @@ all_ts = pd.DataFrame(np.nan, index=np.arange(1,8761),
                                                            'TIDAL', 'SOLAR', 'CSP']]))
 
 if read_actual:
-    all_ts = pd.read_csv(ex_data_dir / 'regions' / 'Time_series_2015.csv', header=[0, 1], index_col=0, sep=';')
+    all_ts = pd.read_csv(ex_data_dir / 'regions' / 'Time_series_2017.csv', header=[0, 1], index_col=0, sep=';')
 
 for r, r_full in code_2_full.items():
     if read_dommisse and r != 'CH':
@@ -177,6 +186,12 @@ weather_ts = pd.read_csv(ex_data_dir / 'gitignored' / 'opsd-weather_data-2020-09
                          header=0, index_col=0, parse_dates=True)
 # select ref_year
 weather_ts = weather_ts.loc[weather_ts.index.year == ref_year, :]
+
+# add EU+ countries by mapping neighbouring country
+for i,j in mapping_eu_plus.items():
+    weather_ts[i + '_temperature'] = weather_ts[j + '_temperature'].values
+    weather_ts[i + '_radiation_direct_horizontal'] = weather_ts[j + '_radiation_direct_horizontal'].values
+    weather_ts[i + '_radiation_diffuse_horizontal'] = weather_ts[j + '_radiation_diffuse_horizontal'].values
 # separate ghi and temperature
 temp_ts = weather_ts.loc[:, weather_ts.columns.str.endswith('temperature')].rename(columns=lambda x: x[:2])
 ghi_ts = pd.DataFrame((weather_ts.loc[:, weather_ts.columns.str.endswith('direct_horizontal')].values
@@ -223,9 +238,9 @@ final_sc_ts = cdh.copy()
 final_st_ts = ghi_ts.copy()
 
 # set multiindex
-final_sh_ts.columns = pd.MultiIndex.from_product([eu28_country_code, ['HEAT_LOW_T_SH']])
-final_sc_ts.columns = pd.MultiIndex.from_product([eu28_country_code, ['SPACE_COOLING']])
-final_st_ts.columns = pd.MultiIndex.from_product([eu28_country_code, ['SOLAR']])
+final_sh_ts.columns = pd.MultiIndex.from_product([eu34_country_code_iso3166_alpha2, ['HEAT_LOW_T_SH']])
+final_sc_ts.columns = pd.MultiIndex.from_product([eu34_country_code_iso3166_alpha2, ['SPACE_COOLING']])
+final_st_ts.columns = pd.MultiIndex.from_product([eu34_country_code_iso3166_alpha2, ['SOLAR']])
 
 
 """
@@ -242,8 +257,8 @@ elec_load_ts.rename(columns=lambda x: x[:2], inplace=True)
 elec_load_ts['GB'] = elec_load_gb_ts.values
 elec_load_ts *= 1e-3 #put into GW
 # check countries without ts
-elec_load_ts = elec_load_ts.loc[:, elec_load_ts.columns.isin(eu33_country_code_iso3166_alpha2)]
-elec_missing_ts = [i for i in eu33_country_code_iso3166_alpha2 if i not in list(elec_load_ts.columns)]
+elec_load_ts = elec_load_ts.loc[:, elec_load_ts.columns.isin(eu34_country_code_iso3166_alpha2)]
+elec_missing_ts = [i for i in eu34_country_code_iso3166_alpha2 if i not in list(elec_load_ts.columns)]
 # check NaN data and fill them
 # /!\ if there are still NaN values after this procedure should consider using other data
 
@@ -283,15 +298,15 @@ hre4_data['Constant heating/cooling final'] = hre4_data['Constant heating/coolin
 hre4_data = hre4_data.rename(index=dict(zip(eu28_full_names, eu28_country_code)))
 hre4_data = hre4_data.drop(['Cyprus', 'Malta'])
 
-# compute proxy of hre4 data for CH and NO by considering same shares as AT and SE
+# compute proxy of hre4 data for CH and NO by considering same shares as AT and SE,
 sc_elec_cop = 2.5 # COP of space cooling with electricity
 pc_cop = 1 / 0.4965 # COP of process cooling
 demands = pd.read_csv(ex_data_dir / 'regions' / 'Demands.csv', header=0, index_col=[0, 1, 2], sep=CSV_SEPARATOR)
 my_demands = demands.loc[(2015, ['AT', 'CH', 'SE', 'NO'],
                           ['HEAT_HIGH_T', 'HEAT_LOW_T_SH', 'HEAT_LOW_T_HW', 'PROCESS_COOLING', 'SPACE_COOLING']), :].droplevel(level=0, axis=0)
 my_demands = my_demands.sum(axis=1).reset_index().pivot(index='level_0', columns='level_1').droplevel(level=0, axis=1)
-my_demands.loc[:, 'SPACE_COOLING'] *= 1/sc_elec_cop
-my_demands.loc[:, 'PROCESS_COOLING'] *= 1*pc_cop
+my_demands.loc[:, 'SPACE_COOLING'] *= 1 / sc_elec_cop
+my_demands.loc[:, 'PROCESS_COOLING'] *= 1 * pc_cop
 my_demands['Constant heating/cooling final'] = my_demands.loc[:, ['HEAT_HIGH_T', 'HEAT_LOW_T_HW', 'PROCESS_COOLING']]\
     .sum(axis=1)
 my_demands = my_demands.drop(columns=['HEAT_HIGH_T', 'HEAT_LOW_T_HW', 'PROCESS_COOLING'])\
@@ -356,11 +371,10 @@ elec_load_month = elec_load_ts.groupby(by=[elec_load_ts.index.month]).sum()
 final_elec_ts = final_elec_ts.div(final_elec_ts.sum(axis=0), axis=1)
 
 # Fill countries from EU+ with data from neighbouring countries
-elec_c_map = {'AL': 'GR', 'BA': 'HR', 'ME': 'HR', 'MK': 'BG', 'RS': 'RO'}
-for i,j in elec_c_map.items():
-    final_elec_ts[i] = final_elec_ts[j]
+for i,j in mapping_eu_plus.items():
+    final_elec_ts[i] = final_elec_ts[j].values
 
-final_elec_ts.columns = pd.MultiIndex.from_product([eu33_country_code_iso3166_alpha2, ['ELECTRICITY']])
+final_elec_ts.columns = pd.MultiIndex.from_product([eu34_country_code_iso3166_alpha2, ['ELECTRICITY']])
 """
 Reading PV, WIND_ONSHORE and WIND_OFFSHORE ts
 """
@@ -386,9 +400,12 @@ elec_re_ts = elec_re_ts.merge(woff_bg_ts, left_index=True, right_index=True)\
 pv_ts = elec_re_ts.loc[:, elec_re_ts.columns.str.contains('pv')].rename(columns=lambda x: x[:2])
 wind_ts = elec_re_ts.loc[:, elec_re_ts.columns.str.contains('wind')]
 
+# add missing XK PV ts
+pv_ts['XK'] = pv_ts.loc[:, mapping_eu_plus['XK']].values
+
 # put pv ts in proper format
-final_pv_ts = pd.DataFrame(pv_ts.loc[:, eu28_country_code].values, index=pv_ts.index,
-                           columns=pd.MultiIndex.from_product([eu28_country_code, ['PV']]))
+final_pv_ts = pd.DataFrame(pv_ts.loc[:, eu34_country_code_iso3166_alpha2].values, index=pv_ts.index,
+                           columns=pd.MultiIndex.from_product([eu34_country_code_iso3166_alpha2, ['PV']]))
 
 # check countries with missing woff ts
 woff_ts = elec_re_ts.loc[:, elec_re_ts.columns.str.contains('wind_offshore')]
@@ -401,7 +418,7 @@ cp_wind = wind_ts.mean()
 # select best time series for wind on,shore and offshore in each country
 selected_wind_ts = dict()
 final_wind_ts = pd.DataFrame(np.nan, index=wind_ts.index,
-                             columns=pd.MultiIndex.from_product([eu28_country_code, ['WIND_ONSHORE', 'WIND_OFFSHORE']]))
+                             columns=pd.MultiIndex.from_product([eu34_country_code_iso3166_alpha2, ['WIND_ONSHORE', 'WIND_OFFSHORE']]))
 
 won_priority = ['_wind_onshore_near-termfuture', '_wind_onshore_current', '_wind_national_current']
 woff_priority = ['_wind_offshore_near-termfuture', '_wind_offshore_current']
@@ -413,7 +430,7 @@ woff_exceptions = {'EE': 'EE_wind_national_long-termfuture',
                    'LV': 'LT_wind_national_long-termfuture',
                    'PL': 'PL_wind_national_long-termfuture'
                    }
-for r in eu28_country_code:
+for r in eu34_country_code_iso3166_alpha2:
     selected_wind_ts[r] = []
     li = list(wind_ts.loc[:, wind_ts.columns.str.startswith(r)].columns)
     no_won_ts = True
@@ -437,29 +454,42 @@ for r in eu28_country_code:
                     no_woff_ts = False
 
     else: # if doesn't have woff
-        final_wind_ts.loc[:, (r, 'WIND_OFFSHORE')] = 0
+        final_wind_ts.loc[:, (r, 'WIND_OFFSHORE')] = 1e-4
+
+# filling EU+ countries with no WON ts (i.e. all but MK)
+for i,j in mapping_eu_plus.items():
+    if i != 'MK':
+        final_wind_ts.loc[:, (i, 'WIND_ONSHORE')] = final_wind_ts.loc[:, (j, 'WIND_ONSHORE')].values
 
 """
 Shifting passenger mobility and tidal ts according to the region timezone
 """
-base_ts = all_ts.loc[:, (slice(None), ['MOBILITY_PASSENGER', 'TIDAL'])].copy()
+base_ts = all_ts.loc[:, (slice(None), ['MOBILITY_PASSENGER', 'TIDAL'])].copy().reset_index(drop=True)
+base_ts.index = np.arange(1, 8761)
 # add NO
 base_ts.loc[:, ('NO', 'MOBILITY_PASSENGER')] = base_ts.loc[:, ('GB', 'MOBILITY_PASSENGER')].values
 base_ts.loc[:, ('NO', 'TIDAL')] = base_ts.loc[:, ('GB', 'TIDAL')].values
+# add other EU+
+for i,j in mapping_eu_plus.items():
+    base_ts.loc[:, (i, 'MOBILITY_PASSENGER')] = base_ts.loc[:, (j, 'MOBILITY_PASSENGER')].values
+    base_ts.loc[:, (i, 'TIDAL')] = base_ts.loc[:, (j, 'TIDAL')].values
 # create final df with datetime index
 # if leap year do timezone change with previous year and change index at the end
 if leap_yr:
     ref_year -= 1
 dt_utc = pd.date_range(start=datetime(ref_year, 1, 1), end=datetime(ref_year, 12, 31, 23), freq='H', tz=pytz.utc)
 final_mob_ts = pd.DataFrame(np.nan, index=dt_utc,
-                            columns=pd.MultiIndex.from_product([eu28_country_code, ['MOBILITY_PASSENGER']]))
+                            columns=pd.MultiIndex.from_product([eu34_country_code_iso3166_alpha2, ['MOBILITY_PASSENGER']]))
 final_tidal_ts = pd.DataFrame(np.nan, index=dt_utc,
-                            columns=pd.MultiIndex.from_product([eu28_country_code, ['TIDAL']]))
+                            columns=pd.MultiIndex.from_product([eu34_country_code_iso3166_alpha2, ['TIDAL']]))
 
 # change timezone for each country
-for r in eu28_country_code:
+for r in eu34_country_code_iso3166_alpha2:
     # get tz of country
-    tz = pytz.country_timezones(r)[0]
+    if r != 'XK':
+        tz = pytz.country_timezones(r)[0]
+    else:
+        tz = pytz.country_timezones('RS')[0]
     # add 2 first and trailing hours for tz change
     df = base_ts.loc[:, (r, slice(None))]
     df = pd.concat([df.loc[8759:, :], (pd.concat([df, df.loc[:2, :]]))])
@@ -477,68 +507,6 @@ if leap_yr:
     final_tidal_ts = final_tidal_ts.set_index(dt_utc)
 # set tidal ts to 1e-4 for countries without tidal
 final_tidal_ts.loc[:, (~final_tidal_ts.columns.get_level_values(level=0).isin(r_with_tidal), slice(None))] = 1e-4
-
-"""
-Computing Hydro actual capacity and potentials
-"""
-# TODO put into compute_res script and save updated new values
-
-# getting actual installed capacity from JRC Hydro Power Plants db (source1)
-jrc_hydro_db = pd.read_csv((ex_data_dir / 'gitignored' / 'hydro' / 'jrc-hydro-power-plant-database.csv'), header=0)
-jrc_hydro_by_country = jrc_hydro_db.loc[:, ['installed_capacity_MW', 'pumping_MW', 'type',
-       'country_code', 'storage_capacity_MWh', 'avg_annual_generation_GWh']].groupby(['type', 'country_code']).sum()\
-    .rename(index={'EL': 'GR', 'UK': 'GB'}, level=1)
-# select and pivot data from JRC Hydro power plants db
-hydro_fmin_jrc = jrc_hydro_by_country.reset_index().pivot(index='country_code', columns='type')\
-    .drop(columns=[(               'pumping_MW', 'HDAM'),
-                   (               'pumping_MW', 'HROR'),
-                   (     'storage_capacity_MWh', 'HROR'),
-                   ('avg_annual_generation_GWh', 'HDAM'),
-                   ('avg_annual_generation_GWh', 'HPHS'),
-                   ('avg_annual_generation_GWh', 'HROR')
-                   ])
-hydro_fmin_jrc.columns = ['HYDRO_DAM', 'PHS_TURB', 'HYDRO_RIVER', 'PHS_PUMP', 'DAM_STORAGE', 'PHS']
-hydro_fmin_jrc = hydro_fmin_jrc.loc[hydro_fmin_jrc.index.isin(eu33_country_code_iso3166_alpha2), :]
-# convert in GWh
-hydro_fmin_jrc = hydro_fmin_jrc / 1000
-
-# PHS potentials (source 2)
-hydro_phs_pot_jrc = res_pot.loc[:, 'PHS']
-
-# Hydro power potentials for e-highway (source 3)
-hydro_power_ehighway = pd.read_excel((ex_data_dir / 'gitignored' / 'hydro' / 'e-Highway_database_per_country-08022016.xlsx'),
-                            sheet_name='T54', index_col=1, header=3)\
-    .loc[eu33_country_code_iso3166_alpha2,['RoR', 'Hydro with reservoir', 'PSP']]\
-    .rename(columns={'RoR': 'HYDRO_RIVER', 'Hydro with reservoir': 'HYDRO_DAM', 'PSP': 'PHS_TURB'})/1000
-hydro_power_ehighway['PHS_PUMP'] = hydro_power_ehighway['PHS_TURB']
-
-# Building hydro f_max
-hydro_fmax = hydro_power_ehighway.merge(hydro_phs_pot_jrc, left_index=True, right_index=True, how='outer')\
-    .merge(hydro_fmin_jrc.loc[:, 'DAM_STORAGE'], left_index=True, right_index=True, how='outer')
-
-# combining f_min and f_max and verify that f_max is bigger than f_min
-hydro_pot = pd.concat([hydro_fmin_jrc, hydro_fmax], axis=1, join='outer', keys=['f_min', 'f_max'])
-for col in hydro_fmax.columns:
-    hydro_pot.loc[:, ('f_max', col)] = hydro_pot.loc[:, (slice(None), col)].max(axis=1)
-# neglect data smaller then 0.02 GW (or GWh)
-hydro_pot = hydro_pot.mask(hydro_pot < 0.02, np.nan)
-
-# converting pumping and turbing power of PHS into storage_charge_time and storage_discharge_time
-hydro_phs_charge_time = hydro_pot.loc[:, (slice(None), 'PHS')].droplevel(level=1, axis=1)\
-    .div(hydro_pot.loc[:, (slice(None), 'PHS_PUMP')].droplevel(level=1, axis=1)).min(axis=1)
-hydro_phs_discharge_time = hydro_pot.loc[:, (slice(None), 'PHS')].droplevel(level=1, axis=1)\
-    .div(hydro_pot.loc[:, (slice(None), 'PHS_TURB')].droplevel(level=1, axis=1)).min(axis=1)
-hydro_phs_times = pd.concat([hydro_phs_charge_time, hydro_phs_discharge_time], axis=1,
-                            keys=['storage_charge_time', 'storage_discharge_time'])
-hydro_phs_times = hydro_phs_times.fillna(5) # fillna with default value of 5 (from source 2)
-
-# final cleaning of hydro_pot
-hydro_pot.drop(columns=['PHS_PUMP', 'PHS_TURB'], level=1, inplace=True)
-hydro_pot = hydro_pot.fillna(1e-3)
-
-# replace in res_pot
-res_pot.loc[:, hydro_pot.columns.get_level_values(level=1).unique()] =\
-    hydro_pot.loc[:, ('f_max', slice(None))].droplevel(0, axis=1)
 
 """
 Generate hydro dam and hydro river ts from JRC-EFAS-Hydropower
@@ -618,8 +586,8 @@ if ((ref_year - 1) % 4 == 0):
 # sum over each country
 daily_ror_ts_pecd_country = pd.DataFrame(np.nan, index=daily_ror_ts_pecd.index,
                                          columns=pd.MultiIndex.from_product([['HYDRO_RIVER'],
-                                                                              eu33_country_code_iso3166_alpha2]))
-for r in eu33_country_code_iso3166_alpha2:
+                                                                              eu34_country_code_iso3166_alpha2]))
+for r in eu34_country_code_iso3166_alpha2:
     daily_ror_ts_pecd_country.loc[:, (slice(None), r)] = daily_ror_ts_pecd.loc[:,
                                 daily_ror_ts_pecd.columns.get_level_values(level=1).str.startswith(r)].sum(axis=1)
 # check f-max and ts concordance
@@ -674,8 +642,8 @@ weekly_dam_inflow_ts_pecd = weekly_dam_inflow_ts_pecd.drop(columns=['PHS']).pivo
 # sum over each country
 weekly_dam_inflow_ts_pecd_country = pd.DataFrame(np.nan, index=weekly_dam_inflow_ts_pecd.index,
                                          columns=pd.MultiIndex.from_product([['HYDRO_DAM'],
-                                                                              eu33_country_code_iso3166_alpha2]))
-for r in eu33_country_code_iso3166_alpha2:
+                                                                              eu34_country_code_iso3166_alpha2]))
+for r in eu34_country_code_iso3166_alpha2:
     weekly_dam_inflow_ts_pecd_country.loc[:, (slice(None), r)] = weekly_dam_inflow_ts_pecd.loc[:,
                                 weekly_dam_inflow_ts_pecd.columns.get_level_values(level=1).str.startswith(r)].sum(axis=1)
 
@@ -707,24 +675,27 @@ if ref_year == 2017:
 
 # Regrouping all hydro time series data,
 # sources have been chosen based on avalaibility of data and inspection of ts with JRC-EFAS as default db
-dam_from_pecd = ['AL', 'HR']
+dam_from_pecd = ['AL', 'HR', 'XK']
 dam_from_all_ts = ['CH']
+dam_mapping = {'XK': 'RS'}
 r_with_dam = list(res_pot.loc[res_pot.loc[:, 'HYDRO_DAM'] > 0.01, :].index)
-r_without_dam = [i for i in eu33_country_code_iso3166_alpha2 if i not in r_with_dam]
+r_without_dam = [i for i in eu34_country_code_iso3166_alpha2 if i not in r_with_dam]
 
 ror_from_pecd = ['AL', 'BA', 'BE', 'GR', 'HR', 'HU', 'LT', 'LU', 'ME', 'MK', 'NL']
 ror_from_all_ts = ['CH']
-ror_mapping = {'SE': 'NO', 'EE': 'LV'}
+ror_mapping = {'SE': 'NO', 'EE': 'LV', 'DK': 'DE', 'XK': 'RS'}
 r_with_ror = list(res_pot.loc[res_pot.loc[:, 'HYDRO_RIVER'] > 0.01, :].index)
-r_without_ror = [i for i in eu33_country_code_iso3166_alpha2 if i not in r_with_ror]
+r_without_ror = [i for i in eu34_country_code_iso3166_alpha2 if i not in r_with_ror]
 
 # create and fill final_hydro_ts_df
 final_hydro_ts = pd.DataFrame(np.nan, index=dt_utc,
-                              columns=pd.MultiIndex.from_product([eu33_country_code_iso3166_alpha2,
+                              columns=pd.MultiIndex.from_product([eu34_country_code_iso3166_alpha2,
                                                                   ['HYDRO_DAM', 'HYDRO_RIVER']]))
 final_hydro_ts.loc[:, hourly_dam_ts.columns] = hourly_dam_ts
 final_hydro_ts.loc[:, (dam_from_pecd, 'HYDRO_DAM')] = hourly_dam_ts_pecd.loc[:, (dam_from_pecd, 'HYDRO_DAM')]
 final_hydro_ts.loc[:, (dam_from_all_ts, 'HYDRO_DAM')] = all_ts.loc[:, (dam_from_all_ts, 'HYDRO_DAM')].values
+final_hydro_ts.loc[:, (list(dam_mapping.keys()), 'HYDRO_DAM')] = final_hydro_ts.loc[:,
+                                                             (list(dam_mapping.values()), 'HYDRO_DAM')].values
 final_hydro_ts.loc[:, (r_without_dam, 'HYDRO_DAM')] = 1e-4
 
 final_hydro_ts.loc[:, hourly_ror_ts.columns] = hourly_ror_ts
@@ -740,14 +711,10 @@ final_hydro_ts = final_hydro_ts.div(final_hydro_ts.max(axis=0), axis=1)
 """
 Fill all ts with new values
 """
-# selecting only EU28 data
-final_elec_ts = final_elec_ts.loc[:, eu28_country_code]
-final_hydro_ts = final_hydro_ts.loc[:, final_hydro_ts.columns.get_level_values(0).isin(eu28_country_code)]
-
 # creating and filling all_new_ts
 ts_list = list(all_ts.columns.get_level_values(1).unique())
 all_new_ts = pd.DataFrame(np.nan, index=dt_utc,
-                          columns=pd.MultiIndex.from_product([eu28_country_code, ts_list]))
+                          columns=pd.MultiIndex.from_product([eu34_country_code_iso3166_alpha2, ts_list]))
 all_new_ts.loc[:, final_elec_ts.columns] = final_elec_ts
 all_new_ts.loc[:, final_sh_ts.columns] = final_sh_ts
 all_new_ts.loc[:, final_sc_ts.columns] = final_sc_ts
@@ -764,22 +731,67 @@ all_new_ts.loc[:, final_csp_ts.columns] = final_csp_ts
 if all_new_ts.isnull().values.any():
     print('There are NA values in the time series')
 
+"""
+Compute weights of time series for TD selection
+"""
+# 1 . For RES
+# Import mapping of ts from Misc_indep
+file = data_dir / str(proj_year) / '00_INDEP' / 'Misc_indep.json'
+with open(file, 'r') as fp:
+    data = json.load(fp)
+ts_mapping = data['time_series_mapping']
+res_with_ts = list(ts_mapping['res_params'].values()) \
+              + [i for sublist in list(ts_mapping['res_mult_params'].values()) for i in sublist]
+weights_all = res_pot.loc[:, res_with_ts].copy().T
+# Regroup potentials by mapped ts
+for i, j in ts_mapping['res_mult_params'].items():
+    weights_all.loc[i, :] = weights_all.loc[j, :].sum()
+    weights_all = weights_all.drop(j)
+# dropping SOLAR and CSP as solar influence is already represented by PV
+weights_all = weights_all.drop(index=['CSP', 'SOLAR'])
+
+# 2. For demands
+weights_demands_all = demands.loc[(proj_year, slice(None),
+                                   ['ELECTRICITY', 'HEAT_LOW_T_SH', 'SPACE_COOLING']), :].sum(axis=1)\
+    .droplevel(level=0, axis=0)
+weights_demands_all = weights_demands_all.reset_index().pivot(index=['level_1'],
+                                                              columns=['level_0']).droplevel(axis=1, level=0)
+weights_all = pd.concat([weights_demands_all, weights_all], axis=0)
+
+# mask with 1 or 0
+weights_all = weights_all.mask(weights_all > 0.1, 1)
+weights_all = weights_all.mask(weights <= 0.1, 0)
+
+# change values for heating and cooling according to efficiency
+weights_all.loc['HEAT_LOW_T_SH', :] *= 0.204
+weights_all.loc['SPACE_COOLING', :] *= 0.087
+
+
+"""
+Plotting and saving
+"""
 # plotting all final time series
 if plot_final:
-    fig = px.line(all_new_ts.reset_index().melt(id_vars='Time', var_name=['Regions', 'Time series']),
-                  x='Time', y='value', color='Regions', animation_frame='Time series',
-                  markers='*-', title='hdh')
+    fig = px.line(all_new_ts.reset_index().melt(id_vars='index', var_name=['Regions', 'Time series']),
+                  x='index', y='value', color='Regions', animation_frame='Time series',
+                  markers='*-', title='Time series by category')
     fig.show()
-    fig = px.line(all_new_ts.reset_index().melt(id_vars='Time', var_name=['Regions', 'Time series']),
-                  x='Time', y='value', color='Time series', animation_frame='Regions',
-                  markers='*-', title='hdh')
+    fig = px.line(all_new_ts.reset_index().melt(id_vars='index', var_name=['Regions', 'Time series']),
+                  x='index', y='value', color='Time series', animation_frame='Regions',
+                  markers='*-', title='Time series by region')
     fig.show()
 
 if update_ts:
     all_new_ts.to_csv(ex_data_dir / 'regions' / ('Time_series_' + str(ref_year) + '.csv'), sep=CSV_SEPARATOR)
-    for r in eu28_country_code:
+    weights_all.to_csv(ex_data_dir / 'regions' / 'Weights.csv', sep=CSV_SEPARATOR)
+
+    for r in eu34_country_code_iso3166_alpha2:
         all_new_ts.loc[:, (r, slice(None))].droplevel(level=0, axis=1)\
             .to_csv(data_dir / str(proj_year) / r / 'Time_series.csv', sep=CSV_SEPARATOR)
+        weights = weights_all.loc[:, r]
+        weights.name = 'Weights'
+        weights.index.name = 'Time_series'
+        weights.to_csv(data_dir / str(proj_year) / r / 'Weights.csv', sep=CSV_SEPARATOR)
 
 # proj_year = 2035
 # region = 'FR'
