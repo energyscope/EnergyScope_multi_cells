@@ -760,7 +760,7 @@ weights_all = pd.concat([weights_demands_all, weights_all], axis=0)
 
 # mask with 1 or 0
 weights_all = weights_all.mask(weights_all > 0.1, 1)
-weights_all = weights_all.mask(weights <= 0.1, 0)
+weights_all = weights_all.mask(weights_all <= 0.1, 0)
 
 # change values for heating and cooling according to efficiency
 weights_all.loc['HEAT_LOW_T_SH', :] *= 0.204

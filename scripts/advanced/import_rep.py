@@ -11,6 +11,7 @@ from esmc.common import CSV_SEPARATOR, eu34_country_code_iso3166_alpha2, eu34_co
 from esmc.utils.df_utils import clean_indices
 import json
 
+
 eu33_country_code_iso3166_alpha2 = eu34_country_code_iso3166_alpha2.copy()
 eu33_country_code_iso3166_alpha2.remove('XK')
 eu33_country_code_eurostat = eu34_country_code_eurostat.copy()

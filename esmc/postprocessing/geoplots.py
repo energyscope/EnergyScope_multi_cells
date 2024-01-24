@@ -121,14 +121,20 @@ def create_gdf_eu(eu_country_code: list, overlay: bool = True) -> gpd.GeoDataFra
     gdf = gdf.loc[:, ['id', 'geometry']]
 
 
-    # adding geographical data for BA
-    if 'BA' in eu_country_code:
+    # adding geographical data for BA and XK
+    if ('BA' in eu_country_code) or ('XK' in eu_country_code):
         world_df = gpd.read_file(
             ex_data_path / 'gis' / 'ne_10m_admin_0_countries' / 'ne_10m_admin_0_countries.shp')
+    if 'BA' in eu_country_code:
         geo_ba = world_df.loc[world_df['ADMIN'] == 'Bosnia and Herzegovina', ['geometry']]
         geo_ba['id'] = 'BA'
         geo_ba = geo_ba.to_crs(3035)
         gdf = pd.concat([gdf, geo_ba], axis=0).sort_values(by='id').reset_index(drop=True)
+    if 'XK' in eu_country_code:
+        geo_xk = world_df.loc[world_df['ADMIN'] == 'Kosovo', ['geometry']]
+        geo_xk['id'] = 'XK'
+        geo_xk = geo_xk.to_crs(3035)
+        gdf = pd.concat([gdf, geo_xk], axis=0).sort_values(by='id').reset_index(drop=True)
 
     # renaming in ISO-3166 Alpha-2
     if 'UK' in eu_country_code_eurostat:

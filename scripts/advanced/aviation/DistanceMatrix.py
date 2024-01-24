@@ -132,4 +132,4 @@ gpkm_df_extra_eu = gpkm_df_extra_eu.rename(columns={'passengers': 'Extra-EU avia
                                                     'avg_km': 'Extra-EU aviation average distance [km](Eurostat 2019)'})
 
 av_dem_df = gpkm_df_intra_eu.merge(gpkm_df_extra_eu, left_index=True, right_index=True)
-av_dem_df.to_csv('estat_aviation_2019.csv', sep=';')
+av_dem_df.to_csv('estat_aviation_2019.csv', sep=',')

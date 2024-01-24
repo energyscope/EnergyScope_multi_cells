@@ -76,7 +76,7 @@ for c in cases:
     # for sub-optimal space exploration with epsilon optimality
     if 'epsilon' in c:
         my_model.data_indep['Misc_indep']['total_cost_optimum'] = obj
-        my_model.data_indep['Misc_indep']['epsilon'] = 0.01
+        my_model.data_indep['Misc_indep']['epsilon'] = 0.1
 
     if c.endswith('epsilon_onshore_re'):
         my_model.sets['ONSHORE_RE'] = ['PV_UTILITY', 'PT_POWER_BLOCK', 'ST_POWER_BLOCK', 'WIND_ONSHORE']

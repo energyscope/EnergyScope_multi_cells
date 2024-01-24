@@ -71,7 +71,7 @@ all_eud.update(pd.read_csv(project_path / 'Data' / 'exogenous_data' / 'regions' 
 Computing HOUSEHOLDS EUD
 """
 # READ DATA
-house_data = pd.read_csv(clever_path / house_file, header=0, index_col=0, sep=',').sort_index()
+house_data = pd.read_csv(clever_path / house_file, header=0, index_col=0, sep=CSV_SEPARATOR).sort_index()
 
 house_final = all_low_eud.loc[(house_data.index, slice(None)), 'HOUSEHOLDS'].copy().reset_index() \
     .pivot(index='level_0', columns=['level_1']).droplevel(level=0, axis=1)
@@ -166,13 +166,13 @@ Computing SERVICES EUD
 """
 # READ DATA
 # reading tertiary data
-ser_data = pd.read_csv(clever_path / ser_file, header=0, index_col=0, sep=',').sort_index()
+ser_data = pd.read_csv(clever_path / ser_file, header=0, index_col=0, sep=CSV_SEPARATOR).sort_index()
 
 ser_final = all_low_eud.loc[(ser_data.index, slice(None)), 'SERVICES'].copy().reset_index() \
     .pivot(index='level_0', columns=['level_1']).droplevel(level=0, axis=1)
 
 # reading agriculture data (put agric energy consumption is in services)
-agric_data = pd.read_csv(clever_path / agric_file, header=0, index_col=0, sep=',').sort_index()
+agric_data = pd.read_csv(clever_path / agric_file, header=0, index_col=0, sep=CSV_SEPARATOR).sort_index()
 
 # COMPUTE ELEC EUD
 ser_final.loc[:, 'ELECTRICITY'] = ser_data.loc[:, 'Total consumption of specific electricity in the tertiary sector']
@@ -269,7 +269,7 @@ Computing INDUSTRY EUD
 """
 # READ DATA
 # read clever data
-ind_data = pd.read_csv(clever_path / ind_file, header=0, index_col=0, sep=',').sort_index()
+ind_data = pd.read_csv(clever_path / ind_file, header=0, index_col=0, sep=CSV_SEPARATOR).sort_index()
 
 #  read ned_shares 2019 data (assuming similar values as 2015)
 ned_2019 = pd.read_excel(ned_path / ned_file, sheet_name='results', header=1, index_col=0, usecols="A,P:R")
@@ -328,7 +328,7 @@ ind_final.loc[:, 'NON_ENERGY'] = ned_2050.sum(axis=1)
 Computing TRANSPORTATION EUD
 """
 # READ DATA
-trans_data = pd.read_csv(clever_path / transport_file, header=0, index_col=0, sep=',').sort_index()
+trans_data = pd.read_csv(clever_path / transport_file, header=0, index_col=0, sep=CSV_SEPARATOR).sort_index()
 
 trans_final = all_low_eud.loc[(trans_data.index, slice(None)), 'SERVICES'].copy().reset_index() \
     .pivot(index='level_0', columns=['level_1']).droplevel(level=0, axis=1)
@@ -749,7 +749,7 @@ if corrections:
     ship_clever = pd.DataFrame(np.nan, index=trans_final.index, columns=[2015, 2050])
     ship_clever[2050] = trans_final.loc[:, 'SHIPPING']
     trans_data_2015 = pd.read_csv(clever_path / "clever_Transport_2015.csv",
-                                  header=0, index_col=0, sep=',').sort_index()
+                                  header=0, index_col=0, sep=CSV_SEPARATOR).sort_index()
     ship_clever[2015] = trans_data_2015.loc[:,
                                      'Total tonne-kilometres for international water freight transport']
     ship_clever_ev = (ship_clever[2050]).div(ship_clever[2015]).fillna(0)

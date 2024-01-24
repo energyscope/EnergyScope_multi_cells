@@ -8,7 +8,7 @@ commons = {}
 
 commons['logfile'] = str(datetime.datetime.now()).replace(':', '-').replace(' ', '_') + '.energyscope.log'
 
-CSV_SEPARATOR = ';'
+CSV_SEPARATOR = ','
 AMPL_SEPARATOR = '\t'
 
 # defining 2 letter country codes and full country names (ISO3166_alpha2)
