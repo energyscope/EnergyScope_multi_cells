@@ -132,10 +132,14 @@ Synthetic fuels;Synthetic fuels;Methane to methanol;METHANE_TO_METHANOL;546.2;23
 Synthetic fuels;Synthetic fuels;Biomass methanolation;BIOMASS_TO_METHANOL;1764;26.95;0;20;1;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Biowaste methanolation;BIOWASTE_TO_METHANOL;1764;32.879;0;20;1;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Haber bosch (H2 to amonia);HABER_BOSCH;783.58;15.32006656;0;20;1;0;1;0;1.00E+15;
-Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L Gasoline;POWER_TO_GASOLINE;2268.53;80.7642;0;25;0.91;0;1;0;1.00E+15;
-Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L Diesel;POWER_TO_DIESEL;2268.53;80.7642;0;25;0.91;0;1;0;1.00E+15;
-Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L Jet fuel;POWER_TO_JET_FUEL;2268.53;80.7642;0;25;0.91;0;1;0;1.00E+15;
-Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L LFO;POWER_TO_LFO;2268.53;80.7642;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L Gasoline;POWER_TO_GASOLINE;2173.919602;77.39591906;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L Diesel;POWER_TO_DIESEL;2173.919602;77.39591906;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L Jet fuel;POWER_TO_JET_FUEL;2173.919602;77.39591906;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L LFO;POWER_TO_LFO;2173.919602;77.39591906;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch Hydrogen to Gasoline;H2_TO_GASOLINE;1222.860348;74.52158241;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch Hydrogen to Diesel;H2_TO_DIESEL;1222.860348;74.52158241;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch Hydrogen to Jet fuel;H2_TO_JET_FUEL;1222.860348;74.52158241;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch Hydrogen to LFO;H2_TO_LFO;1222.860348;74.52158241;0;25;0.91;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Amonia to H2;AMMONIA_TO_H2;630.24;58.15874827;0;25;0.86;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Oil to HVC;OIL_TO_HVC;365.42;1.942762063;0;15;1;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Gas to HVC;GAS_TO_HVC;737.88;18.44696834;0;25;1;0;1;0;1.00E+15;

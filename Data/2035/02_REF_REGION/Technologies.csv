@@ -136,6 +136,10 @@ Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L Gasoline;POWER_TO_GASOLINE;2
 Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L Diesel;POWER_TO_DIESEL;2989.214183;182.7905442;0;25;0.91;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L Jet fuel;POWER_TO_JET_FUEL;2989.214183;182.7905442;0;25;0.91;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Fischer-Tropsch P2L LFO;POWER_TO_LFO;2989.214183;182.7905442;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch Hydrogen to Gasoline;H2_TO_GASOLINE;1834.290521;112.0284429;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch Hydrogen to Diesel;H2_TO_DIESEL;1834.290521;112.0284429;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch Hydrogen to Jet fuel;H2_TO_JET_FUEL;1834.290521;112.0284429;0;25;0.91;0;1;0;1.00E+15;
+Synthetic fuels;Synthetic fuels;Fischer-Tropsch Hydrogen to LFO;H2_TO_LFO;1834.290521;112.0284429;0;25;0.91;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Amonia to H2;AMMONIA_TO_H2 ;681.24;62.8658412;0;25;0.86;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Oil to HVC;OIL_TO_HVC ;395;2.1;0;15;1;0;1;0;1.00E+15;
 Synthetic fuels;Synthetic fuels;Gas to HVC;GAS_TO_HVC ;797.6;19.93997837;0;25;1;0;1;0;1.00E+15;
