@@ -247,7 +247,7 @@ var Transfer_capacity{c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, n i
 
 # [Figure 4] From annual energy demand to hourly power demand. End_Uses is non-zero only for demand layers.
 subject to end_uses_t {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
-	End_uses [c, l, h, td] >= (if l == "ELECTRICITY"
+	End_uses [c, l, h, td] = (if l == "ELECTRICITY"
 		then
 			(end_uses_input[c,l] * electricity_time_series [c, h, td] / t_op [h, td] ) + Network_losses [c,l,h,td]
 		else (if l == "HEAT_LOW_T_DHN" then
@@ -360,7 +360,7 @@ subject to layer_balance {c in REGIONS, l in LAYERS, h in HOURS, td in TYPICAL_D
 		+ sum {k in TECHNOLOGIES diff STORAGE_TECH} (layers_in_out[k, l] * F_t [c, k, h, td]) 
 		+ sum {j in STORAGE_TECH} ( Storage_out [c, j, l, h, td] - Storage_in [c, j, l, h, td] )
 		- End_uses [c, l, h, td]
-		>= 0;
+		= 0;
 		
 	
 ## Storage	
