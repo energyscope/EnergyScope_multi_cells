@@ -124,7 +124,7 @@ Synthetic fuels,Synthetic fuels,Biowaste pyrolysis to gasoline (and diesel),BIOW
 Synthetic fuels,Synthetic fuels,Fischer Tropsch bio waste Diesel,BIOWASTE_TO_DIESEL,5169.1031,203.70767,0,25,0.91,0,1,0,1.00E+15,
 Synthetic fuels,Synthetic fuels,Fischer Tropsch bio waste Jet fuel,BIOWASTE_TO_JET_FUEL,5169.1031,203.70767,0,25,0.91,0,1,0,1.00E+15,
 Synthetic fuels,Synthetic fuels,Biowaste pyrolysis to LFO,BIOWASTE_TO_LFO,5169.1031,203.70767,0,25,0.91,0,1,0,1.00E+15,
-Synthetic fuels,Synthetic fuels,Diesel to jet fuel,DIESEL_TO_JET_FUEL,0,0,0,25,0.91,0,1,0,1.00E+15,
+Synthetic fuels,Synthetic fuels,Jet fuel to diesel,JET_FUEL_TO_DIESEL,0,0,0,25,0.91,0,1,0,1.00E+15,
 Synthetic fuels,Synthetic fuels,Carbon capture atmospheric,ATM_CCS,4977.27,123.552,0,40,1,0,1,0,1.00E+15,
 Synthetic fuels,Synthetic fuels,Carbon capture from industry,INDUSTRY_CCS,2488.63,61.776,0,40,1,0,1,0,1.00E+15,
 Synthetic fuels,Synthetic fuels,Hydrogen methanolation,SYN_METHANOLATION,957.07,27.15946844,0,20,0.95,0,1,0,1.00E+15,

@@ -39,7 +39,7 @@ for c in cases:
     # define configuration
     config = {'case_study': c,
               'comment': 'none',
-              'regions_names': ['BE', 'DE', 'FR'], #eu28_country_code,
+              'regions_names': eu28_country_code,
               'gwp_limit_overall': gwp_limit_overall,
               're_share_primary': re_share_primary,
               'f_perc': f_perc,
@@ -55,6 +55,10 @@ for c in cases:
     my_model.init_regions()
 
     # update some data
+    ft_to_drop = ['BIOMASS_TO_GASOLINE', 'BIOMASS_TO_DIESEL', 'BIOWASTE_TO_GASOLINE', 'BIOWASTE_TO_DIESEL',
+                  'POWER_TO_GASOLINE', 'POWER_TO_DIESEL', 'H2_TO_GASOLINE', 'H2_TO_DIESEL']
+    my_model.ref_region.data['Technologies'] = my_model.ref_region.data['Technologies'].drop(index=ft_to_drop)
+    my_model.data_indep['Layers_in_out'] = my_model.data_indep['Layers_in_out'].drop(index=ft_to_drop)
     # force to be 100% renewable
     for r_code, region in my_model.regions.items():
         # fossil-free
@@ -62,6 +66,10 @@ for c in cases:
         # nuclear free
         region.data['Technologies'].loc['NUCLEAR', 'f_min'] = 0
         region.data['Technologies'].loc['NUCLEAR', 'f_max'] = 0
+
+        # drop FT GASOLINE and FT DIESEL for clarity
+        region.data['Technologies'] = region.data['Technologies'].drop(index=ft_to_drop)
+
         # no waste incineration
         if c != '100perc_re_plus_waste':
             region.data['Resources'].loc['WASTE', 'avail_local'] = 0
@@ -69,7 +77,7 @@ for c in cases:
     # according to case change some inputs
     if c.startswith('low_demand'):
        ld_all = pd.read_csv(my_model.project_dir / 'Data' / 'exogenous_data' / 'regions' / 'Low_demands_2050.csv',
-                            header=0, index_col=[0, 1], sep=CSV_SEPARATOR)
+                            header=0, index_col=[0, 1], sep=CSV_SEPARATOR) * 1000
        for r_code, region in my_model.regions.items():
            region.data['Demands'].update(ld_all.loc[(r_code, slice(None)), :].droplevel(level=0, axis=0))
 

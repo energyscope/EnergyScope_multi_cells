@@ -1283,53 +1283,53 @@ class Esmc:
 
         return
 
-    def read_results(self, read_hourly:list=[]):
+    def read_results(self, read_hourly:list=[], my_csv_sep=','):
         """ Reads the results printed into csv and store them into results dictionnary
 
         """
         # Reading the main results into csv
         self.results['TotalCost'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'TotalCost.csv',
-                                                header=[0], index_col=[0], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0], sep=my_csv_sep)
         self.results['Cost_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Cost_breakdown.csv',
-                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=my_csv_sep)
         self.results['Gwp_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Gwp_breakdown.csv',
-                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=my_csv_sep)
         self.results['Exchanges_year'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Exchanges_year.csv',
-                                                header=[0], index_col=[0, 1, 2], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1, 2], sep=my_csv_sep)
         self.results['Transfer_capacity'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Transfer_capacity.csv',
-                                                     header=[0], index_col=[0, 1, 2, 3], sep=CSV_SEPARATOR)
+                                                     header=[0], index_col=[0, 1, 2, 3], sep=my_csv_sep)
         self.results['Resources'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Resources.csv',
-                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=my_csv_sep)
         self.results['Assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Assets.csv',
-                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=my_csv_sep)
         self.results['Sto_assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Sto_assets.csv',
-                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=my_csv_sep)
         self.results['Year_balance'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Year_balance.csv',
-                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=my_csv_sep)
         self.results['Curt'] = pd.read_csv(self.cs_dir / 'outputs' / 'regional_results' / 'Curt.csv',
-                                                header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0, 1], sep=my_csv_sep)
 
         # Reading the main results_all into csv
         self.results_all['TotalCost'] = pd.read_csv(self.cs_dir / 'outputs' / 'TotalCost.csv',
-                                                header=[0], index_col=[0], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0], sep=my_csv_sep)
         self.results_all['Cost_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'Cost_breakdown.csv',
-                                                     header=[0], index_col=[0], sep=CSV_SEPARATOR)
+                                                     header=[0], index_col=[0], sep=my_csv_sep)
         self.results_all['Gwp_breakdown'] = pd.read_csv(self.cs_dir / 'outputs' / 'Gwp_breakdown.csv',
-                                                    header=[0], index_col=[0], sep=CSV_SEPARATOR)
+                                                    header=[0], index_col=[0], sep=my_csv_sep)
         self.results_all['Exchanges_year'] = pd.read_csv(self.cs_dir / 'outputs' / 'Exchanges_year.csv',
-                                                     header=[0], index_col=[0], sep=CSV_SEPARATOR)
+                                                     header=[0], index_col=[0], sep=my_csv_sep)
         self.results_all['Transfer_capacity'] = pd.read_csv(self.cs_dir / 'outputs' / 'Transfer_capacity.csv',
-                                                        header=[0], index_col=[0, 1], sep=CSV_SEPARATOR)
+                                                        header=[0], index_col=[0, 1], sep=my_csv_sep)
         self.results_all['Resources'] = pd.read_csv(self.cs_dir / 'outputs' / 'Resources.csv',
-                                                header=[0], index_col=[0], sep=CSV_SEPARATOR)
+                                                header=[0], index_col=[0], sep=my_csv_sep)
         self.results_all['Assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Assets.csv',
-                                             header=[0], index_col=[0], sep=CSV_SEPARATOR)
+                                             header=[0], index_col=[0], sep=my_csv_sep)
         self.results_all['Sto_assets'] = pd.read_csv(self.cs_dir / 'outputs' / 'Sto_assets.csv',
-                                                 header=[0], index_col=[0], sep=CSV_SEPARATOR)
+                                                 header=[0], index_col=[0], sep=my_csv_sep)
         self.results_all['Year_balance'] = pd.read_csv(self.cs_dir / 'outputs' / 'Year_balance.csv',
-                                                   header=[0], index_col=[0], sep=CSV_SEPARATOR)
+                                                   header=[0], index_col=[0], sep=my_csv_sep)
         self.results_all['Curt'] = pd.read_csv(self.cs_dir / 'outputs' / 'Curt.csv',
-                                           header=[0], index_col=[0], sep=CSV_SEPARATOR)
+                                           header=[0], index_col=[0], sep=my_csv_sep)
 
         # reading the solving information and storing them
         if self.esom is None:
@@ -1337,18 +1337,18 @@ class Esmc:
             self.esom = OptiProbl(set_ampl=False)
 
         self.esom.t = list(pd.read_csv(self.cs_dir / 'outputs' / 'Solve_info.csv',
-                                  header=None, index_col=[0], sep=CSV_SEPARATOR).values)
+                                  header=None, index_col=[0], sep=my_csv_sep).values)
 
         for h in read_hourly:
             if h == 'Exchanges':
                 self.hourly_results[h] = pd.read_csv(self.cs_dir / 'outputs' / 'hourly_results' / (h + '.csv'),
-                                                     header=[0], index_col=[0, 1, 2, 3, 4], sep=CSV_SEPARATOR)
+                                                     header=[0], index_col=[0, 1, 2, 3, 4], sep=my_csv_sep)
             elif h == 'Storage_level':
                 self.hourly_results[h] = pd.read_csv(self.cs_dir / 'outputs' / 'hourly_results' / (h + '.csv'),
-                                                     header=[0], index_col=[0, 1, 2], sep=CSV_SEPARATOR)
+                                                     header=[0], index_col=[0, 1, 2], sep=my_csv_sep)
             else:
                 self.hourly_results[h] = pd.read_csv(self.cs_dir / 'outputs' / 'hourly_results' / (h + '.csv'),
-                                                     header=[0], index_col=[0, 1, 2, 3], sep=CSV_SEPARATOR)
+                                                     header=[0], index_col=[0, 1, 2, 3], sep=my_csv_sep)
 
         return
 

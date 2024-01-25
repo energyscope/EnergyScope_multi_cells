@@ -308,7 +308,7 @@ if compute_hydro:
     # combining f_min and f_max and verify that f_max is bigger than f_min
     hydro_pot = pd.concat([hydro_fmin_jrc, hydro_fmax], axis=1, join='outer', keys=['f_min', 'f_max'])
     for col in hydro_fmax.columns:
-        hydro_pot.loc[:, ('f_max', col)] = hydro_pot.loc[:, (slice(None), col)].max(axis=1)
+        hydro_pot.loc[:, ('f_max', col)] = hydro_pot.loc[:, (slice(None), col)].max(axis=1) + 1e-4
     # neglect data smaller then 0.02 GW (or GWh)
     hydro_pot = hydro_pot.mask(hydro_pot < 0.02, np.nan)
 
