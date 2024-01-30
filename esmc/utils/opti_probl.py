@@ -180,17 +180,17 @@ class OptiProbl:
 
         return
 
-    def get_outputs(self):
-        """
-
-               Function to extract the values of each variable after running the optimization problem
-
-                      """
-        # function to get the outputs of ampl under the form of a dict filled with one df for each variable
-        amplpy_sol = self.ampl.getVariables()
-        self.outputs = dict()
-        for name, var in amplpy_sol:
-            self.outputs[name] = self.to_pd(var.getValues())
+    # def get_outputs(self):
+    #     """
+    #
+    #            Function to extract the values of each variable after running the optimization problem
+    #
+    #                   """
+    #     # function to get the outputs of ampl under the form of a dict filled with one df for each variable
+    #     amplpy_sol = self.ampl.getVariables()
+    #     self.outputs = dict()
+    #     for name, var in amplpy_sol:
+    #         self.outputs[name] = self.to_pd(var.getValues())
 
     def get_param(self, param_name: str):
         """Function to extract the mentioned parameter and store it into self.inputs
@@ -245,19 +245,13 @@ class OptiProbl:
         # Getting the names of the sets
         indexing_sets = [s.capitalize() for s in ampl_var.getIndexingSets()]
         # Getting the data of the variable into a pandas dataframe
-        amplpy_df = ampl_var.getValues()
-        var = amplpy_df.toPandas()
-        # getting the number of indices. If var has more then 1 index, we set it as a MultiIndex
-        n_indices = amplpy_df.getNumIndices()
-        if n_indices>1:
-            var.index = pd.MultiIndex.from_tuples(var.index, names=indexing_sets)
-        else:
-            var.index = pd.Index(var.index, name=indexing_sets[0])
+        df = ampl_var.get_values().to_pandas()
+        df.index.names = indexing_sets
         # getting rid of '.val' (4 trailing characters of the string) into columns names such that the name of the columns correspond to the variable
-        var.rename(columns=lambda x: x[:-4], inplace=True)
+        df.rename(columns=lambda x: x[:-4], inplace=True)
         #self.to_pd(ampl_var.getValues()).rename(columns={(var_name+'.val'):var_name})
-        self.outputs[var_name] = var
-        return var
+        self.outputs[var_name] = df
+        return df
 
     # TODO check if not used
 
@@ -415,25 +409,25 @@ class OptiProbl:
                 d[n] = list()
         return d
 
-    @staticmethod
-    def to_pd(amplpy_df):
-        # TODO check if name of indexes can be nasme of corresponding sets
-        """
-
-               Function to transform an amplpy.DataFrame into pandas.DataFrame for easier manipulation
-
-                      Parameters
-                      ----------
-                   amplpy_df : amplpy.DataFrame
-                   amplpy dataframe to transform
-
-
-                      Returns
-                      -------
-                      df : pandas.DataFrame
-                      DataFrame transformed as 'long' dataframe (can be easily pivoted later)
-                      """
-        headers = amplpy_df.getHeaders()
-        columns = {header: list(amplpy_df.getColumn(header)) for header in headers}
-        df = pd.DataFrame(columns)
-        return df
+    # @staticmethod
+    # def to_pd(amplpy_df):
+    #     # TODO check if name of indexes can be nasme of corresponding sets
+    #     """
+    #
+    #            Function to transform an amplpy.DataFrame into pandas.DataFrame for easier manipulation
+    #
+    #                   Parameters
+    #                   ----------
+    #                amplpy_df : amplpy.DataFrame
+    #                amplpy dataframe to transform
+    #
+    #
+    #                   Returns
+    #                   -------
+    #                   df : pandas.DataFrame
+    #                   DataFrame transformed as 'long' dataframe (can be easily pivoted later)
+    #                   """
+    #     headers = amplpy_df.getHeaders()
+    #     columns = {header: list(amplpy_df.getColumn(header)) for header in headers}
+    #     df = pd.DataFrame(columns)
+    #     return df
