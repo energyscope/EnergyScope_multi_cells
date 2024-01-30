@@ -1,6 +1,8 @@
 
 *.log
 
+*.sh
+
 esmc/preprocessing/__pycache__/
 
 esmc/postprocessing/draw_sankey/__pycache__/
