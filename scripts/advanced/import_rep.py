@@ -250,8 +250,6 @@ if get_enspreso or update_actual or print_update:
     # updating with data XK taken from NUTS2 data of ENSPRESO
     biomass_pot_final.loc[('avail_local', 'XK'), :] = [777.7777784, 83.3333334, 14194.44446, 0, 527.77782]
     biomass_pot_final.loc[('c_op_local', 'XK'), :] = biomass_pot_final.loc[('c_op_local', 'RS'), :].values
-    biomass_pot_final.loc[('avail_local', 'RS'), :] = biomass_pot_final.loc[('avail_local', 'RS'), :]\
-                                                      - biomass_pot_final.loc[('avail_local', 'XK'), :]
 
 
 """
