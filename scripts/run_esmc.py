@@ -6,17 +6,17 @@ import sys
 
 import pandas as pd
 
-sys.path.append('/home/pthiran/EnergyScope_multi_cells/')
+sys.path.append('/home/users/p/a/pathiran/EnergyScope_multi_cells/')
 from esmc import Esmc
-from esmc.common import eu28_country_code, CSV_SEPARATOR
+from esmc.common import eu34_country_code_iso3166_alpha2, CSV_SEPARATOR
 
 # defining cases
-cases = ['ref', 'ref_epsilon_onshore_re', 'ref_epsilon_local_biomass',
-         'low_demand', 'low_demand_epsilon_onshore_re', 'low_demand_epsilon_local_biomass']
+cases = ['ref']#, 'ref_epsilon_onshore_re', 'ref_epsilon_local_biomass',
+        # 'low_demand', 'low_demand_epsilon_onshore_re', 'low_demand_epsilon_local_biomass']
 no_imports = ['GASOLINE', 'DIESEL', 'LFO', 'JET_FUEL', 'GAS', 'COAL', 'H2', 'AMMONIA', 'METHANOL']
 
 # number of typical days (check that tse<0.22)
-tds = 14
+tds = 38
 
 print('Nbr_TDs', tds)
 
@@ -32,6 +32,7 @@ save_hourly = ['Resources', 'Exchanges', 'Assets', 'Storage', 'Curt']
 
 i = 0
 
+
 for c in cases:
 
     print(c)
@@ -39,7 +40,7 @@ for c in cases:
     # define configuration
     config = {'case_study': c,
               'comment': 'none',
-              'regions_names': eu28_country_code,
+              'regions_names': eu34_country_code_iso3166_alpha2,
               'gwp_limit_overall': gwp_limit_overall,
               're_share_primary': re_share_primary,
               'f_perc': f_perc,

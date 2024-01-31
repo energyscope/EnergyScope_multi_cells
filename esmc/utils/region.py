@@ -121,7 +121,8 @@ class Region:
         if r_path.is_file():
             if self.ref_region:
                 # read csv and clean df
-                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[3], skiprows=[1]).drop(
+                df = pd.read_csv(r_path, sep=CSV_SEPARATOR, header=[0], index_col=[3], skiprows=[1],
+                                 dtype={'fmin_perc': np.float64, 'f_min': np.float64}).drop(
                     columns=['Comment']
                     , errors='ignore')
                 df = clean_indices(df)

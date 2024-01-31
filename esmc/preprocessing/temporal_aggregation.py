@@ -141,9 +141,9 @@ class TemporalAggregation:
         # prod_ts = ['PV', 'WIND_ONSHORE', 'WIND_OFFSHORE', 'HYDRO_DAM', 'HYDRO_RIVER', 'TIDAL', 'SOLAR']
         # demand_ts = ['ELECTRICITY','HEAT_LOW_T_SH','SPACE_COOLING']
 
-        self.weights.loc[:,'Weights_n'] = 0 # initialize normalized weights column
+        self.weights.loc[:,'Weights_n'] = 0.0 # initialize normalized weights column
         # NORMALIZING WEIGHTS ACCROSS COUNTRIES #
-        regions_total = pd.Series(0,index=self.weights.index.levels[1])
+        regions_total = pd.Series(0.0,index=self.weights.index.levels[1])
         regions_total[demand_ts_with_weight] = self.weights.loc[(slice(None),demand_ts_with_weight), 'Cell_w'].sum(axis=0) # total of demand ts weights
         regions_total[prod_ts_with_weight] = self.weights.loc[(slice(None),prod_ts_with_weight), 'Cell_w'].sum(axis=0) # total of production ts weights
 

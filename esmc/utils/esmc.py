@@ -519,8 +519,8 @@ class Esmc:
         # From temporal aggregation results (td_of_days): generate t_h_td and td_count
         # and compute rescaled typical days ts and peak_sh_factor for each region
         self.ta.generate_t_h_td()
-        peak_sh_factor = pd.DataFrame(0, index=self.regions_names, columns=['peak_sh_factor'])
-        peak_sc_factor = pd.DataFrame(0, index=self.regions_names, columns=['peak_sc_factor'])
+        peak_sh_factor = pd.DataFrame(0.0, index=self.regions_names, columns=['peak_sh_factor'])
+        peak_sc_factor = pd.DataFrame(0.0, index=self.regions_names, columns=['peak_sc_factor'])
         for r in self.regions:
             self.regions[r].rescale_td_ts(self.ta.td_count)
             self.regions[r].compute_peak_sh_and_sc()
@@ -840,7 +840,7 @@ class Esmc:
 
         # Store into results
         self.results['Cost_breakdown'] = cost_breakdown
-        self.results_all['Cost_breakdown'] = cost_breakdown.groupby('Elements').sum()
+        self.results_all['Cost_breakdown'] = cost_breakdown.groupby('Elements', observed=True).sum()
 
         return
 
@@ -888,7 +888,7 @@ class Esmc:
 
         # store into results
         self.results['Gwp_breakdown'] = gwp_breakdown
-        self.results_all['Gwp_breakdown'] = gwp_breakdown.groupby('Elements').sum()
+        self.results_all['Gwp_breakdown'] = gwp_breakdown.groupby('Elements', observed=True).sum()
 
         return
 
@@ -1029,7 +1029,7 @@ class Esmc:
 
         self.results_all['Transfer_capacity'] = all_tc.groupby(['Resources', 'Network_type']).sum() # TODO could be computed into GW*km too
         self.results_all['Exchanges_year'] = exchanges_year_all
-        self.results_all['Resources'] = resources.groupby('Resources').sum()
+        self.results_all['Resources'] = resources.groupby('Resources', observed=True).sum()
         self.results_all['Exch_freight'] = exch_freight.sum()
 
         if 'Exchanges' in save_hourly:
@@ -1168,8 +1168,8 @@ class Esmc:
         self.results['Assets'] = assets
         self.results['Sto_assets'] = sto_assets
 
-        self.results_all['Assets'] = assets.groupby('Technologies').sum()
-        self.results_all['Sto_assets'] = sto_assets.groupby('Technologies').sum()
+        self.results_all['Assets'] = assets.groupby('Technologies', observed=True).sum()
+        self.results_all['Sto_assets'] = sto_assets.groupby('Technologies', observed=True).sum()
 
         if 'Assets' in save_hourly:
             self.hourly_results['F_t'] = f_t.reset_index()\
@@ -1249,7 +1249,7 @@ class Esmc:
 
         # Store into results
         self.results['Year_balance'] = year_balance
-        self.results_all['Year_balance'] = year_balance.groupby('Elements').sum()
+        self.results_all['Year_balance'] = year_balance.groupby('Elements', observed=True).sum()
 
         return
 
