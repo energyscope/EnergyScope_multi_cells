@@ -201,16 +201,17 @@ var Share_freight_train{c in REGIONS}, >= share_freight_train_min[c], <= share_f
 var Share_freight_road{c in REGIONS}, >= share_freight_road_min[c], <= share_freight_road_max[c]; # %_Road: Ratio [0; 1] Road transport over total freight transport
 var Share_freight_boat{c in REGIONS}, >= share_freight_boat_min[c], <= share_freight_boat_max[c]; # %_Boat: Ratio [0; 1] boat transport over total freight transport
 var Share_heat_dhn{c in REGIONS}, >= share_heat_dhn_min[c], <= share_heat_dhn_max[c]; # %_DHN: Ratio [0; 1] centralized over total low-temperature heat
+
 var F {REGIONS, TECHNOLOGIES} >= 0; # F: Installed capacity ([GW]) with respect to main output (see layers_in_out). [GWh] for STORAGE_TECH.
 var F_t {REGIONS, TECHNOLOGIES, HOURS, TYPICAL_DAYS} >= 0; # F_t: Operation in each period [GW] or, for STORAGE_TECH, storage level [GWh]. multiplication factor with respect to the values in layers_in_out table. Takes into account c_p
-var Curt {REGIONS, TECHNOLOGIES, HOURS, TYPICAL_DAYS} >=0; # Curtailement [GW]
-var R_t_local {REGIONS, RESOURCES , HOURS, TYPICAL_DAYS} >= 0; # Use of resource from local feedstock
-var R_t_exterior {REGIONS, RESOURCES , HOURS, TYPICAL_DAYS} >= 0; # Import of resource from the exterior of the overall system
-var R_t_import{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # Import of resources from neighbouring regions modelled in the overall system
-var R_t_export{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # Export of resources to neighbouring region modelled in the overall system
-
+var R_t_local {REGIONS, RESOURCES , HOURS, TYPICAL_DAYS} >= 0; # Use of resource from local feedstock at each period [GW]
+var R_t_exterior {REGIONS, RESOURCES , HOURS, TYPICAL_DAYS} >= 0; # Import of resource from the exterior of the overall system at each period [GW]
 var Storage_in {REGIONS, i in STORAGE_TECH, LAYERS, HOURS, TYPICAL_DAYS} >= 0; # Sto_in [GW]: Power input to the storage in a certain period
 var Storage_out {REGIONS, i in STORAGE_TECH, LAYERS, HOURS, TYPICAL_DAYS} >= 0; # Sto_out [GW]: Power output from the storage in a certain period
+var Transfer_capacity{c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, n in NETWORK_TYPE[i]} >= 0; # Optimal transer capacity from c2 to c1
+var Exch_imp{REGIONS, REGIONS, EXCHANGE_R, HOURS, TYPICAL_DAYS} >= 0; # (Import of c1 from c2) Positive part (import) of the exchanges of ressource between regions during a certain period t [GW]
+var Exch_exp{REGIONS, REGIONS, EXCHANGE_R, HOURS, TYPICAL_DAYS} >= 0; # (Export of c1 to c2) Negative part (export) of the exchanges of ressource between regions during a certain period t [GW]
+
 var Power_nuclear{REGIONS}  >=0; # [GW] P_Nuc: Constant load of nuclear
 var Shares_mobility_passenger {REGIONS, TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_PASSENGER"]} >=0; # %_MobPass [-]: Constant share of passenger mobility
 var Shares_mobility_freight {REGIONS, TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} >=0; # %_Freight [-]: Constant share of passenger mobility
@@ -228,15 +229,13 @@ var TotalGWP{REGIONS} >= 0; # GWP_tot [ktCO2-eq./year]: Total global warming pot
 var GWP_constr {REGIONS, TECHNOLOGIES} >= 0; # GWP_constr [ktCO2-eq.]: Total emissions of the technologies
 var GWP_op {REGIONS, RESOURCES} >= 0; #  GWP_op [ktCO2-eq.]: Total yearly emissions of the resources [ktCO2-eq./y]
 var CO2_net {REGIONS, RESOURCES} >=0;
+var Curt {REGIONS, TECHNOLOGIES, HOURS, TYPICAL_DAYS} >=0; # Curtailement [GW]
 var Network_losses {REGIONS, END_USES_TYPES, HOURS, TYPICAL_DAYS} >= 0; # Net_loss [GW]: Losses in the networks (normally electricity grid and DHN)
 var Storage_level {REGIONS, STORAGE_TECH, PERIODS} >= 0; # Sto_level [GWh]: Energy stored at each period
-var Exch_imp{REGIONS, REGIONS, EXCHANGE_R, HOURS, TYPICAL_DAYS} >= 0; # (Import of c1 from c2) Positive part (import) of the exchanges of ressource between regions during a certain period t [GW]
-var Exch_exp{REGIONS, REGIONS, EXCHANGE_R, HOURS, TYPICAL_DAYS} >= 0; # (Export of c1 to c2) Negative part (export) of the exchanges of ressource between regions during a certain period t [GW]
+var R_t_import{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # Import of resources from neighbouring regions modelled in the overall system
+var R_t_export{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # Export of resources to neighbouring region modelled in the overall system
 var Exch_freight_border{REGIONS, REGIONS} >= 0; # yearly additional freight due to exchanges accross each border
 var Exch_freight{REGIONS} >= 0; # yearly additional freight due to exchanges for each region
-var Transfer_capacity{c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, n in NETWORK_TYPE[i]} >= 0; # Optimal transer capacity from c2 to c1
-#var TC_gas_build{c1 in REGIONS, c2 in REGIONS, g in NETWORK_TYPE["GAS"]} >= 0; # gas pipeline build (include already existing ones and new ones)
-#var TC_gas_retrofit{c1 in REGIONS, c2 in REGIONS, g in NETWORK_TYPE["GAS"]} >= 0; # gas pipeline retrofitted to hydrogen pipelines
 
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
@@ -381,6 +380,8 @@ subject to storage_level {c in REGIONS, j in STORAGE_TECH, t in PERIODS, h in HO
 # [Eq. 15] Bounding daily storage
 subject to impose_daily_storage {c in REGIONS, j in STORAGE_DAILY, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}:
 	Storage_level [c, j, t] = F_t [c, j, h, td];
+subject to impose_non_daily_storage {c in REGIONS, j in STORAGE_TECH diff STORAGE_DAILY, h in HOURS, td in TYPICAL_DAYS}:
+	F_t [c, j, h, td] = 0;
 	
 # [Eq. 16] Bounding seasonal storage
 subject to limit_energy_stored_to_maximum {c in REGIONS, j in STORAGE_TECH diff STORAGE_DAILY , t in PERIODS}:
@@ -396,13 +397,62 @@ subject to storage_layer_out {c in REGIONS, j in STORAGE_TECH, l in LAYERS, h in
 subject to limit_energy_to_power_ratio {c in REGIONS, j in STORAGE_TECH diff {"BEV_BATT","PHEV_BATT"}, l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 	Storage_in [c, j, l, h, td] * storage_charge_time[c,j] + Storage_out [c, j, l, h, td] * storage_discharge_time[c,j] <=  F [c, j] * storage_availability[j];
 
-# [Eq. 2.19-bis] limit the Energy to power ratio. 
-subject to limit_energy_to_power_ratio_bis {c in REGIONS, i in V2G, j in EVs_BATT_OF_V2G[i], l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
-    Storage_in [c, j, l, h, td] * storage_charge_time[c,j] + (Storage_out [c, j, l, h, td] + layers_in_out[i,"ELECTRICITY"]* F_t [c, i, h, td]) * storage_discharge_time[c,j]  <= ( F [c, j] - F_t [c,i,h,td] / vehicule_capacity [i] * batt_per_car[i] ) * storage_availability[j];
+
+## Exchanges
+#-----------------------
+
+# equations common to all types of exchanges
+subject to reciprocity_of_Exchanges {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS} :
+	Exch_imp[c1,c2,i,h,td] * (1 + exchange_losses[i]* dist[c1, c2]/1000) - Exch_exp[c1,c2,i,h,td] = - Exch_imp[c2,c1,i,h,td] * (1 + exchange_losses[i] * dist[c2, c1]/1000) + Exch_exp[c2,c1,i,h,td];
+subject to importation {c1 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS}:
+	R_t_import[c1, i, h, td]  = sum{c2 in REGIONS} Exch_imp[c1,c2,i,h,td];
+subject to exportation {c1 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS}:
+	R_t_export[c1, i, h, td]  = sum{c2 in REGIONS} Exch_exp[c1,c2,i,h,td];
+	
+subject to exchanges_only_between_neighbours {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS : dist[c1, c2] == 0} :
+	Exch_imp[c1,c2,i,h,td] = 0;
+subject to exchanges_only_between_neighbours2 {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS : dist[c1, c2] == 0} :
+	Exch_exp[c1,c2,i,h,td] = 0;
+
+# resources without exchanges
+subject to resources_no_exchanges {c1 in REGIONS, n in NOEXCHANGES, h in HOURS, td in TYPICAL_DAYS} :
+	R_t_import [c1, n, h, td] = 0;
+subject to resources_no_exchanges2 {c1 in REGIONS, n in NOEXCHANGES, h in HOURS, td in TYPICAL_DAYS} :
+	R_t_export [c1, n, h, td] = 0;
+
+## Network exchanges
+subject to capacity_limit_imp {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, h in HOURS, td in TYPICAL_DAYS} :
+	Exch_imp[c1,c2,i,h,td] <= sum{n in NETWORK_TYPE[i]} Transfer_capacity [c2,c1,i,n];
+subject to capacity_limit_exp {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, h in HOURS, td in TYPICAL_DAYS} :
+	Exch_exp[c1,c2,i,h,td] <= sum{n in NETWORK_TYPE[i]} Transfer_capacity [c1,c2,i,n];
+subject to transfer_capacity_bounds {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R diff {"GAS"}, n in NETWORK_TYPE[i]}:
+	tc_min[c1, c2, i, n] <= Transfer_capacity[c1, c2, i, n] <= tc_max[c1, c2, i, n];
+
+subject to bidirectonal_exchanges {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, n in NETWORK_TYPE[i]}:
+	Transfer_capacity [c1,c2,i,n] = Transfer_capacity [c2,c1,i,n];
+	
+# special equations for gas network being retrofitted into hydrogen network
+subject to transfer_capacity_bounds_gas_pipeline {c1 in REGIONS, c2 in REGIONS}:
+	tc_min[c1, c2, "GAS", "GAS_PIPELINE"] <=
+	Transfer_capacity[c1, c2, "GAS", "GAS_PIPELINE"] + Transfer_capacity[c1, c2, "H2", "H2_RETROFITTED"] / retro_gas_to_h2
+	<= tc_max[c1, c2, "GAS", "GAS_PIPELINE"];
+subject to transfer_capacity_bounds_gas_subsea {c1 in REGIONS, c2 in REGIONS}:
+	tc_min[c1, c2, "GAS", "GAS_SUBSEA"] <=
+	Transfer_capacity[c1, c2, "GAS", "GAS_SUBSEA"] + Transfer_capacity[c1, c2, "H2", "H2_SUBSEA_RETRO"] / retro_gas_to_h2
+	<= tc_max[c1, c2, "GAS", "GAS_SUBSEA"];
+	
+# equation to link Transfer_capapcity to equivalent technology
+subject to networks_infra {c1 in REGIONS, i in EXCHANGE_NETWORK_R, n in NETWORK_TYPE[i]}:
+	F[c1, n] >= sum{c2 in REGIONS} (dist[c1, c2] * Transfer_capacity [c1,c2,i,n]/2);
+
+# Freight exchanges (+ eq 25 and 26), computing and adding addtional freight due to exchanges
+subject to freight_of_exchanges_border{c1 in REGIONS, c2 in REGIONS} :
+	Exch_freight_border[c1,c2] = dist[c1,c2] * sum{r in EXCHANGE_FREIGHT_R, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((Exch_imp[c1,c2,r,h,td] + Exch_exp[c1,c2,r,h,td])/lhv[r]);
+subject to freight_of_exchanges{c1 in REGIONS} :
+	Exch_freight[c1] = sum{c2 in REGIONS} Exch_freight_border[c1,c2]/2;
 
 
-
-## Infrastructure
+## Local networks
 #----------------
 
 # [Eq. 20] Calculation of losses for each end-use demand type (normally for electricity and DHN)
@@ -418,14 +468,9 @@ subject to extra_grid{c in REGIONS}:
 # [Eq. 22] DHN: assigning a cost to the network
 subject to extra_dhn{c in REGIONS}:
 	F [c,"DHN"] = sum {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DHN"]} (F [c,j]);
-
 	
-## Additional constraints
-#------------------------
-	
-# [Eq. 24] Fix nuclear production constant : 
-subject to constantNuc {c in REGIONS, h in HOURS, td in TYPICAL_DAYS}:
-	F_t [c,"NUCLEAR", h, td] = Power_nuclear[c];
+## Mobility shares
+#-----------------
 
 # [Eq. 25] Operating strategy in mobility passenger (to make model more realistic)
 # Each passenger mobility technology (j) has to supply a constant share  (Shares_mobility_passenger[j]) of the passenger mobility demand
@@ -442,7 +487,70 @@ subject to Freight_shares {c in REGIONS} :
 	Share_freight_train[c] + Share_freight_road[c] + Share_freight_boat[c] = 1; #sum{j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} (Shares_mobility_freight [c,j]); # =1 should work... But don't know why it doesn't
 
 	
-## Thermal solar & thermal storage:
+## V2G
+#-------
+
+# [Eq. 33]  Impose EVs to be supplied by their battery.
+subject to EV_storage_for_V2G_demand {c in REGIONS, j in V2G, i in EVs_BATT_OF_V2G[j], h in HOURS, td in TYPICAL_DAYS}:
+	Storage_out [c,i,"ELECTRICITY",h,td] >=  - layers_in_out[j,"ELECTRICITY"]* F_t [c, j, h, td];
+
+# [Eq. 32] Compute the equivalent size of V2G batteries based on the share of V2G, the amount of cars and the battery capacity per EVs technology
+subject to EV_storage_size {c in REGIONS, j in V2G, i in EVs_BATT_OF_V2G[j]}:
+	F [c,i] = F[c,j] / vehicule_capacity [j] * batt_per_car[j];# Battery size proportional to the amount of cars
+
+# [Eq. 2.19-bis] limit the Energy to power ratio for EVs_BATT_OF_V2G. 
+subject to limit_energy_to_power_ratio_bis {c in REGIONS, i in V2G, j in EVs_BATT_OF_V2G[i], l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
+    Storage_in [c, j, l, h, td] * storage_charge_time[c,j] + (Storage_out [c, j, l, h, td] + layers_in_out[i,"ELECTRICITY"]* F_t [c, i, h, td]) * storage_discharge_time[c,j]  <= ( F [c, j] - F_t [c,i,h,td] / vehicule_capacity [i] * batt_per_car[i] ) * storage_availability[j];
+	
+# [Eq. 33 bis] Impose a minimum state of charge of EV batteries at some hours of the day
+subject to EV_storage_min_SOC {c in REGIONS, j in V2G, i in EVs_BATT_OF_V2G[j], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}:
+	Storage_level [c, i, t] >= F [c,i] * state_of_charge_ev[j,h];
+
+## Hydro dams
+#-------------
+subject to storage_level_hydro_dams {c in REGIONS diff RWITHOUTDAM}: 
+	F [c,"DAM_STORAGE"] <= f_min [c,"DAM_STORAGE"] + (f_max [c,"DAM_STORAGE"]-f_min [c,"DAM_STORAGE"]) * (F [c,"HYDRO_DAM"] - f_min [c,"HYDRO_DAM"])/(f_max [c,"HYDRO_DAM"] - f_min [c,"HYDRO_DAM"]);
+
+# [Eq. 41] Hydro dams can stored the input energy and restore it whenever. Hence, inlet is the input river and outlet is bounded by max capacity
+subject to impose_hydro_dams_inflow {c in REGIONS, h in HOURS, td in TYPICAL_DAYS}: 
+	Storage_in [c, "DAM_STORAGE", "ELECTRICITY", h, td] = F_t [c, "HYDRO_DAM", h, td];
+
+# [Eq. 42] Hydro dams production is lower than installed F_t capacity:
+subject to limit_hydro_dams_output {c in REGIONS, h in HOURS, td in TYPICAL_DAYS}: 
+	Storage_out [c, "DAM_STORAGE", "ELECTRICITY", h, td] <= F [c,"HYDRO_DAM"];
+
+
+## CSP
+#-----
+# Limit on solar multiple of csp plants (by definition, sm = (F_coll*eta_pb)/F_pb
+subject to sm_limit_solar_tower {c in REGIONS}:
+	-F[c,"ST_COLLECTOR"]/layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"] <= sm_max * F[c,"ST_POWER_BLOCK"];
+
+subject to sm_limit_parabolic_trough {c in REGIONS}:
+	-F[c,"PT_COLLECTOR"]/layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"] <= sm_max * F[c,"PT_POWER_BLOCK"];
+	
+
+## Solar area
+#-------------
+
+# [Eq. 39] Limit surface area for solar
+subject to solar_area_rooftop_limited {c in REGIONS} :
+	(F[c,"PV_ROOFTOP"])/power_density_pv +(F[c,"DEC_SOLAR"]+F[c,"DHN_SOLAR"])/power_density_solar_thermal <= solar_area_rooftop [c];
+
+subject to solar_area_ground_limited {c in REGIONS} :
+	(F[c,"PV_UTILITY"])/power_density_pv
+		+ (-F[c,"PT_COLLECTOR"]/layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"] - F[c,"ST_COLLECTOR"]/layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"])/power_density_pv
+<= solar_area_ground [c];
+
+subject to solar_area_ground_high_irr_limited {c in REGIONS} :
+	(-F[c,"PT_COLLECTOR"]/layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"]
+		-F[c,"ST_COLLECTOR"]/layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"])/power_density_pv
+<= solar_area_ground_high_irr [c];
+
+
+
+# Decentralised heat production (Thermal solar & thermal storage)
+#-----------------------------------------------------------------
 
 # [Eq. 26] relation between decentralised thermal solar power and capacity via period capacity factor.
 subject to thermal_solar_capacity_factor {c in REGIONS, j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, h in HOURS, td in TYPICAL_DAYS}:
@@ -457,22 +565,8 @@ subject to decentralised_heating_balance  {c in REGIONS, j in TECHNOLOGIES_OF_EN
 	F_t [c, j, h, td] + F_t_solar [c, j, h, td] + sum {l in LAYERS } ( Storage_out [c, i, l, h, td] - Storage_in [c, i, l, h, td])  
 		= Shares_lowT_dec[c,j] * (end_uses_input[c,"HEAT_LOW_T_HW"] / total_time + end_uses_input[c,"HEAT_LOW_T_SH"] * heating_time_series [c, h, td] / t_op [h, td]);
 
-## EV storage :
-
-# [Eq. 32] Compute the equivalent size of V2G batteries based on the share of V2G, the amount of cars and the battery capacity per EVs technology
-subject to EV_storage_size {c in REGIONS, j in V2G, i in EVs_BATT_OF_V2G[j]}:
-	F [c,i] = F[c,j] / vehicule_capacity [j] * batt_per_car[j];# Battery size proportional to the amount of cars
-	
-# [Eq. 33]  Impose EVs to be supplied by their battery.
-subject to EV_storage_for_V2G_demand {c in REGIONS, j in V2G, i in EVs_BATT_OF_V2G[j], h in HOURS, td in TYPICAL_DAYS}:
-	Storage_out [c,i,"ELECTRICITY",h,td] >=  - layers_in_out[j,"ELECTRICITY"]* F_t [c, j, h, td];
-	
-# [Eq. 33 bis] Impose a minimum state of charge of EV batteries at some hours of the day
-subject to EV_storage_min_SOC {c in REGIONS, j in V2G, i in EVs_BATT_OF_V2G[j], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}:
-	Storage_level [c, i, t] >= F [c,i] * state_of_charge_ev[j,h];
-		
-## Peak demand :
-
+## Peak demand
+#--------------
 # [Eq. 34] Peak in decentralized heating
 subject to peak_lowT_dec {c in REGIONS, j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, h in HOURS, td in TYPICAL_DAYS}:
 	F [c,j] >= peak_sh_factor[c] * F_t [c, j, h, td] ;
@@ -488,6 +582,19 @@ subject to peak_lowT_dhn {c in REGIONS}:
 # [Eq. 34] Peak in space cooling
 subject to peak_space_cooling {c in REGIONS, j in TECHNOLOGIES_OF_END_USES_TYPE["SPACE_COOLING"], h in HOURS, td in TYPICAL_DAYS}:
 	F [c,j] >= peak_sc_factor[c] * F_t [c, j, h, td] ;
+
+	
+## Additional constraints
+#------------------------
+	
+# [Eq. 24] Fix nuclear production constant : 
+subject to constantNuc {c in REGIONS, h in HOURS, td in TYPICAL_DAYS}:
+	F_t [c,"NUCLEAR", h, td] = Power_nuclear[c];
+	
+	# [Eq. 39] Energy efficiency is a fixed cost
+subject to extra_efficiency{c in REGIONS}:
+	F [c,"EFFICIENCY"] = 1 / (1 + i_rate);
+	
 
 
 ## Adaptation for the case study: Constraints needed for the application to Switzerland (not needed in standard LP formulation)
@@ -529,115 +636,12 @@ subject to f_min_perc {c in REGIONS, eut in END_USES_TYPES, j in TECHNOLOGIES_OF
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,j,h,td] * t_op[h,td]) >= fmin_perc [c,j] * 
 	(sum {j2 in TECHNOLOGIES_OF_END_USES_TYPE[eut], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c, j2, h, td] * t_op[h,td])
 	+ sum {r in RESOURCES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out [r, eut] * (R_t_local [c, r, h, td] + R_t_exterior [c, r, h, td] + R_t_import [c, r, h, td] - R_t_export [c, r, h, td])));
-
-# [Eq. 39] Energy efficiency is a fixed cost
-subject to extra_efficiency{c in REGIONS}:
-	F [c,"EFFICIENCY"] = 1 / (1 + i_rate);
 	
 # [Eq. ..] Limit electricity import capacity
 subject to max_elec_import {c in REGIONS, h in HOURS, td in TYPICAL_DAYS}:
 	R_t_exterior [c,"ELECTRICITY", h, td] * t_op [h, td] <= import_capacity[c]; 
 
-## Variant equations for hydro dams	
-# [Eq. 40] Seasonal storage in hydro dams.
-# When installed power of new dams 0 -> 0.44, maximum storage capacity changes linearly 0 -> 2400 GWh/y
-subject to storage_level_hydro_dams {c in REGIONS diff RWITHOUTDAM}: 
-	F [c,"DAM_STORAGE"] <= f_min [c,"DAM_STORAGE"] + (f_max [c,"DAM_STORAGE"]-f_min [c,"DAM_STORAGE"]) * (F [c,"HYDRO_DAM"] - f_min [c,"HYDRO_DAM"])/(f_max [c,"HYDRO_DAM"] - f_min [c,"HYDRO_DAM"]);
-
-# [Eq. 41] Hydro dams can stored the input energy and restore it whenever. Hence, inlet is the input river and outlet is bounded by max capacity
-subject to impose_hydro_dams_inflow {c in REGIONS, h in HOURS, td in TYPICAL_DAYS}: 
-	Storage_in [c, "DAM_STORAGE", "ELECTRICITY", h, td] = F_t [c, "HYDRO_DAM", h, td];
-
-# [Eq. 42] Hydro dams production is lower than installed F_t capacity:
-subject to limit_hydro_dams_output {c in REGIONS, h in HOURS, td in TYPICAL_DAYS}: 
-	Storage_out [c, "DAM_STORAGE", "ELECTRICITY", h, td] <= F [c,"HYDRO_DAM"];
-
-
-# [Eq. 39] Limit surface area for solar
-subject to solar_area_rooftop_limited {c in REGIONS} :
-	(F[c,"PV_ROOFTOP"])/power_density_pv +(F[c,"DEC_SOLAR"]+F[c,"DHN_SOLAR"])/power_density_solar_thermal <= solar_area_rooftop [c];
-
-subject to solar_area_ground_limited {c in REGIONS} :
-	(F[c,"PV_UTILITY"])/power_density_pv
-		+ (-F[c,"PT_COLLECTOR"]/layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"] - F[c,"ST_COLLECTOR"]/layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"])/power_density_pv
-<= solar_area_ground [c];
-
-subject to solar_area_ground_high_irr_limited {c in REGIONS} :
-	(-F[c,"PT_COLLECTOR"]/layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"]
-		-F[c,"ST_COLLECTOR"]/layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"])/power_density_pv
-<= solar_area_ground_high_irr [c];
-
-# Limit on solar multiple of csp plants (by definition, sm = (F_coll*eta_pb)/F_pb
-subject to sm_limit_solar_tower {c in REGIONS}:
-	-F[c,"ST_COLLECTOR"]/layers_in_out ["ST_POWER_BLOCK", "ST_HEAT"] <= sm_max * F[c,"ST_POWER_BLOCK"];
-
-subject to sm_limit_parabolic_trough {c in REGIONS}:
-	-F[c,"PT_COLLECTOR"]/layers_in_out ["PT_POWER_BLOCK", "PT_HEAT"] <= sm_max * F[c,"PT_POWER_BLOCK"];
 
 
 
-# EQUATIONS Multi-Cells
-#-----------------------
-
-# equations common to all types of exchanges
-subject to reciprocity_of_Exchanges {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS} :
-	Exch_imp[c1,c2,i,h,td] * (1 + exchange_losses[i]* dist[c1, c2]/1000) - Exch_exp[c1,c2,i,h,td] = - Exch_imp[c2,c1,i,h,td] * (1 + exchange_losses[i] * dist[c2, c1]/1000) + Exch_exp[c2,c1,i,h,td];
-subject to importation {c1 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS}:
-	R_t_import[c1, i, h, td]  = sum{c2 in REGIONS} Exch_imp[c1,c2,i,h,td];
-subject to exportation {c1 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS}:
-	R_t_export[c1, i, h, td]  = sum{c2 in REGIONS} Exch_exp[c1,c2,i,h,td];
-	
-subject to exchanges_only_between_neighbours {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS : dist[c1, c2] == 0} :
-	Exch_imp[c1,c2,i,h,td] = 0;
-subject to exchanges_only_between_neighbours2 {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS : dist[c1, c2] == 0} :
-	Exch_exp[c1,c2,i,h,td] = 0;
-
-# resources without exchanges
-subject to resources_no_exchanges {c1 in REGIONS, n in NOEXCHANGES, h in HOURS, td in TYPICAL_DAYS} :
-	R_t_import [c1, n, h, td] = 0;
-subject to resources_no_exchanges2 {c1 in REGIONS, n in NOEXCHANGES, h in HOURS, td in TYPICAL_DAYS} :
-	R_t_export [c1, n, h, td] = 0;
-
-# network exchanges
-subject to capacity_limit_imp {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, h in HOURS, td in TYPICAL_DAYS} :
-	Exch_imp[c1,c2,i,h,td] <= sum{n in NETWORK_TYPE[i]} Transfer_capacity [c2,c1,i,n];
-subject to capacity_limit_exp {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, h in HOURS, td in TYPICAL_DAYS} :
-	Exch_exp[c1,c2,i,h,td] <= sum{n in NETWORK_TYPE[i]} Transfer_capacity [c1,c2,i,n];
-subject to transfer_capacity_bounds {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R diff {"GAS"}, n in NETWORK_TYPE[i]}:
-	tc_min[c1, c2, i, n] <= Transfer_capacity[c1, c2, i, n] <= tc_max[c1, c2, i, n];
-
-subject to bidirectonal_exchanges {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_NETWORK_R, n in NETWORK_TYPE[i]}:
-	Transfer_capacity [c1,c2,i,n] = Transfer_capacity [c2,c1,i,n];
-	
-# special equations for gas network being retrofitted into hydrogen network
-subject to transfer_capacity_bounds_gas_pipeline {c1 in REGIONS, c2 in REGIONS}:
-	tc_min[c1, c2, "GAS", "GAS_PIPELINE"] <=
-	Transfer_capacity[c1, c2, "GAS", "GAS_PIPELINE"] + Transfer_capacity[c1, c2, "H2", "H2_RETROFITTED"] / retro_gas_to_h2
-	<= tc_max[c1, c2, "GAS", "GAS_PIPELINE"];
-subject to transfer_capacity_bounds_gas_subsea {c1 in REGIONS, c2 in REGIONS}:
-	tc_min[c1, c2, "GAS", "GAS_SUBSEA"] <=
-	Transfer_capacity[c1, c2, "GAS", "GAS_SUBSEA"] + Transfer_capacity[c1, c2, "H2", "H2_SUBSEA_RETRO"] / retro_gas_to_h2
-	<= tc_max[c1, c2, "GAS", "GAS_SUBSEA"];
-	
-# equation to link Transfer_capapcity to equivalent technology
-subject to networks_infra {c1 in REGIONS, i in EXCHANGE_NETWORK_R, n in NETWORK_TYPE[i]}:
-	F[c1, n] >= sum{c2 in REGIONS} (dist[c1, c2] * Transfer_capacity [c1,c2,i,n]/2);
-
-# freight exchanges (+ eq 25 and 26), computing and adding addtional freight due to exchanges
-subject to freight_of_exchanges_border{c1 in REGIONS, c2 in REGIONS} :
-	Exch_freight_border[c1,c2] = dist[c1,c2] * sum{r in EXCHANGE_FREIGHT_R, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((Exch_imp[c1,c2,r,h,td] + Exch_exp[c1,c2,r,h,td])/lhv[r]);
-subject to freight_of_exchanges{c1 in REGIONS} :
-	Exch_freight[c1] = sum{c2 in REGIONS} Exch_freight_border[c1,c2]/2;
-#subject to additional_freight{c in REGIONS} :
-#	sum{j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} (Shares_mobility_freight [c,j]) = (Exch_freight[c] + end_uses_input[c,"MOBILITY_FREIGHT"])/(end_uses_input[c,"MOBILITY_FREIGHT"]);
-
-# fixing Exch_freight_border to 0 when same region 
-#let {c1 in REGIONS} Exch_freight_border[c1, c1] := 0;
-#fix {c1 in REGIONS} Exch_freight_border[c1, c1];
-
-
-#let {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS} Exch_imp[c1, c2, i, h, td] := 0;
-#fix {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS: dist[c1, c2] == 0} Exch_imp[c1, c2, i, h, td];
-#let {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS} Exch_exp[c1, c2, i, h, td] := 0;
-#fix {c1 in REGIONS, c2 in REGIONS, i in EXCHANGE_R, h in HOURS, td in TYPICAL_DAYS: dist[c1, c2] == 0} Exch_exp[c1, c2, i, h, td];
 
