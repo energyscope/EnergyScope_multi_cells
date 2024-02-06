@@ -664,7 +664,7 @@ class Esmc:
                              'barstart=4',
                              'comptol=1e-5',
                              'crossover=0',
-                             'timelimit 64800',
+                             'timelimit 172800',
                              'bardisplay=1',
                              'prestats=1',
                              'display=2']
@@ -776,6 +776,7 @@ class Esmc:
     def get_year_results(self, save_hourly: list=[]):
         """Wrapper function to get the year summary results"""
         logging.info('Getting year summary')
+        self.get_objective()
         self.get_total_cost()
         self.get_cost_breakdown()
         self.get_gwp_breakdown()
@@ -784,6 +785,13 @@ class Esmc:
         self.get_year_balance()
         self.get_curt(save_hourly=save_hourly)
         return
+
+    def get_objective(self):
+        """Gets the value of the objective and stores it in self.results_all['Objective']
+        """
+        logging.info('Getting Objective')
+        self.results_all['Objective'] = self.esom.ampl.get_objective('obj').get_values().to_pandas()
+
 
     def get_total_cost(self):
         """Get the total annualized cost of the energy system of the different regions

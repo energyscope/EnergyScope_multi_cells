@@ -11,12 +11,17 @@ from esmc import Esmc
 from esmc.common import eu34_country_code_iso3166_alpha2, CSV_SEPARATOR
 
 # defining cases
-cases = ['ref']#, 'ref_epsilon_onshore_re', 'ref_epsilon_local_biomass',
-        # 'low_demand', 'low_demand_epsilon_onshore_re', 'low_demand_epsilon_local_biomass']
+cases = [
+    'ref', 'ref_epsilon_onshore_re', 'ref_epsilon_local_biomass', 'ref_epsilon_imports', 'ref_epsilon_elec_grid',
+    'low_demand', 'low_demand_epsilon_onshore_re', 'low_demand_epsilon_local_biomass',
+    'low_demand_epsilon_imports', 'low_demand_epsilon_elec_grid',
+    'nuc', 'nuc_epsilon_onshore_re', 'nuc_epsilon_local_biomass', 'nuc_epsilon_imports', 'nuc_epsilon_elec_grid'
+]
+
 no_imports = ['GASOLINE', 'DIESEL', 'LFO', 'JET_FUEL', 'GAS', 'COAL', 'H2', 'AMMONIA', 'METHANOL']
 
 # number of typical days (check that tse<0.22)
-tds = 38
+tds = 16
 
 print('Nbr_TDs', tds)
 
@@ -31,7 +36,6 @@ f_perc = False
 save_hourly = ['Resources', 'Exchanges', 'Assets', 'Storage', 'Curt']
 
 i = 0
-
 
 for c in cases:
 
@@ -75,12 +79,18 @@ for c in cases:
         if c != '100perc_re_plus_waste':
             region.data['Resources'].loc['WASTE', 'avail_local'] = 0
 
-    # according to case change some inputs
+    # according to scenario change some inputs
     if c.startswith('low_demand'):
        ld_all = pd.read_csv(my_model.project_dir / 'Data' / 'exogenous_data' / 'regions' / 'Low_demands_2050.csv',
                             header=0, index_col=[0, 1], sep=CSV_SEPARATOR) * 1000
        for r_code, region in my_model.regions.items():
            region.data['Demands'].update(ld_all.loc[(r_code, slice(None)), :].droplevel(level=0, axis=0))
+    elif c.startswith('nuc'):
+        nuc_all = pd.read_csv(my_model.project_dir / 'Data' / 'exogenous_data' / 'regions' / 'nuclear_2050.csv',
+                              header=0, index_col=0, sep=CSV_SEPARATOR)
+        for r_code, region in my_model.regions.items():
+            region.data['Technologies'].loc['NUCLEAR', 'f_max'] = nuc_all.loc[r_code, 'Nuclear']
+
 
     # for sub-optimal space exploration with epsilon optimality
     if 'epsilon' in c:
@@ -95,6 +105,12 @@ for c in cases:
         my_model.sets['BIOMASS'] = ['WOOD', 'WET_BIOMASS', 'ENERGY_CROPS_2', 'BIOMASS_RESIDUES', 'BIOWASTE']
         mod_path = [my_model.cs_dir / 'ESMC_model_AMPL.mod',
                     my_model.cs_dir / 'epsilon_models' / 'epsilon_local_biomass.mod']
+    elif c.endswith('epsilon_imports'):
+        mod_path = [my_model.cs_dir / 'ESMC_model_AMPL.mod',
+                    my_model.cs_dir / 'epsilon_models' / 'epsilon_imports.mod']
+    elif c.endswith('epsilon_elec_grid'):
+        mod_path = [my_model.cs_dir / 'ESMC_model_AMPL.mod',
+                    my_model.cs_dir / 'epsilon_models' / 'epsilon_elec_grid.mod']
 
     # Initialize and solve the temporal aggregation algorithm:
     # if already run, set algo='read' to read the solution of the clustering
