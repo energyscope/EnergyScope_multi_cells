@@ -251,7 +251,9 @@ class TemporalAggregation:
         my_optimizer.run_ampl()
         # get cluster_matrix, compute td_of_days and print it
         cm = my_optimizer.ampl.getVariable('Cluster_matrix').get_values().to_pandas()
-        cm = cm.reset_index().pivot(index='index0', columns='index1', values='Cluster_matrix.val')
+        ind = cm.index.names[0]
+        col = cm.index.names[1]
+        cm = cm.reset_index().pivot(index=ind, columns=col, values='Cluster_matrix.val')
         # cm = my_optimizer.outputs['Cluster_matrix'].pivot(index='index0', columns='index1', values='Cluster_matrix.val')
         cm.index.name = None
         td_of_days = pd.DataFrame(cm.mul(np.arange(1, 366), axis=0).sum(axis=0), index=np.arange(1,366),
