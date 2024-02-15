@@ -16,6 +16,6 @@ subject to epsilon_space :
 ##########################
 
 # Minimize the installed capacity of ONSHORE_RE
-minimize obj:  sum {c in REGIONS, i in ONSHORE_RE} (F [c,i])
+minimize obj:  sum {c in REGIONS, i in ONSHORE_RE} (F [c,i] - f_min [c,i]);
 
 
