@@ -214,7 +214,8 @@ var Exch_exp{REGIONS, REGIONS, EXCHANGE_R, HOURS, TYPICAL_DAYS} >= 0; # (Export 
 
 var Power_nuclear{REGIONS}  >=0; # [GW] P_Nuc: Constant load of nuclear
 var Shares_mobility_passenger {REGIONS, TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_PASSENGER"]} >=0; # %_MobPass [-]: Constant share of passenger mobility
-var Shares_mobility_freight {REGIONS, TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} >=0; # %_Freight [-]: Constant share of passenger mobility
+var Shares_mobility_freight {REGIONS, TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"]} >=0; # %_Freight [-]: Constant share of freight mobility
+var Shares_shipping {REGIONS, TECHNOLOGIES_OF_END_USES_CATEGORY["SHIPPING"]} >=0; # %_Shipping [-]: Constant share of shipping
 var Shares_lowT_dec {REGIONS, TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}}>=0 ; # %_HeatDec [-]: Constant share of heat Low T decentralised + its specific thermal solar
 var F_solar         {REGIONS, TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} >=0; # F_sol [GW]: Solar thermal installed capacity per heat decentralised technologies
 var F_t_solar       {REGIONS, TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, h in HOURS, td in TYPICAL_DAYS} >= 0; # F_t_sol [GW]: Solar thermal operating per heat decentralised technologies
@@ -478,9 +479,14 @@ subject to operating_strategy_mob_passenger{c in REGIONS, j in TECHNOLOGIES_OF_E
 	F_t [c, j, h, td]   = Shares_mobility_passenger [c,j] * (end_uses_input[c,"MOBILITY_PASSENGER"] * mob_pass_time_series [c, h, td] / t_op [h, td] );
 
 # [Eq. 25] Operating strategy in mobility freight (to make model more realistic)
-# Each freight mobility technology (j) has to supply a constant share  (Shares_mobility_freight[j]) of the passenger mobility demand
+# Each freight mobility technology (j) has to supply a constant share  (Shares_mobility_freight[j]) of the freight mobility demand
 subject to operating_strategy_mobility_freight{c in REGIONS, j in TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_FREIGHT"], h in HOURS, td in TYPICAL_DAYS}:
 	F_t [c, j, h, td]   = Shares_mobility_freight [c,j] * (end_uses_input[c,"MOBILITY_FREIGHT"] * mob_freight_time_series [c, h, td] / t_op [h, td] );
+	
+# [Eq. 25] Operating strategy in shipping (to make model more realistic)
+# Each shipping technology (j) has to supply a constant share  (Shares_shipping[j]) of the shipping demand
+subject to operating_strategy_shipping{c in REGIONS, j in TECHNOLOGIES_OF_END_USES_CATEGORY["SHIPPING"], h in HOURS, td in TYPICAL_DAYS}:
+	F_t [c, j, h, td]   = Shares_shipping [c,j] * (end_uses_input[c,"SHIPPING"] / total_time);
 
 # [Eq. 26] To impose a constant share in the mobility
 subject to Freight_shares {c in REGIONS} :
