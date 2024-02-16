@@ -11,7 +11,7 @@ from esmc.preprocessing.temporal_aggregation import TemporalAggregation
 import esmc.preprocessing.dat_print as dp
 import esmc.postprocessing.amplpy2pd as a2p
 from esmc.utils.df_utils import clean_indices
-from esmc.common import CSV_SEPARATOR, AMPL_SEPARATOR
+from esmc.common import CSV_SEPARATOR, AMPL_SEPARATOR, named_space_id
 import shutil
 import git
 import pandas as pd
@@ -59,7 +59,11 @@ class Esmc:
         self.comment = config['comment']
         self.regions_names = config['regions_names']
         self.regions_names.sort()
-        self.space_id = '_'.join(self.regions_names)  # identification of the spatial case study in one string
+        # identification of the spatial case study in one string
+        self.space_id = '_'.join(self.regions_names)
+        # renaming for special names
+        if self.space_id in named_space_id.keys():
+            self.space_id = named_space_id[self.space_id]
         self.nbr_td = nbr_td
         # TODO integrate in print .dat
         self.gwp_limit_overall = config['gwp_limit_overall']  # None or number
