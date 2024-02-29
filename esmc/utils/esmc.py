@@ -1041,7 +1041,7 @@ class Esmc:
         self.results['Exch_freight_border'] = exch_freight_border
         self.results['Exch_freight'] = exch_freight
 
-        self.results_all['Transfer_capacity'] = all_tc.groupby(['Resources', 'Network_type']).sum() # TODO could be computed into GW*km too
+        self.results_all['Transfer_capacity'] = all_tc.groupby(['Resources', 'Network_type']).sum() / 2 # divided by 2 as bidir
         self.results_all['Exchanges_year'] = exchanges_year_all
         self.results_all['Resources'] = resources.groupby('Resources', observed=True).sum()
         self.results_all['Exch_freight'] = exch_freight.sum()
