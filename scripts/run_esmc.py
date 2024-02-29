@@ -6,17 +6,21 @@ import sys
 
 import pandas as pd
 
-sys.path.append('/home/users/p/a/pathiran/EnergyScope_multi_cells/')
+sys.path.append('/home/pthiran/EnergyScope_multi_cells/')
 from esmc import Esmc
 from esmc.common import eu34_country_code_iso3166_alpha2, CSV_SEPARATOR
 
 # defining cases
 cases = [
-    'ref', 'ref_epsilon_onshore_re', 'ref_epsilon_local_biomass', 'ref_epsilon_imports', 'ref_epsilon_elec_grid',
-    'low_demand', 'low_demand_epsilon_onshore_re', 'low_demand_epsilon_local_biomass',
-    'low_demand_epsilon_imports', 'low_demand_epsilon_elec_grid',
-    'nuc', 'nuc_epsilon_onshore_re', 'nuc_epsilon_local_biomass', 'nuc_epsilon_imports', 'nuc_epsilon_elec_grid'
+    'ref',
+    #'ref_epsilon_onshore_re', 'ref_epsilon_local_biomass' , 'ref_epsilon_elec_grid',
+    'low_demand',
+    #'low_demand_epsilon_onshore_re', 'low_demand_epsilon_local_biomass', 'low_demand_epsilon_elec_grid',
+    'nuc'
+    #, 'nuc_epsilon_onshore_re', 'nuc_epsilon_local_biomass', 'nuc_epsilon_elec_grid'
 ]
+
+costs_opt = {'ref': 1544566.662, 'low_demand': 1040567.887, 'nuc': 1543629.5}
 
 no_imports = ['GASOLINE', 'DIESEL', 'LFO', 'JET_FUEL', 'GAS', 'COAL', 'H2', 'AMMONIA', 'METHANOL']
 
@@ -75,27 +79,35 @@ for c in cases:
         # drop FT GASOLINE and FT DIESEL for clarity
         region.data['Technologies'] = region.data['Technologies'].drop(index=ft_to_drop)
 
-        # no waste incineration
-        if c != '100perc_re_plus_waste':
-            region.data['Resources'].loc['WASTE', 'avail_local'] = 0
-
     # according to scenario change some inputs
     if c.startswith('low_demand'):
-       ld_all = pd.read_csv(my_model.project_dir / 'Data' / 'exogenous_data' / 'regions' / 'Low_demands_2050.csv',
-                            header=0, index_col=[0, 1], sep=CSV_SEPARATOR) * 1000
-       for r_code, region in my_model.regions.items():
-           region.data['Demands'].update(ld_all.loc[(r_code, slice(None)), :].droplevel(level=0, axis=0))
+        obj = costs_opt['low_demand']
+        # read low demand
+        ld_all = pd.read_csv(my_model.project_dir / 'Data' / 'exogenous_data' / 'regions' / 'Low_demands_2050.csv',
+                             header=0, index_col=[0, 1], sep=CSV_SEPARATOR) * 1000
+        for r_code, region in my_model.regions.items():
+            # update demand in each region
+            region.data['Demands'].update(ld_all.loc[(r_code, slice(None)), :].droplevel(level=0, axis=0))
+            # no short haul flights
+            region.data['Misc']['share_short_haul_flights_min'] = 0
+            region.data['Misc']['share_short_haul_flights_max'] = 1e-4
     elif c.startswith('nuc'):
+        obj = costs_opt['nuc']
+        # read nuclear projections
         nuc_all = pd.read_csv(my_model.project_dir / 'Data' / 'exogenous_data' / 'regions' / 'nuclear_2050.csv',
                               header=0, index_col=0, sep=CSV_SEPARATOR)
         for r_code, region in my_model.regions.items():
-            region.data['Technologies'].loc['NUCLEAR', 'f_max'] = nuc_all.loc[r_code, 'Nuclear']
+            # force to install nuclear
+            region.data['Technologies'].loc['NUCLEAR_SMR', 'f_min'] = nuc_all.loc[r_code, 'Nuclear'] - 1e-3
+            region.data['Technologies'].loc['NUCLEAR_SMR', 'f_max'] = nuc_all.loc[r_code, 'Nuclear']
+    else:
+        obj = costs_opt['ref']
 
 
-    # for sub-optimal space exploration with epsilon optimality
+    # for near-optimal space exploration with epsilon optimality
     if 'epsilon' in c:
         my_model.data_indep['Misc_indep']['total_cost_optimum'] = obj
-        my_model.data_indep['Misc_indep']['epsilon'] = 0.1
+        my_model.data_indep['Misc_indep']['epsilon'] = 0.05
 
     if c.endswith('epsilon_onshore_re'):
         my_model.sets['ONSHORE_RE'] = ['PV_UTILITY', 'PT_POWER_BLOCK', 'ST_POWER_BLOCK', 'WIND_ONSHORE']
@@ -105,9 +117,6 @@ for c in cases:
         my_model.sets['BIOMASS'] = ['WOOD', 'WET_BIOMASS', 'ENERGY_CROPS_2', 'BIOMASS_RESIDUES', 'BIOWASTE']
         mod_path = [my_model.cs_dir / 'ESMC_model_AMPL.mod',
                     my_model.cs_dir / 'epsilon_models' / 'epsilon_local_biomass.mod']
-    elif c.endswith('epsilon_imports'):
-        mod_path = [my_model.cs_dir / 'ESMC_model_AMPL.mod',
-                    my_model.cs_dir / 'epsilon_models' / 'epsilon_imports.mod']
     elif c.endswith('epsilon_elec_grid'):
         mod_path = [my_model.cs_dir / 'ESMC_model_AMPL.mod',
                     my_model.cs_dir / 'epsilon_models' / 'epsilon_elec_grid.mod']
