@@ -238,7 +238,7 @@ var R_t_import{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # Import of resour
 var R_t_export{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # Export of resources to neighbouring region modelled in the overall system
 var Exch_freight_border{REGIONS, REGIONS} >= 0; # yearly additional freight due to exchanges accross each border
 var Exch_freight{REGIONS} >= 0; # yearly additional freight due to exchanges for each region
-var Import_constant {REGIONS, RES_IMPORT_CONSTANT} >= 0; " variable to fix the imports of certain resources as constant over the year
+var Import_constant {REGIONS, RES_IMPORT_CONSTANT} >= 0; # variable to fix the imports of certain resources as constant over the year
 
 
 #########################################

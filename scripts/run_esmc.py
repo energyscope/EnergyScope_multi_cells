@@ -149,10 +149,6 @@ for c in cases:
     my_model.get_year_results(save_hourly=save_hourly)
     my_model.prints_esom(inputs=True, outputs=True, solve_info=True, save_hourly=save_hourly)
 
-    # getting objective value
-    if 'epsilon' not in c:
-        obj = my_model.results_all['TotalCost'].values[0]
-
     # delete ampl object to free resources
     my_model.esom.ampl.close()
 
