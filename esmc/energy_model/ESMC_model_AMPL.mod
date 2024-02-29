@@ -623,16 +623,20 @@ subject to Minimum_RE_share {c in REGIONS} :
 	sum {j in RESOURCES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (R_t_local [c, j, h, td]+ R_t_exterior [c, j, h, td] + R_t_import [c, j, h, td]) * t_op [h, td]	;
 
 
-## Those 2 equations or the 2 after must be activated but not both	
+## Those 3 equations or the 2 after must be activated but not both	
 # [Eq. 38] Definition of min/max output of each technology as % of total output in a given layer.
 subject to f_max_perc_train_pub {c in REGIONS}:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,"TRAIN_PUB",h,td] * t_op[h,td]) 
 	<= fmax_perc [c,"TRAIN_PUB"] * sum {j in TECHNOLOGIES_OF_END_USES_TYPE["MOB_PUBLIC"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c, j, h, td] * t_op[h,td]);
 	
-# [Eq. 38] Definition of min/max output of each technology as % of total output in a given layer.
 subject to f_max_perc_tramway {c in REGIONS}:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,"TRAMWAY_TROLLEY",h,td] * t_op[h,td]) 
 	<= fmax_perc [c,"TRAMWAY_TROLLEY"] * sum {j in TECHNOLOGIES_OF_END_USES_TYPE["MOB_PUBLIC"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c, j, h, td] * t_op[h,td]);
+
+subject to f_max_perc_ind_direct_elec {c in REGIONS}:
+	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,"IND_DIRECT_ELEC",h,td] * t_op[h,td]) 
+	<= fmax_perc [c,"IND_DIRECT_ELEC"] * sum {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_HIGH_T"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c, j, h, td] * t_op[h,td]);
+
 
 subject to f_max_perc {c in REGIONS, eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE[eut]}:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [c,j,h,td] * t_op[h,td])

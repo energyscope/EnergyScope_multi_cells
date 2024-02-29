@@ -59,7 +59,7 @@ Heat,Heat low temperature decentralised,Bioler gas (decentralised),DEC_BOILER_GA
 Heat,Heat low temperature decentralised,Boiler wood (decentralised),DEC_BOILER_WOOD,462.4403034,16.18129038,21.09,17,1,0,1,0,1.00E+15,
 Heat,Heat low temperature decentralised,Boiler oil (decentralised),DEC_BOILER_OIL,142.3822455,8.54012548,21.09,17,1,0,1,0,1.00E+15,
 Heat,Heat low temperature decentralised,Solar thermal (decentralised),DEC_SOLAR,719.0748197,8.090645191,221.22,20,1,0,1,0,1.00E+15,
-Heat,Heat low temperature decentralised,Direct electrical heaters (decentralised),DEC_DIRECT_ELEC,39.97565315,0.177919281,1.47,15,1,0,1,0,1.00E+15,
+Heat,Heat low temperature decentralised,Direct electrical heaters (decentralised),DEC_DIRECT_ELEC,39.97565315,0.177919281,1.47,15,1,0,0.6,0,1.00E+15,
 Cold,Space cooling,Electrical refrigeration cycle,DEC_ELEC_COLD,474.1657,20.2629,164.89,20,1,0,1,0,1.00E+15,
 Cold,Space cooling,Thermal refrigeration cycle gas,DEC_THHP_GAS_COLD,304.2371,9.14,381.93,20,1,0,1,0,0.00E+00,
 Cold,Process cooling,Industrial electric cooling,IND_ELEC_COLD,754.2914,9.8557,174.79,20,0.95,0,1,0,1.00E+15,

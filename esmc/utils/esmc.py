@@ -694,6 +694,7 @@ class Esmc:
             # drop specific f_perc for train pub and tramway if all f_perc are considered
             self.esom.ampl.get_constraint('f_max_perc_train_pub').drop()
             self.esom.ampl.get_constraint('f_max_perc_tramway').drop()
+            self.esom.ampl.get_constraint('f_max_perc_ind_direct_elec').drop()
         else:
             # drop general f_perc constraints
             self.esom.ampl.get_constraint('f_max_perc').drop()
