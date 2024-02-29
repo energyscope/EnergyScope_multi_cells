@@ -53,7 +53,8 @@ set LAYERS := (RESOURCES diff NOT_LAYERS) union END_USES_TYPES; # Layers are use
 set TECHNOLOGIES := (setof {i in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE [i]} j) union STORAGE_TECH union INFRASTRUCTURE; 
 set TECHNOLOGIES_OF_END_USES_CATEGORY {i in END_USES_CATEGORIES} within TECHNOLOGIES := setof {j in END_USES_TYPES_OF_CATEGORY[i], k in TECHNOLOGIES_OF_END_USES_TYPE [j]} k;
 set RE_RESOURCES within RESOURCES; # List of RE resources (including wind hydro solar), used to compute the RE share
-set NOEXCHANGES within RESOURCES; # List of RE resources that can not physically be exchanged: wind, geo, hydro, solar
+set NOEXCHANGES within RESOURCES; # List of resources that can not physically be exchanged (ex: wind, geo, hydro, solar)
+set RES_IMPORT_CONSTANT within RESOURCES; # List of resources that are imported with a constant value over the year
 set V2G within TECHNOLOGIES;   # EVs which can be used for vehicle-to-grid (V2G).
 set EVs_BATT   within STORAGE_TECH; # specific battery of EVs
 set EVs_BATT_OF_V2G {V2G}; # Makes the link between batteries of EVs and the V2G technology
@@ -237,6 +238,8 @@ var R_t_import{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # Import of resour
 var R_t_export{REGIONS, RESOURCES, HOURS, TYPICAL_DAYS} >= 0; # Export of resources to neighbouring region modelled in the overall system
 var Exch_freight_border{REGIONS, REGIONS} >= 0; # yearly additional freight due to exchanges accross each border
 var Exch_freight{REGIONS} >= 0; # yearly additional freight due to exchanges for each region
+var Import_constant {REGIONS, RES_IMPORT_CONSTANT} >= 0; " variable to fix the imports of certain resources as constant over the year
+
 
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
@@ -349,6 +352,10 @@ subject to resource_availability_local {c in REGIONS, i in RESOURCES}:
 	
 subject to resource_availability_exterior {c in REGIONS, i in RESOURCES}:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (R_t_exterior [c, i, h, td] * t_op [h, td]) <= avail_exterior [c, i];
+	
+# [Eq. 2.12-bis] Constant flow of import for resources listed in SET RES_IMPORT_CONSTANT
+subject to resource_constant_import {c in REGIONS, i in RES_IMPORT_CONSTANT, h in HOURS, td in TYPICAL_DAYS}:
+	R_t_exterior [c, i, h, td] * t_op [h, td] = Import_constant [c, i];
 
 ## Layers
 #--------

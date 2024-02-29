@@ -389,6 +389,7 @@ class Esmc:
             self.sets['EXPORT'] = list(self.data_indep['Resources_indep'][self.data_indep['Resources_indep']
                                        .loc[:,'Category'] == 'Export'].index)
             self.sets['NOT_LAYERS'] = self.data_indep['Misc_indep']['add_sets']['NOT_LAYERS']
+            self.sets['RES_IMPORT_CONSTANT'] = self.data_indep['Misc_indep']['add_sets']['RES_IMPORT_CONSTANT']
             # exchanges related sets
             self.sets['EXCHANGE_FREIGHT_R'] = self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_FREIGHT_R']
             self.sets['EXCHANGE_NETWORK_R'] = self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_NETWORK_R']
