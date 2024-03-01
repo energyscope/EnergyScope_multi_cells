@@ -98,8 +98,8 @@ for c in cases:
                               header=0, index_col=0, sep=CSV_SEPARATOR)
         for r_code, region in my_model.regions.items():
             # force to install nuclear
-            region.data['Technologies'].loc['NUCLEAR_SMR', 'f_min'] = nuc_all.loc[r_code, 'Nuclear'] - 1e-3
-            region.data['Technologies'].loc['NUCLEAR_SMR', 'f_max'] = nuc_all.loc[r_code, 'Nuclear']
+            region.data['Technologies'].loc['NUCLEAR_SMR', 'f_min'] = nuc_all.loc[r_code, 'Nuclear']
+            region.data['Technologies'].loc['NUCLEAR_SMR', 'f_max'] = nuc_all.loc[r_code, 'Nuclear'] + 1e-4
     else:
         obj = costs_opt['ref']
 
