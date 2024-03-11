@@ -20,7 +20,7 @@ cases = [
     #, 'nuc_epsilon_onshore_re', 'nuc_epsilon_local_biomass', 'nuc_epsilon_elec_grid'
 ]
 
-costs_opt = {'ref': 1544566.662, 'low_demand': 1040567.887, 'nuc': 1543629.5}
+costs_opt = {'ref': 1534711.614, 'low_demand': 1090425.704, 'nuc': 1535076.406}
 
 no_imports = ['GASOLINE', 'DIESEL', 'LFO', 'JET_FUEL', 'GAS', 'COAL', 'H2', 'AMMONIA', 'METHANOL']
 
