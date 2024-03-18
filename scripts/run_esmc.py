@@ -110,6 +110,7 @@ for c in cases:
         my_model.data_indep['Misc_indep']['epsilon'] = 0.05
 
     if c.endswith('epsilon_onshore_re'):
+        my_model.data_indep['Misc_indep']['power_density_won'] = 0.0088
         my_model.sets['ONSHORE_RE'] = ['PV_UTILITY', 'PT_POWER_BLOCK', 'ST_POWER_BLOCK', 'WIND_ONSHORE']
         mod_path = [my_model.cs_dir / 'ESMC_model_AMPL.mod',
                     my_model.cs_dir / 'epsilon_models' / 'epsilon_onshore_re.mod']
