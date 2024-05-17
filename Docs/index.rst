@@ -44,14 +44,15 @@ Contents
    sections/Overview
    sections/Releases
    sections/Getting started
+   sections/How to contribute
    sections/Model formulation
    sections/Input Data
    sections/Bibliography
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
+.. Indices and tables
+   ==================
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`
 * :ref:`search`
 

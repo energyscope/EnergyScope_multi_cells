@@ -234,7 +234,7 @@ These data are put into perspective with the real data for 2015.
 		H2 , 0 , 0 , [TWh]
 		woody [gg]_ , 13.9 , 23.4 , [TWh]
 		wet , 11.6 [hh]_ , 38.9 , [TWh]
-		7.87 , 17.8 , [TWh]
+		waste (non-RE), 7.87 , 17.8 , [TWh]
       
    .. [ff]
       Bioethanol also accounts for other bio-fuels
@@ -400,10 +400,10 @@ Since, a specific study for the Belgian case has been conducted by a consortium 
       | ources**    | {op}`       | {op}`       | {2direct}`  |             |
       |             |             |             | [26]_       |             |
       +-------------+-------------+-------------+-------------+-------------+
-      |             | [€\ :sub:`2\| [kgCO\      | [kgCO:sub:\ | [GWh]       |
-      |             | 015`/MWh\   | :sub:`2-eq.`| `2`/MWh\    |             |
-      |             | :sub:`fuel`]| /MWh\       | :sub:`fuel`]|             |
-      |             |             | :sub:`fuel`]|             |             |
+      |             | [€\ :sub:`2\| [kgCO\      | [kgCO\      | [GWh]       |
+      |             | 015`/MWh\   | :sub:`2-eq.`| :sub:`2-eq.`|             |
+      |             | :sub:`fuel`]| /MWh\       | /MWh\       |             |
+      |             |             | :sub:`fuel`]| :sub:`fuel`]|             |
       +-------------+-------------+-------------+-------------+-------------+
       | Electricity | 84.3 [27]_  | 206.4 [28]_ | 0           | 27.5        |
       | Import      |             |             |             |             |
@@ -440,10 +440,10 @@ Since, a specific study for the Belgian case has been conducted by a consortium 
       |             |             | idema_ecoin\|             |             |
       |             |             | vent_2013`  |             |             |
       +-------------+-------------+-------------+-------------+-------------+
-      | Bio-diesel  | 120.0       | 0  [36]_    | 270         | infinity    |
+      | Bio-diesel  | 120.0       | 0 [36]_     | 270         | infinity    |
       |             |             |             |             |             |
       +-------------+-------------+-------------+-------------+-------------+
-      | B\          | 111.3 [35]_ | 0  [36]_    | 250         | infinity    |
+      | B\          | 111.3 [35]_ | 0 [36]_     | 250         | infinity    |
       | io-gasoline |             |             |             |             |
       +-------------+-------------+-------------+-------------+-------------+
       | Renew. gas  | 118.3       | 0 [36]_     | 200         | infinity    |
@@ -545,7 +545,7 @@ Since, a specific study for the Belgian case has been conducted by a consortium 
    Emissions related to electro-fuels
    and bio-fuels production are neglected.
    
-.. [36]
+.. [37]
    Belgium is phasing out coal. Coal is still used in industrial processes.
    In 2015, 33.3 TWh of coal were used. Thus, the amount available should be lower than this value.
 
@@ -647,7 +647,7 @@ building. HDD is derived from measurements of outside air temperature.
 The heating requirements for a given building at a specific location are
 considered to be directly proportional to the number of HDD at that
 location. [...] Heating degree days are defined relative to a base
-temperature*”. According to the European Environment Agency [37]_, the
+temperature*”. According to the European Environment Agency [37b]_, the
 base temperature is 15.5\ :math:`^o`\ C, we took 16\ :math:`^o`\ C. HDH
 are computed as the difference between ambient temperature and the
 reference temperature at each hour of the year. If the ambient
@@ -2444,8 +2444,8 @@ data for the hydrogen production technologies.
       |               | {inv}`        | {maint}`      | time`         |               | {H2}`         | {2,direct}`   |
       |               |               |               |               |               |               | [346]_        |
       +---------------+---------------+---------------+---------------+---------------+---------------+---------------+
-      |               | [€\ :math:`{  | [€\ :math:`{  | [y]           | [%]           | [%]           | [tCO\ :sub:`2`|
-      |               | _2015}`/kW\   | _2015}`/kW\   |               |               |               | /MWh\         |
+      |               | [€\ :math:`_  | [€\ :math:`_  | [y]           | [%]           | [%]           | [tCO\ :sub:`2`|
+      |               | {2015}`/kW\   | {2015}`/kW\   |               |               |               | /MWh\         |
       |               | :math:`_      | :math:`_      |               |               |               | :sub:`e`]     |
       |               | {H2}`]        | {H2}`/y]      |               |               |               |               |
       +---------------+---------------+---------------+---------------+---------------+---------------+---------------+
@@ -2650,10 +2650,11 @@ around 0.2 kWh of energy to sequestrate this amount
       |             | {inv}`      | {maint}`    | time`       |             | {CO_2}`     | {min,\%}`   | {max,\%}`   |
       |             |             |             |             |             |             |             |             |
       +-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-      |             | [€\ :math:`_| [€\ :math:`_| [y]         | [kWh\       | [%]         | [%]         | [%]         |
-      |             | {2015}`/kW\ | {2015}`/kW\ |             | :sub`e`/    |             |             |             |
-      |             | :math:`_    | :math:`_    |             | tCO\        |             |             |             |
-      |             | {fuel}`]    | {fuel}`/y]  |             | :sub:`2`]   |             |             |             |
+      |             | [€\ :math:`_| [€\ :math:`_| [y]         | [kWh\:sub`e`| [%]         | [%]         | [%]         |
+      |             | {2015}`/kg\ | {2015}`/kg\ |             | /           |             |             |             |
+      |             | :math:`_    | :math:`_    |             | kg\         |             |             |             |
+      |             | {CO_2}`/h]  | {CO_2}`/h   |             | :sub:`2`]   |             |             |             |
+      |             |             | /y]         |             |             |             |             |             |
       +-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
       | CC Ind.     | 2580        | 64.8        | 40          | 0.233       | 90 [367]_   | 0           | 100         |
       +-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
@@ -2698,8 +2699,8 @@ technical performances of each technology.
       |           | {inv}`    | {maint}`  | p_{con    | fetime`   |
       |           |           |           | str}`     |           |
       +-----------+-----------+-----------+-----------+-----------+
-      |           | [:math:`\ | [:math:`\ | [kgCO\    | [y]       |
-      |           | €_{2015}` | €_{2015}` | :sub:`2`  |           |
+      |           | [€:math:` | [€:math:` | [kgCO\    | [y]       |
+      |           | \_{2015}` | \_{2015}` | :sub:`2`  |           |
       |           | /kWh]     | /kWh/y]   | -eq./kWh] |           |
       +-----------+-----------+-----------+-----------+-----------+
       | Li-on     | 302       | 0.62      | 61.3      | 15 [296]_ |
@@ -3132,7 +3133,7 @@ Switzerland).
    onshore and offshore, were assumed respectively.
 
 
-.. [37]
+.. [37b]
    From
    https://www.eea.europa.eu/data-and-maps/indicators/heating-degree-days-2,
    consulted the 06-12-2019

@@ -140,20 +140,5 @@ Therefore, a short computaitonal time is required to enable many sampling.
 EnergyScope TD is a snapshot model, in the sence that it represents the energy system in a target future year, without considering existing system.
 
 
-Current developments
-====================
-
-- Multi-region : 
-  **Main contributors**: Paolo Thiran
-
-- Myopic pathway transition : 
-  **Main contributors**: Xavier Rixhon
-
-- Multi-criteria optimisation: 
-
-- Soft-coupling with a dispatch model: 
-  **Main contributors**: Paolo Thiran, Matija Pavicevic and Gauthier Limpens
-
-
 
 
