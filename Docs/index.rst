@@ -33,6 +33,8 @@ Main contributors
 * Gauthier **Limpens** : gauthierLimpens@gmail.com
 * Stefano **Moret** (`website <https://www.stefanomoret.com/>`_): moret.stefano@gmail.com
 
+There are many other developers making this model a community!
+You will meet them (and their work) in :doc:`/sections/Releases` section.
 
 
 Contents
