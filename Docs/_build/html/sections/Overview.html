@@ -1,0 +1,672 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Overview &#8212; EnergyScopeMC documentation 1.3 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'sections/Overview';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Releases" href="Releases.html" />
+    <link rel="prev" title="The EnergyScope Multi-Cells model" href="../index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/estd_graphical_abstract.png" class="logo__image only-light" alt="EnergyScopeMC documentation 1.3 documentation - Home"/>
+    <script>document.write(`<img src="../_static/estd_graphical_abstract.png" class="logo__image only-dark" alt="EnergyScopeMC documentation 1.3 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="#">
+                        Overview
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="Releases.html">
+                        Releases
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="Getting%20started.html">
+                        Getting started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="How%20to%20contribute.html">
+                        How to contribute
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="Model%20formulation.html">
+                        Model formulation
+                      </a>
+                    </li>
+                
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+                    <li class="nav-item">
+                      <a class="nav-link dropdown-item nav-internal" href="Input%20Data.html">
+                        Input Data
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link dropdown-item nav-internal" href="Bibliography.html">
+                        Bibliography
+                      </a>
+                    </li>
+                
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="#">
+                        Overview
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="Releases.html">
+                        Releases
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="Getting%20started.html">
+                        Getting started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="How%20to%20contribute.html">
+                        How to contribute
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="Model%20formulation.html">
+                        Model formulation
+                      </a>
+                    </li>
+                
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links-2">
+                    More
+                </button>
+                <ul id="pst-nav-more-links-2" class="dropdown-menu">
+                    
+                    <li class="nav-item">
+                      <a class="nav-link dropdown-item nav-internal" href="Input%20Data.html">
+                        Input Data
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link dropdown-item nav-internal" href="Bibliography.html">
+                        Bibliography
+                      </a>
+                    </li>
+                
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Overview</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">#</a></h1>
+<div class="admonition caution" id="label-sec-overview">
+<p class="admonition-title">Caution</p>
+<p>TO BE UPDATED TO MULTI-CELLS version</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Version</dt>
+<dd class="field-odd"><p> (1.3)</p>
+</dd>
+<dt class="field-even">Date</dt>
+<dd class="field-even"><p>May 23, 2024</p>
+</dd>
+<dt class="field-odd">Version main developer</dt>
+<dd class="field-odd"><p>Paolo Thiran (UCLouvain)</p>
+</dd>
+<dt class="field-even">Short summary</dt>
+<dd class="field-even"><p>Mulit-regional <em>whole</em>-energy system with an hourly resolution and data for the European energy system in 2035.</p>
+</dd>
+</dl>
+<p>The EnergyScope model optimises the design and operation of all the energy sectors, with the same level of details. The energy sectors are defined as electricity, heat, mobility and non-energy demand.</p>
+<p>The EnergyScope model is developped through a collaboration between UCLouvain (Belgium) and EPFL (Switerland).
+It was originally created by EPFL (Switzerland) since 2011.</p>
+<p>It is written in an algebraic language which can be compiled with an open source solver (GLPK) but also commercial one (AMPL).</p>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this heading">#</a></h2>
+<p>In the energy system community, several criteria are used to compare models.
+EnergyScope TD is a bottom-up energy system model and has been compared to 53 other models in <span id="id1"><sup><a class="reference internal" href="Bibliography.html#id17" title="Gauthier Limpens. Generating energy transition pathways: application to Belgium. PhD thesis, UCLouvain, 2021. doi:10.13140/RG.2.2.25755.18724.">1</a></sup></span>.</p>
+<p>Each model is tailored for a different applications. In the following, the strengths and weaknesses of the model is presented.</p>
+<section id="strengths-of-the-model">
+<h3>Strengths of the model<a class="headerlink" href="#strengths-of-the-model" title="Permalink to this heading">#</a></h3>
+<section id="whole-energy-system">
+<h4>Whole energy system<a class="headerlink" href="#whole-energy-system" title="Permalink to this heading">#</a></h4>
+<p>The current version of the energy system represents the four energy sectors of the Belgian energy system.
+The sectors are coupled, in the sence that electricity can be used for other sectors, such as heat or mobility.
+<a class="reference internal" href="#fig-bes-illustration"><span class="std std-numref">Figure 1</span></a> shows the energy system implemented in the
+model, it accounts for :</p>
+<ul class="simple">
+<li><p>28 energy carriers</p></li>
+<li><p>112 technologies</p></li>
+<li><p>12 end use demands</p></li>
+</ul>
+<figure class="align-default" id="fig-bes-illustration">
+<a class="reference internal image-reference" href="../_images/case_study_energy_system.png"><img alt="Illustrative example of a decentralised heating layer." src="../_images/case_study_energy_system.png" style="width: 16cm;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Application of the EnergyScope TD to the Belgian energy system: overview of the
+resources, technologies and demands implemented. Technologies (in bold) represent groups of
+technologies with different energy inputs (e.g. Boilers include gas boilers, oil boilers …). ‘Decent.’
+represents the group of thermal storage for each decentralised heat production technology. Abbreviations:
+Atm. (atmospheric), battery electric vehicle (BEV), combined cycle gas turbine (CCGT),
+CC (carbon capture), carbon capture and storage (CCS) cogeneration of heat and power (CHP),
+district heating network (DHN), hydrogen (H2), heat pump (HP), integrated gasification combined
+cycle (IGCC), methan. (methanation), natural gas (NG), onshore (on.), offshore (off.), plug-in hybrid
+electric vehicle (PHEV), pumped hydro storage (PHS), photovoltaic (PV) and synthetic liquid fuel
+(SLF).</span><a class="headerlink" href="#fig-bes-illustration" title="Permalink to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="optimisation-of-hourly-operation-over-a-year">
+<h4>Optimisation of hourly operation over a year<a class="headerlink" href="#optimisation-of-hourly-operation-over-a-year" title="Permalink to this heading">#</a></h4>
+<p>The formulation of the year is based on typical days, which reduces the number of time-slice accounted in the model (usually 288 hours, which represents 12 days).
+However, a reconstruction method enables to capture energy stored at different time scale. <a class="reference internal" href="#fig-estd-time-scale"><span class="std std-numref">Figure 2</span></a> illustrates the different time scales captured by the model.</p>
+<figure class="align-default" id="fig-estd-time-scale">
+<a class="reference internal image-reference" href="../_images/estd_different_time_scales.png"><img alt="Illustrative example of a decentralised heating layer." src="../_images/estd_different_time_scales.png" style="width: 16cm;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 2 </span><span class="caption-text">Illustration of the different time scale optimised by the model.
+The hourly power balance is resolved on typical days (bottom),
+while the level of charge of storage is captured at week to seasonal level (middle and top).
+This illustration is for the Swiss case study presented in [limpens2019energyScope].</span><a class="headerlink" href="#fig-estd-time-scale" title="Permalink to this image">#</a></p>
+</figcaption>
+</figure>
+<p>The model optimises the operation and design, enabling all the differnt configuration to satisfy the imposed demand.</p>
+</section>
+<section id="open-source">
+<h4>Open source<a class="headerlink" href="#open-source" title="Permalink to this heading">#</a></h4>
+<p>The model is both open source (github) and documented (this document).
+The choosen plateform foster collaboration and enable several researchers to work together.</p>
+</section>
+<section id="short-computational-time">
+<h4>Short computational time<a class="headerlink" href="#short-computational-time" title="Permalink to this heading">#</a></h4>
+<p>The model has a short computational time around <strong>60 seconds</strong> making it an ideal candidate for uncertainty quantification.</p>
+</section>
+</section>
+<section id="weaknesses-of-the-model">
+<h3>Weaknesses of the model<a class="headerlink" href="#weaknesses-of-the-model" title="Permalink to this heading">#</a></h3>
+<section id="spatial-resolution-1-cell">
+<h4>Spatial resolution: 1 cell<a class="headerlink" href="#spatial-resolution-1-cell" title="Permalink to this heading">#</a></h4>
+<p>The presented model represents a single regional area, called a <em>cell</em>.
+This area is connected to neighbouring countries, and assumptions enable
+the representation of imports/exports of electricity and molecules.</p>
+</section>
+<section id="low-technico-economico-resolution">
+<h4>Low technico-economico resolution<a class="headerlink" href="#low-technico-economico-resolution" title="Permalink to this heading">#</a></h4>
+<p>The current implementaion has a low level of technico-economic contraints.
+Technically, the technologies can switch from off to full load in one hour (except for Nuclear).
+Economically, the operation is related to the resource purchase and the maintenance cost account for the rest.
+The latter is assumed proportional to the capacity installed.</p>
+</section>
+<section id="no-market-equilibrium">
+<h4>No market equilibrium<a class="headerlink" href="#no-market-equilibrium" title="Permalink to this heading">#</a></h4>
+<p>The demand is described by a yearly demand and an hourly profil.
+The yearly demand is exogeneous of the problem, and thus doesn’t result of a offer-demand balance.
+In other words, the system is forced to supply the demand even if the cost of the system soars.</p>
+</section>
+<section id="deterministic-optimisation">
+<h4>Deterministic optimisation<a class="headerlink" href="#deterministic-optimisation" title="Permalink to this heading">#</a></h4>
+<p>The mathematical model is written as a linear continuous problem.
+Thus, it is resolved by using linear programming solvers which are deterministic optimisation.
+All the information is known <em>a priori</em> and the solver reaches a single optimum.</p>
+<p>Moreover, linear programming gives chaotics solution, which can vary from white to black when slighlty changing a parameter.
+As an example, one solution could be based on gas cogeneration while another is based on Combined Cycle Gas Turbines.</p>
+<p>Uncertainty quantification techniques enable to overcome this issue by running several time the model under different configuration.
+Therefore, a short computaitonal time is required to enable many sampling.</p>
+</section>
+<section id="year-time-horizon">
+<h4>1 year time horizon<a class="headerlink" href="#year-time-horizon" title="Permalink to this heading">#</a></h4>
+<p>EnergyScope TD is a snapshot model, in the sence that it represents the energy system in a target future year, without considering existing system.</p>
+</section>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">The EnergyScope Multi-Cells model</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="Releases.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Releases</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#features">Features</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#strengths-of-the-model">Strengths of the model</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#whole-energy-system">Whole energy system</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#optimisation-of-hourly-operation-over-a-year">Optimisation of hourly operation over a year</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#open-source">Open source</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#short-computational-time">Short computational time</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#weaknesses-of-the-model">Weaknesses of the model</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#spatial-resolution-1-cell">Spatial resolution: 1 cell</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#low-technico-economico-resolution">Low technico-economico resolution</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#no-market-equilibrium">No market equilibrium</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#deterministic-optimisation">Deterministic optimisation</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#year-time-horizon">1 year time horizon</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/sections/Overview.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, P. Thiran.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.0.2.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

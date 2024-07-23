@@ -1,4 +1,4 @@
-name: energyscope
+name: energyscope_multicells
 
 dependencies:
   - python >= 3.7
