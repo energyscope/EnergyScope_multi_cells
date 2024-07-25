@@ -1,4 +1,4 @@
-.. _ch_estd:
+.. _ch_esmc:
 
 Model formulation
 =================
@@ -11,38 +11,41 @@ Model formulation
 ..
 
 
-**Model overview:**
 
-.. figure:: /images/model_formulation/chp_estd_overview.png
-   :alt: Overview of the LP modeling framework
-   :name: fig:ch2_overview
-
-   Overview of the LP modeling framework.
 
 Overview
 --------
 
+The modelling with EnergyScope Multi-Cells is done in two steps; see :numref:`Figure %s <fig:model_overview_blank>`. First, a generic energy systm optimisation model is developed such
+that it can be used with any multi-regional whole-energy system (middle block in :numref:`Figure %s <fig:model_overview_blank>`). This part is described in this Section. Then, the energy framework of the specific case study is modelled (left block in :numref:`Figure %s <fig:model_overview_blank>`). In this documentation, the modelling of a fossil-free European energy system is described in the Section :doc:`/sections/Input data`. Other implementations are possible. For instance, the model has
+already been used to model Italy divided into three main regions :cite:`thiran2021flexibility` and to model Western Europe into six macro-regions :cite:`cornet2021energy,thiran2023validation`. The model gives as an output and energy strategy for the regions modelled. For each regions, it provides an energy system with its cost, emissions, installed capacitites and hourly operation. Between regions, it defines the transmission networks to install and the hourly energy exchanges.
+
+.. figure:: /images/model_formulation/model_overview_blank.jpg
+   :alt: Overview of the LP modeling framework
+   :name: fig:model_overview_blank
+
+   Overview of the energy system modelling framework.
+
+
 Due to computational restrictions, energy system models rarely optimise
-the 8760h of the year. As an example, running our model with 8760h time
+the 8760h of the year. As an example, running the regional EnergyScope model with 8760h time
 series takes more than 19 hours; while the hereafter presented
 methodology needs approximately 1 minute. A typical solution is to use a
-subset of representative days called TD; this is a trade-off between
+subset of representative days called Typical Days (TDs); this is a trade-off between
 introducing an approximation error in the representation of the energy
-system (especially for short-term dynamics) and computational time.
+system (especially for short-term dynamics) and computational time. Thus, as in the original EnergyScope TD model, the optimisaiton of the enrgy system is done in two steps, see :numref:`Figure %s <fig:ProcessStructure>`:
 
 -  the first step consists in pre-processing the time series and solving
-   a MILP problem to determine the adequate set of 
-   (Section :ref:`sec_td_selection`).
+   a MILP problem to determine the adequate set of TDs, see Section :ref:`sec_td_selection`.
 
 -  the second step is the main energy model: it identifies the optimal
-   design and operation of the energy system over the selected (Section
-   :ref:`sec_estd`), i.e. technology selection, sizing and operation
-   for a target future year.
+   design and operation of the energy system, i.e. technology selection, sizing and operation
+   for a target future year, see Section :ref:`sec_estd`.
 
 These two steps can be computed independently. Usually, the first step
 is computed once for an energy system with given weather data whereas
 the second step is computed several times (once for each different
-scenario). The following :numref:`Figure %s <fig:ProcessStructure>`  illustrates the overall structure of the code.
+scenario).
 
 .. figure:: /images/model_formulation/meth_process_structure.png
    :alt: Overview of the EnergyScope TD framework in two-steps.
@@ -56,8 +59,8 @@ scenario). The following :numref:`Figure %s <fig:ProcessStructure>`  illustrates
 
 
 
-This documentation is built from previous works (:cite:`Moret2017PhDThesis,Limpens2019,Limpens2021thesis`). 
-For more details about the research approach, the choice of clustering method or the reconstruction method; refer to :cite:`Limpens2021thesis`.
+This documentation is built from previous works :cite:`Moret2017PhDThesis,Limpens2019,Limpens2021thesis`. 
+For more details about the research approach, the choice of clustering method or the reconstruction method; refer to :cite:`Limpens2021thesis, thiran2023validation`.
 
 
 .. _sec_td_selection:
@@ -75,15 +78,20 @@ sometimes even less
 Clustering methods
 ~~~~~~~~~~~~~~~~~~
 
-In a previous work :cite:`Limpens2019`, it has been estimated 
-that 12 typical days were appropriate for this model. 
-Moreover, a comparison between different clustering algorithm shown that the method of 
-:cite:`Dominguez-Munoz2011` had the best performances.
+We use the k-medoid algorithm developed by Dominguez-Muños et al. :cite:`Dominguez-Munoz2011` to cluster the TDs.
+Limpens et al. :cite:`Limpens2019` have compared several algorithms for this typology of problem and
+have chosen the one of Dominguez-Muños et al. It has a simple mixed-integer programming formulation,
+fast convergence and low error on both time series and duration curves. In this study, we will use this algorithm as such. However, based on the approach developed in the
+following sections, this algorithm could be fine-tuned and compared to other algorithms
+in the literature. In this algorithm, the days are grouped into clusters to minimise the
+intra-cluster distance, and the medoid of the cluster is taken as TD. The distance between
+(Di st ) between 2 days (i and j ), the L1 norms between each hour (h) for the time series (t s)
+representing each attribute (a) are summed over the 24 h of the day. This gives the distance
+for each attribute. Then, a weighted sum( with weight, ωa) of these distances is computed.
+The number of attributes corresponds to the number of time series considered multiplied
+by the number of regions studied.
 
-.. caution :: 
-    A small mistake has been corrected on the distance used in the clustering method.
-    The impact of this mistake on previous work has been assessed and the conclusion is that the impact is negligible.
-    The error and explanation are detailed in the pdf Erratum_STEP_1.pdf.
+In a previous work :cite:`Limpens2019`, a comparison between different clustering algorithm showed that the method of :cite:`Dominguez-Munoz2011` had the best performances.
 
 Implementing seasonality with typical days
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,7 +141,7 @@ Hereafter, we present the core of the energy model. First, we introduce
 the conceptual modelling framework with an illustrative example, in
 order to clarify as well the nomenclature. Second, we introduce the
 constraints of the energy model (data used are detailed in
-the Section :doc:`/sections/Input Data`).
+the Section :doc:`/sections/Input data`).
 
 
 .. _ssec_lp_framework:
@@ -1355,66 +1363,6 @@ solar panels. This ratio is estimated around five
 :cite:`dupont2020global`, which means that for each square
 meter of PV panel installed, four additional square meters are needed.
 
-.. _ssec_estd_implementation:
-
-Implementation
---------------
-
-The formulation of the MILP and LP problems has been implemented using
-an algebraic modeling language. The latter allows the representation of
-large LP and MILP problems. Its syntax is similar to AMPL, which is -
-according to the NEOS-statistics [13]_ - the most popular format for
-representing mathematical programming problems. The formulation enable
-the use of different solvers as open sources ones, such as GLPK, or
-commercial ones, such as CPLEX or Gurobi. In the code, each of the
-equations defined above is found as it is with the corresponding
-numbering. SETS, Variables and parameters have the same names (unless
-explicitly stated in the definition of the term). :numref:`Figure %s <fig:ch2_LP_formulation_implementation_colored>` illustrates -
-for the balance constraint :eq:`eq:layer_balance` - the mathematical
-formulation presented in this work and its implementation in the code.
-Colors highlight the same elements. In the implementation, each
-constraint has a comment (starting with #) and has a name (colored in
-black), in this case *layer_balance*. In addition, most of the SETS,
-Variables and parameters are more explicitly named, as a first example
-the set layers is named *L* in the paper and *LAYERS* in the
-implementation; or as another example, the input efficiency who is named
-*f* in the paper and *layers_in_out* in the implementation.
-
-.. figure:: /images/model_formulation/eqs_color.png
-   :alt: Comparison of equation formulation and code. This is the equation
- 
-.. figure:: /images/model_formulation/ch_estd_code_screenshot.png
-   :alt: Comparison of equation formulation and code.
-   :name: fig:ch2_LP_formulation_implementation_colored
-
-   Comparison of equation formulation (upper equation) and code
-   implementation (lower figure). Example based on Eq.
-   :eq:`eq:layer_balance`.
-
-The entire implementation is available on the directory
-:cite:`ESTD_v2_1_repo` and its architecture is illustrated
-in :numref:`Figure %s <fig:ch2_estd_repo_structure>`. Four folders compose
-the repository and contain the documentation (``Documentation``), the
-data used (``Data_management``), the MILP implementation
-(``STEP_1_TD_selection``) and the LP implementation
-(``STEP_2_Energy_Model``). For each of the models, the definition of the
-terms (SETS, Variables and Parameters) as well as the domains of the
-variables, the formulation of the constraints and the objective function
-are included in the model file (with the extension ``.mod``). The
-numerical values of the parameters are contained in separate files (with
-the extension ``.dat``). Finally, the output data of the model are saved
-in a file (wit the extension ``.out``) or a folder (``\outputs``). An
-interface - via excel - allows to visualise the data (``DATA.xlsx``) and
-to generate the data files (``STEP_1_in.xlsx``, ``STEP_1_out.xlsx`` and
-``STEP_2_in.xlsx``). Finally, a user guide manual is available in the
-documentation to support the modeler in her/his first steps.
-
-.. figure:: /images/model_formulation/ch_estd_repo_structure.png
-   :alt: EnergyScope TD repository structure.
-   :name: fig:ch2_estd_repo_structure
-
-   EnergyScope TD repository structure available at
-   :cite:`ESTD_v2_1_repo`.
 
 .. [1]
     Passenger transport activity from aviation is accounted in passenger mobility (excluding international extra EU travels).

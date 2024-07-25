@@ -1,3 +1,4 @@
 Sphinx>=2.1
 sphinxcontrib-bibtex
+sphinx-design
 pydata_sphinx_theme

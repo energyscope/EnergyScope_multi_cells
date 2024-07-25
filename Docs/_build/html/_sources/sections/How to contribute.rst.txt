@@ -16,7 +16,8 @@ We've provided tutorials specifically tailored for non-GitHub experts, making it
 Remember, every contribution, big or small, makes a difference. Whether you're fixing a bug, improving documentation,
 or suggesting new features, your efforts contribute to the success of the community.
 
-.. page_how_to_contribute_guidelines:
+
+.. _page_how_to_contribute_guidelines:
 
 Guidelines
 ==========
