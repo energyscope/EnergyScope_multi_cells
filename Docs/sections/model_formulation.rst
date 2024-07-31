@@ -23,6 +23,7 @@ already been used to model Italy divided into three main regions :cite:`thiran20
 .. figure:: /images/model_formulation/model_overview_blank.jpg
    :alt: Overview of the LP modeling framework
    :name: fig:model_overview_blank
+   :width: 18cm
 
    Overview of the energy system modelling framework.
 
@@ -50,6 +51,7 @@ scenario).
 .. figure:: /images/model_formulation/meth_process_structure.png
    :alt: Overview of the EnergyScope TD framework in two-steps.
    :name: fig:ProcessStructure
+   :width: 18cm
    
    Overview of the EnergyScope TD framework in two-steps. **STEP 1**: 
    optimal selection of typical days (Section :ref:`sec_td_selection`). **STEP 2**: 
@@ -302,10 +304,10 @@ are optimised by the model.
    :width: 18cm
 
    Conceptual example of an energy system modelled with EnergyScope TD and
-   extension to EnergyScope Multi-Cells. Adapted from :cite:`Limpens2019`.
+   extension to EnergyScope Multi-Cells.
    Abbreviations: combined heat and power (CHP), compressed natural gas (CNG), electrical heat pump (eHP), gigawatt
    (GW), pumped hydro storage (PHS), passenger-kilometre (pkm). Some icons
-   from :cite:`FlatIcon`.
+   from :cite:`FlatIcon`. Adapted from :cite:`Limpens2019`.
 
 
 The energy system is formulated as a linea programming problem.
@@ -876,210 +878,320 @@ Energy model formulation
 .. caution:: 
     here, update eq to ESMC and update thesis manuscript with comment FC and HJ
 
-In the following, the overall LP formulation is proposed through :numref:`Figure %s <fig:EndUseDemand>` and equations
+.. caution:: 
+    update number of figs and eq
+
+In the following, the overall linear programming formulation is proposed through :numref:`Figure %s <fig:EndUseDemand>` and equations
  :eq:`eq:obj_func` - :eq:`eq:solarAreaLimited`
 the constraints are regrouped in paragraphs. It starts with the
 calculation of the EUD. Then, the cost, the GWP and the objective
 functions are introduced. Then, it follows with more specific
 paragraphs, such as *storage* or *vehicle-to-grid* implementations.
 
+Objective function: total annualised system cost
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The objective is the minimisation of the sum of the total annual cost of the energy system
+of each region (:math:`\textbf{C}_{\textbf{tot}}`):
+
+.. math::
+    \text{min} \sum_{r \in \text{REG}} \textbf{C}_{\textbf{tot}}(r).
+    :label: eq:obj_func
+
+The total annual cost is defined as the sum of the annualized investments cost of the
+technologies (:math:`\textbf{$\tau$} \textbf{C}_{\textbf{inv}}`), the operating and maintenance costs of the technologies (:math:`\textbf{C}_{\textbf{maint}}`) and
+the operating cost of the resources (:math:`\textbf{C}_{\textbf{op}}`). The three elements of cost are computed for each
+region:
+
+.. math::
+    \textbf{C}_{\textbf{tot}}(r) = \sum_{j \in \text{TECH}} \Big(\textbf{$\tau$}(r,j) \textbf{C}_{\textbf{inv}}(r,j) + \textbf{C}_{\textbf{maint}} (r,j)\Big) + \sum_{i \in \text{RES}} \textbf{C}_{\textbf{op}}(r,i) 
+    ~~~~~~ \forall r \in \text{REG}.\\
+    :label: eq:c_tot
+
+The investment cost (:math:`\textbf{C}_{\textbf{inv}}`) is annualised with the factor :math:`\textbf{$\tau$}`, calculated based on the discount
+rate (:math:`i_{\text{rate}}`) and the technology lifetime (:math:`lifetime`), Eq. :eq:`eq:tau`. The discount rate is set by default
+in EnergyScope to 1.5%. This value is low compared to other studies with typical values of
+7.5 to 12% :cite:`Meinke-Hubeny2017,simoes2013jrc,EuropeanCommission2016`. This low value is chosen to represent the fact that we place ourselves
+as a central public investor. Having a low value gives a lower weight to investments in the
+total annualised cost and thus encourages the investment. This is further discussed in the :ref:`discount_and_interest_rates` Subsection of the Input data page.
+
+.. math::
+    \textbf{$\tau$}(r,j) =  \frac{i_{\text{rate}}(i_{\text{rate}}+1)^{lifetime(r,j)}}{(i_{\text{rate}}+1)^{lifetime(r,j)} - 1} 
+    ~~~~~~ \forall r \in \text{REG}, j \in \text{TECH}.\\
+    :label: eq:tau
+
+The total investment cost (:math:` \textbf{C}_{\textbf{inv}}`) of each technology results from the multiplication of its
+specific investment cost (:math:`c_{\text{inv}}`) and its installed size (:math:`\textbf{F}`), the latter defined with
+respect to the main output type [3]_:
+
+.. math::
+    \textbf{C}_{\textbf{inv}}(r,j) = c_{\text{inv}}(r,j) \textbf{F}(r,j) ~~~~~~ \forall r \in \text{REG}, j \in \text{TECH}.\\
+    :label: eq:c_inv
+
+The total maintenance cost is calculated similarly:
+
+.. math::
+    \textbf{C}_{\textbf{maint}}(r,j) = c_{\text{maint}}(r,j) \textbf{F}(r,j) ~~~~~~ \forall r \in \text{REG}, j \in \text{TECH}.\\ 
+    :label: eq:c_maint
+
+The operational cost of the resources is the sum of the operational cost for local resources
+and the operational cost of imported resources from the exterior of the overall system.
+In this mathematical formulation, the same resource can be both produced locally and
+imported from the exterior. For both, it is calculated as the sum of their use (:math:`\textbf{R}_{\textbf{t,local}}` and
+:math:`\textbf{R}_{\textbf{t,ext}}`, respectively) over the different periods multiplied by the period duration (:math:`t_{op}`) and
+the specific cost of the resource which is different for local and exterior sources (:math:`c_{\text{op,local}}` and :math:`c_{\text{op,ext}}`):
+
+.. math::
+    \textbf{C}_{\textbf{op}}(r,i) = \sum_{t(h,td) \in T} \Big( c_{\text{op,local}}(r,i) \textbf{R}_{\textbf{t,local}}(r,i,h,td) t_{op} (h,td) + c_{\text{op,ext}}(r,i) \textbf{R}_{\textbf{t,ext}}(r,i,h,td) t_{op} (h,td) \Big)
+    :label: eq:c_op
+
+    \forall r \in \text{REG}, i \in \text{RES}.
+
+Note that, in Eq. :eq:`eq:c_op`, hourly quantities are summed over the entire year (8760h). As we
+solve the system operation on typical days, the value at each hour of the year is obtained
+through a mapping on typical days. To simplify the reading, the formulation :math:`t(h,td) \in T` is
+used. However, the formulation in the code is more complex and requires two additional
+:math:`\text{SETS}`: :math:`\text{HOUR_OF_PERIOD(t)}` and :math:`\text{TYPICAL_DAY_OF_PERIOD(t)}`. These :math:`\text{SETS}` link each hour
+of the year with its corresponding typical day and hour in the typical day. Hence, we
+have: :math:`t(h,td) \in T` , which is equivalent in the code to :math:`t \in T |h \in \text{HOUR_OF_PERIOD}(t), td \in \text{TYPICAL_DAY_OF_PERIOD}(t)`.
+
+
+Emissions
+^^^^^^^^^
+
+Similarly to the cost, greenhouse gas (GHG) emissions can be computed from the instal-
+lation of technologies and the use of resources. The global annual GHGs emissions are
+calculated using a life cycle assessment (LCA) approach, i.e. taking into account emissions
+of the technologies and resources ‘*from cradle to grave*’. For climate change, the natural
+choice as an indicator is the global warming potential (GWP), expressed in ktCO2-eq./year.
+In Eq. :eq:`eq:GWP_tot`, the total yearly emissions of the system (:math:`\textbf{GWP}_\textbf{tot}`)
+are defined as the sum of the emissions related to the construction and end-of-life of the energy conversion technologies
+(:math:`\textbf{GWP}_\textbf{constr}`), allocated to one year based on the technology lifetime (:math:`lifetime`), and the
+emissions related to resources (:math:`\textbf{GWP}_\textbf{op}`):
+
+.. math::
+    \textbf{GWP}_\textbf{tot}(r)  = \sum_{j \in \text{TECH}} \frac{\textbf{GWP}_\textbf{constr} (r,j)}{lifetime(r,j)} +   \sum_{i \in \text{RES}} \textbf{GWP}_\textbf{op} (r,i)
+    ~~~~~~ \forall r \in \text{REG}.
+    :label: eq:GWP_tot 
+    
+The total emissions related to the construction of technologies are the product of the
+specific emissions (:math:`gwp_{\text{constr}}`) and the installed size (:math:`\textbf{F}`):
+
+.. math::
+    \textbf{GWP}_\textbf{constr}(r,j) = gwp_{\text{constr}}(r,j) \textbf{F}(r,j) ~~~~~~ \forall r \in \text{REG}, j \in \text{TECH}
+    :label: eq:GWP_constr
+
+The total emissions of the resources are the emissions, from cradle to use, associated with
+resources locally produced and imported from the exterior of the overall system (:math:`gwp_\text{op}`) 
+multiplied by the period duration (:math:`t_{op}`):
+
+.. math::
+    \textbf{GWP}_\textbf{op}(r,i) = \sum_{t(h,td) \in T} \Big( gwp_\text{op,local}(r,i) \textbf{R}_\textbf{t,local}(r,i,h,td)  t_{op} (h,td) + gwp_\text{op,ext}(r,i) \textbf{R}_\textbf{t,ext}(r,i,h,td)  t_{op} (h,td) \Big)
+    :label: eq:GWP_op
+
+    \forall r \in \text{REG}, i \in \text{RES}.
+
+GHGs emissions accounting can be conducted in different manners. The European Com-
+mission and the International Energy Agency (IEA) mainly use resource-related emissions
+(:math:`\textbf{CO}_\textbf{2,net}`) while neglecting indirect emissions related to the extraction of those resources
+(:math:`\textbf{GWP}_\textbf{op}`) or the construction of technologies (:math:`\textbf{GWP}_\textbf{constr}`). 
+To facilitate the comparison with their results, a similar implementation is proposed:
+
+.. math::
+    \textbf{CO}_\textbf{2,net}(r,i) = \sum_{t(h,td) \in T} co2_\text{net}(i) \Big(  \textbf{R}_\textbf{t,local}(r,i,h,td)  t_{op} (h,td) + \textbf{R}_\textbf{t,ext}(r,i,h,td)  t_{op} (h,td) \Big)
+    :label: eq:CO2_net
+
+    \forall r \in \text{REG}, i \in \text{RES}.
+
+
 End-use demand
 ^^^^^^^^^^^^^^
 
-Imposing the EUD instead of the FEC has two advantages. First, it
-introduces a clear distinction between demand and supply. On the one
-hand, the demand concerns the definition of the end-uses, i.e. the
-requirements in energy services (e.g. the mobility needs). On the other
-hand, the supply concerns the choice of the energy conversion
-technologies to supply these services (e.g. the types of vehicles used
-to satisfy the mobility needs). Based on the technology choice, the same
-EUD can be satisfied with different FEC, depending on the efficiency of
-the chosen energy conversion technology. Second, it facilitates the
-inclusion in the model of electric technologies for heating and
-transportation.
+As explained before, this model uses a end-use demand (EUD) approach to define the
+demand. The hourly end-use demands :math:`\big( \textbf{EndUses} \big)` are computed based on the yearly end-use 
+demands (:math:`endUsesInput`), distributed according to their time series (listed in Table :numref:`%s <tab:paramsDistributions>`).
+Figure :numref:`Figure %s <fig:EndUseDemand>` graphically presents the constraints associated with the hourly end-use demands
+:math:`\big( \textbf{EndUses} \big)`, e.g. the public mobility demand at time t is equal to the hourly passenger
+mobility demand times the public mobility share :math:`\big( \textbf{%}_{\textbf{Public}} \big)`. This computation is made for
+each region.
 
-.. figure:: /images/model_formulation/EndUseDemand.png
+.. figure:: /images/model_formulation/eud_eq.png
    :alt: Hourly **EndUses** demands calculation.
    :name: fig:EndUseDemand
-   :width: 16cm
+   :width: 18cm
 
-   Hourly **EndUses** demands calculation starting from yearly demand
-   inputs (*endUsesInput*). Adapted from
-   :cite:`Moret2017PhDThesis`. Abbreviations: space heating
+   Hourly end-uses demands :math:`\big( \textbf{EndUses}(r,l,hl,td), \forall r \in \text{REG}, l \in \text{EUT}, h \in \text{H}, td \in \text{TD} \big)` 
+   calculation starting from yearly demand inputs :math:`\big( endUsesInput(r,eui), \forall r \in \text{REG}, eui \in \text{EUI} \big)`.
+   Two main operations occur: (i) the yearly demands are dispatched into hourly demands 
+   according to their time series or uniformly if the demand input does not have a time series (left operation column); 
+   (ii) the demands are dispatched into end-uses types according to the end-uses technologies that can supply them (right operation column). 
+   Abbreviations: space heating
    (sh), district heating network (DHN), high value chemicals (HVC), hot water (HW), passenger
-   (pass), freight (fr) and non-energy demand (NED).
+   (pass), freight (fr) and non-energy demand (NED). Adapted from :cite:`Limpens2019`.
 
-The hourly end-use demands (**EndUses**) are computed based on the
-yearly end-use demand (*endUsesInput*), distributed according to its
-time series (listed in :numref:`Table %s <tab:paramsDistributions>`). 
-:numref:`Figure %s <fig:EndUseDemand>` graphically presents the constraints
-associated to the hourly end use demand (**EndUses**), e.g. the public
-mobility demand at time :math:`t` is equal to the hourly passenger
-mobility demand times the public mobility share (**%\ Public**).
 
-Electricity end-uses result from the sum of the electricity-only demand,
-assumed constant throughout the year, and the variable demand of
-electricity, distributed across the periods according to *%\ elec*.
-Low-temperature heat demand results from the sum of the yearly demand
-for HW, evenly shared across the year, and SH, distributed across the
-periods according to *%\ sh*. The percentage repartition between
-centralized (DHN) and decentralized heat demand is defined by the
-variable **%\ Dhn**. High temperature process heat and mobility demand
-are evenly distributed across the periods. Passenger mobility demand is
-expressed in passenger-kilometers (pkms), freight transportation demand
-is in ton-kilometers (tkms). The variable **%\ Public** defines the
-penetration of public transportation in the passenger mobility sector.
-Similarly, **%\ Rail**, **%\ Boat** and **%\ Truck** define the
-penetration of train, boat and trucks for freight mobility,
-respectively.
-
-Cost, emissions and objective function
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. math::
-    \text{min} \textbf{C}_{\textbf{tot}} = \sum_{j \in \text{TECH}} \Big(\textbf{$\tau$}(j) \textbf{C}_{\textbf{inv}}(j) + \textbf{C}_{\textbf{maint}} (j)\Big) + \sum_{i \in \text{RES}} \textbf{C}_{\textbf{op}}(i)
-    :label: eq:obj_func
-
-.. math::
-    \text{s.t. }  \textbf{$\tau$}(j) =  \frac{i_{\text{rate}}(i_{\text{rate}}+1)^{lifetime(j)}}{(i_{\text{rate}}+1)^{lifetime(j)} - 1} ~~~~~~ \forall j \in \text{TECH}\\
-    :label: eq:tau
-
-.. math::
-    \textbf{C}_{\textbf{inv}}(j) = c_{\text{inv}}(j) \textbf{F}(j) ~~~~~~ \forall j \in \text{TECH}\\
-    :label: eq:c_inv
-
-.. math::
-    \textbf{C}_{\textbf{maint}}(j) = c_{\text{maint}}(j) \textbf{F}(j) ~~~~~~ \forall j \in \text{TECH}\\ 
-    :label: eq:c_maint
-
-.. math::
-    \textbf{C}_{\textbf{op}}(i) = \sum_{t \in T | \{h,td\} \in T\_H\_TD(t)} c_{\text{op}}(i) \textbf{F}_{\textbf{t}}(i,h,td) t_{op} (h,td)  
-    ~~~~~~ \forall i \in \text{RES}
-    :label: eq:c_op
-
-The objective, Eq. :eq:`eq:obj_func`, is the
-minimisation of the total annual cost of the energy system (:math:`\textbf{C}_{\textbf{tot}}`),
-defined as the sum of the annualized investment cost of the technologies
-(:math:`\tau\textbf{C}_{\textbf{inv}}`), the operating and maintenance cost of the
-technologies (:math:`\textbf{C}_{\textbf{maint}}`) and the operating cost of the resources
-(:math:`\textbf{C}_{\textbf{op}}`). The total investment cost (:math:`\textbf{C}_{\textbf{inv}}`) of each technology
-results from the multiplication of its specific investment cost
-(:math:`c_{inv}`) and its installed size (**F**), the latter defined with
-respect to the main end-uses output [3]_ type,
-Eq. :eq:`eq:c_inv`. :math:`\textbf{C}_{\textbf{inv}}` is annualised with the
-factor :math:`\tau`, calculated based on the interest rate (:math:`t_{op}`)
-and the technology lifetime (*lifetime*), Eq. :eq:`eq:tau`.
-The total operation and maintenance cost is calculated in the same way,
-Eq. :eq:`eq:c_maint`. The total cost of the resources is
-calculated as the sum of the end-use over different periods multiplied
-by the period duration (:math:`t_{op}`) and the specific cost of the resource
-(:math:`c_{op}`), Eq. :eq:`eq:c_op`. Note that, in
-Eq. :eq:`eq:c_op`), summing over the typical days using the
-set T_H_TD [4]_ is equivalent to summing over the 8760h of the year.
-
-.. math::
-    \textbf{GWP}_\textbf{tot}  = \sum_{j \in \text{TECH}} \frac{\textbf{GWP}_\textbf{constr} (j)}{lifetime(j)} +   \sum_{i \in \text{RES}} \textbf{GWP}_\textbf{op} (i) 
-    :label: eq:GWP_tot
-    
-    \left(\text{in this version of the model} :   \textbf{GWP}_\textbf{tot}  =    \sum_{i \in \text{RES}} \textbf{GWP}_\textbf{op} (i) \right) 
-    
-
-.. math::
-    \textbf{GWP}_\textbf{constr}(j) = gwp_{\text{constr}}(j) \textbf{F}(j) ~~~~~~ \forall j \in \text{TECH}
-    :label: eq:GWP_constr
-
-.. math::
-    \textbf{GWP}_\textbf{op}(i) = \sum_{t \in T| \{h,td\} \in T\_H\_TD(t)} gwp_\text{op}(i) \textbf{F}_\textbf{t}(i,h,td)  t_{op} (h,td )~~~~~~ \forall i \in \text{RES}
-    :label: eq:GWP_op
-
-The global annual GHG emissions are calculated using a LCA approach,
-i.e. taking into account emissions of the technologies and resources
-‘*from cradle to grave*’. For climate change, the natural choice as
-indicator is the GWP, expressed in ktCO\ :math:`_2`-eq./year. In
-Eq. :eq:`eq:GWP_tot`, the total yearly emissions of the
-system (:math:`\textbf{GWP}_{\textbf{tot}}`) are defined as the sum of the emissions related to
-the construction and end-of-life of the energy conversion technologies
-:math:`\textbf{GWP}_{\textbf{constr}}`, allocated to one year based on the technology
-lifetime (:math:`lifetime`), and the emissions related to resources
-:math:`\textbf{GWP}_{\textbf{op}}`). Similarly to the costs, the total emissions related to
-the construction of technologies are the product of the specific
-emissions (:math:`gwp_{constr}` and the installed size (:math:`\textbf{F}`),
-Eq. :eq:`eq:GWP_constr`. The total emissions of the
-resources are the emissions associated to fuels (from cradle to
-combustion) and imports of electricity (:math:`gwp_{op}`) multiplied by the
-period duration (:math:`t_{op}`), Eq. :eq:`eq:GWP_op`. GWP
-accounting can be conducted in different manners deepending on the scope of emission. The
-European Commission and the IEA mainly uses resource-related emissions
-:math:`\textbf{GWP}_{\textbf{op}}` while neglecting indirect emissions related to the
-construction of technologies :math:`\textbf{GWP}_{\textbf{constr}}`. To facilitate the
-comparison with their results, a similar implementation is proposed in
-Eq. :eq:`eq:GWP_tot`.
+Specific electricity end-use is distributed across the periods according to its time series 
+(:math:`\%_{elec}`) and is augmented by the network losses onto the regional grid 
+:math:`\big( \textbf{Net}_{\textbf{loss}}(r, \text{ELEC}, h, t d) \big)`.
+Low-temperature heat demand results from the sum of the yearly demand for hot water, 
+evenly shared across the year, and space heating, distributed across the periods according to :math:`\%_{sh}`. 
+The percentage repartition between centralized (district heating network (DHN)) 
+and decentralized heat demand is defined by the variable :math:`\textbf{%}_{\textbf{Dhn}}`. 
+The demand for low-temperature heat on the DHN is augmented by the losses on this network
+:math:`\big( \textbf{Net}_{\textbf{loss}}(r, \text{DHN}, h, t d) \big)`. 
+The space cooling is distributed across the periods according to :math:`\%_{sc}`.
+High-temperature process heat and process cooling demands are evenly distributed across
+the periods. Passenger mobility and long-haul aviation demands are distributed across 
+the periods according to :math:`\%_{pass}`. They are expressed in millions of passenger-kilometers
+(Mpkm). The variable :math:`\textbf{%}_{\textbf{Public}}` defines the penetration of public transportation 
+in the passenger mobility sector and :math:`\textbf{%}_{\textbf{Av,Short}}` the share done by short-haul aviation. 
+Short- and long-haul aviation are considered in a separate way as they don’t use the same type of aircraft.
+Furthermore, short-haul aviation could be replaced by private or public mobility (e.g. cars
+or trains) but not long-haul aviation. Freight transportation and international shipping
+demand are expressed in millions of ton-kilometers (Mtkms). Freight mobility is distributed
+across the periods according to :math:`\%_{fr}` time series. 
+The variables :math:`\textbf{%}_{\textbf{Rail}}`, :math:`\textbf{%}_{\textbf{Boat}}` and :math:`\textbf{%}_{\textbf{Road}}` define
+the share of rail, boat and road for freight mobility, respectively. The freight due energy
+exchanges also augment the freight mobility demand :math:`\big( \textbf{Freight}_{\textbf{exch}}(r)/8760 \big)` [4]_. 
+The shipping and non-energy demands are distributed uniformly across the periods. The non-energy
+demand is dispatched into its three main feedstocks according to their share, :math:`\%_{ned}(r,HVC)`,
+:math:`\%_{ned}(r,AMMONIA)` and :math:`\%_{ned}(r,METHANOL)`. This subdivision is adapted from :cite:`Rixhon2022`.
 
 System design and operation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Sizing of technologies
+""""""""""""""""""""""
+
+In each region, the installed capacity of a technology (:math:`\textbf{F}`) is constrained between upper and
+lower bounds (:math:`f_{max}` and :math:`f_{min}`):
+
 .. math::
-    f_{\text{min}} (j) \leq \textbf{F}(j) \leq f_{\text{max}} (j) ~~~~~~ \forall j \in \text{TECH}
+    f_{\text{min}} (r,j) \leq \textbf{F}(r,j) \leq f_{\text{max}} (r,j) ~~~~~~ \forall r \in \text{REG}, j \in \text{TECH}.
     :label: eq:fmin_fmax
 
-The installed capacity of a technology (**F**) is constrained between
-upper and lower bounds (*f\ max* and *f\ min*),
-Eq. :eq:`eq:fmin_fmax`. This formulation allows
-accounting for old technologies still existing in the target year (lower
-bound), but also for the maximum deployment potential of a technology.
-As an example, for offshore wind turbines, :math:`f_{min}` represents
-the existing installed capacity (which will still be available in the
-future), while :math:`f_{max}` represents the maximum potential.
+This formulation allows accounting for old technologies still existing in the target year
+(lower bound), but also for the maximum deployment potential of a technology. As an
+example, for offshore wind turbines, :math:`f_{min}` represents the existing installed capacity (which
+will still be available in the future), while :math:`f_{max}` represents the maximum potential.
+
+Capacity factors and curtailment
+""""""""""""""""""""""""""""""""
+
+The operation of technologies at each period is determined by the decision variable :math:`\textbf{F}_\textbf{t}`. 
+The capacity factor of technologies is conceptually divided into two components, 
+see Eqs. :eq:`eq:cp_t` and :eq:`eq:c_p`: a capacity factor for each period (:math:`c_{p,t}`) depending on resource availability (e.g.
+renewables) and a yearly capacity factor (:math:`c_p`) accounting for technology downtime and
+maintenance. For a given technology, the definition of only one of these two is needed,
+the other being fixed to the default value of 1. For example, intermittent renewables are
+constrained by an hourly capacity factor (:math:`c_{p,t} \in [0; 1]`) while CCGTs are constrained by an
+annual capacity factor (:math:`c_p`, in that case 96%). When the hourly operation is lower than its
+bound set by the hourly capacity factor, it is curtailed. This curtailment (:math:`\textbf{Curt}`) only makes
+sense for technologies with defined hourly capacity factors (e.g. renewables).
+Eqs. :eq:`eq:cp_t` and :eq:`eq:c_p` link the installed size of a technology to its actual use in each period via the two capacity factors:
 
 .. math::
-     \textbf{F}_\textbf{t}(i,h,td) \leq \textbf{F}_\textbf{t}(i) \cdot c_{p,t} (i,h,td) ~~~~~~ \forall i \in \text{TECH}, h \in H, td \in TD
+     \textbf{F}_\textbf{t}(r,j,h,td) + \textbf{Curt}(r,j,h,td) = \textbf{F}_\textbf{t}(r,j) c_{p,t} (r,j,h,td) 
+     ~~~~~~ \forall r \in \text{REG}, j \in \text{TECH}, h \in \text{H}, td \in \text{TD},
     :label: eq:cp_t
 
 .. math::
-    \sum_{t \in T| \{h,td\} \in T\_H\_TD(t)} \textbf{F}_\textbf{t}(j,h,td) t_{op}(h,td)  \leq   \textbf{F} (j) c_{p} (j) \sum_{t \in T| \{h,td\} \in T\_H\_TD(t)} t_{op} (h,td)  
+    \sum_{t(h,td) \in T} \textbf{F}_\textbf{t}(r,j,h,td) t_{op}(h,td)  \leq   \textbf{F} (r,j) c_{p} (r,j) \sum_{t(h,td) \in T} t_{op} (h,td)
+    ~~~~~~ \forall r \in \text{REG}, j \in \text{TECH}.
     :label: eq:c_p
 
-    \forall j \in \text{TECH}
+
+Availability of resources
+"""""""""""""""""""""""""
+
+At each period and in each region, each resource can be produced
+locally (:math:`\textbf{R}_{\textbf{t,local}}`) and/or imported from the exterior of the overall energy system (:math:`\textbf{R}_{\textbf{t,ext}}`). 
+In both cases, the total use of resources is limited by a yearly availability (:math:`avail_{local}` and :math:`avail_{ext}`, respectively):
+
+
 
 .. math::
-    \sum_{t \in T| \{h,td\} \in T\_H\_TD(t)} \textbf{F}_\textbf{t}(i,h,td) t_{op}(h,td)  \leq \text{avail} (i) ~~~~~~ \forall i \in \text{RES}
-    :label: eq:res_avail
-
-
-
-The operation of resources and technologies in each period is determined
-by the decision variable :math:`\textbf{F}_{\textbf{t}}`. The capacity factor of technologies
-is conceptually divided into two components: a capacity factor for each
-period (:math:`c_{p,t}`) depending on resource availability (e.g. renewables)
-and a yearly capacity factor (*c\ p*) accounting for technology downtime
-and maintenance. For a given technology, the definition of only one of
-these two is needed, the other one being fixed to the default value of
-1. For example, intermittent renewables are constrained by an hourly
-load factor (:math:`c_{p,t}\in[0;1]`) while CCGTs are constrained by
-an annual load factor (:math:`c_{p}`, in that case 96% in 2035).
-Eqs. :eq:`eq:cp_t` and :eq:`eq:c_p` link the
-installed size of a technology to its actual use in each period (:math:`\textbf{F}_{\textbf{t}}`)
-via the two capacity factors. The total use of resources is limited by
-the yearly availability (:math:`avail`),
-Eq. :eq:`eq:res_avail`.
+    \sum_{t(h,td) \in T} \textbf{R}_\textbf{t,local}(r,i,h,td) t_{op}(h,td)  \leq avail_{local} (r,i) 
+    ~~~~~~ \forall r \in \text{REG}, i \in \text{RES},
+    :label: eq:res_avail_local
 
 .. math::
-    \sum_{i \in \text{RES}~\cup \text{TECH} \setminus \text{STO}} f(i,l) \textbf{F}_\textbf{t}(i,h,td) + \sum_{j \in \text{STO}} \bigg(\textbf{Sto}_\textbf{out}(j,l,h,td) - \textbf{Sto}_\textbf{in}(j,l,h,td)\bigg)  
+    \sum_{t(h,td) \in T} \textbf{R}_\textbf{t,ext}(r,i,h,td) t_{op}(h,td)  \leq avail_{ext} (r,i) 
+    ~~~~~~ \forall r \in \text{REG}, i \in \text{RES}.
+    :label: eq:res_avail_ext
+
+
+For resources such as gaseous and liquid fuels (:math:`r \in \text{RES}_{\text{cst}}`), we assume that their import is
+constant (:math:`\textbf{Imp}_{\textbf{cst}}`) at each hour of each typical day:
+
+.. math::
+    \textbf{R}_\textbf{t,ext}(r,i,h,td) t_{op}(h,td)  = \textbf{Imp}_{\textbf{cst}} (r,i)
+    ~~~~~~ \forall r \in \text{REG}, i \in \text{RES}_{\text{cst}}, h \in \text{H}, td \in \text{TD}.
+    :label: eq:res_imp_cst
+
+This equation simulates the fact that to import these resources, the region must
+install infrastructures, and these infrastructures have a certain capacity (e.g. gasoduct,
+oleoduct or a port with infrastructures to inject it into the local distribution system). We
+don’t model the import infrastructure and their cost but simulate the fact that to amortize
+the investment, they must be used as continuously as possible. To compensate for the
+fluctuating demand of the local energy system, the model has to install storage capacity for
+these resources.
+
+Layer balance
+"""""""""""""
+
+The hourly layer balance equation generalises the energy and mass balance to any energy
+commodity or service:
+
+.. math::
+    \sum_{i \in \text{RES}} f(i,l) \bigg( \textbf{R}_\textbf{t,local}(r,i,h,td) + \textbf{R}_\textbf{t,ext}(r,i,h,td)
+    + \textbf{R}_\textbf{t,imp}(r,i,h,td) - \textbf{R}_\textbf{t,exp}(r,i,h,td) \bigg) 
     :label: eq:layer_balance
 
-    - \textbf{EndUses}(l,h,td) = 0
-     
-    \forall l \in L, \forall h \in H, \forall td \in TD
+
+    + \sum_{j \in \text{TECH} \setminus \text{STO}} f(j,l) \textbf{F}_\textbf{t}(r,j,h,td)
   
-The matrix :math:`f` defines for all technologies and resources outputs to
-(positive) and inputs (negative) layers.
-Eq. :eq:`eq:layer_balance` expresses the balance
-for each layer: all outputs from resources and technologies (including
-storage) are used to satisfy the EUD or as inputs to other resources and
-technologies.
+
+    + \sum_{k \in \text{STO}} \bigg(\textbf{Sto}_\textbf{out}(r,k,l,h,td) - \textbf{Sto}_\textbf{in}(r,k,l,h,td)\bigg)  
+
+
+    = \textbf{EndUses}(r,l,h,td)
+
+
+     
+    \forall r \in \text{REG}, l \in \text{L}, h \in \text{H}, td \in \text{TD}.
+  
+
+
+For energy commodities, as they can be measured in terms of energy, it is indeed an
+energy balance. For energy services that are not directly measured as an energy quantity
+(e.g. passenger mobility measured in Mpkm/h), it expresses the fact that when energy is
+converted to produce those services, they have to be used directly. For instance, if some
+methane is used in buses at some hour, the public mobility ”produced” must be consumed
+by the public mobility demand at the same hour. Similarly, there is a layer for captured
+carbon dioxyde (CO_{2}). This layer ensures to have a mass balance for this commodity at
+each hour. If a process needs CO2 to produce a synthetic fuel, this CO2 needs to be captured
+from another process with carbon capture.
+
+The matrix :math:`f` defines, for all technologies and resources, the ratio between consumption
+on input layers (negative) and production on output layers (positive). For instance, a
+synthetic methanation plant consumes 1.2 GW of hydrogen and 0.2 ktCO2 to produce 1 GW
+of methane and 0.295 GW of DHN heat as a co-product. Eq. :eq:`eq:layer_balance` expresses the balance
+for each layer: all outputs from resources and technologies (including storage) are used
+to satisfy the EUD or as inputs to other resources and technologies. Resources have four
+different source terms, they can be : (i) produced locally (:math:`\textbf{R}_{\textbf{t,local}}`), (ii) imported from the
+exterior of the system, i.e. the global market (:math:`\textbf{R}_{\textbf{t,ext}}`), (iii) imported from neighbouring
+regions considered in the model scope (:math:`\textbf{R}_{\textbf{t,imp}}`), (iv) exported to neighbouring regions
+considered in the model scope (:math:`\textbf{R}_{\textbf{t,exp}}`). Similarly, storage technologies can withdraw energy
+from a layer to store it (:math:`\textbf{Sto}_{\textbf{in}}`) 
+or deliver energy from its storage to the layer (:math:`\textbf{Sto}_{\textbf{out}}`).
+
 
 Storage
 ^^^^^^^
+
+.. caution:: 
+    from here, update equations
 
 .. math::
     \textbf{Sto}_\textbf{level} (j,t) =    \textbf{Sto}_\textbf{level} (j,t-1)\cdot\left(1 - \%_{sto_{loss}}(j) \right)  
@@ -1154,8 +1266,23 @@ another 4 hours to charge
 (:math:`t_{sto_{in}}=4`\ [h]). Eq. :eq:`eq:LimitChargeAndDischarge` applies for 
 all storage except electric vehicles which are limited by another constraint Eq. :eq:`eq:LimitChargeAndDischarge_ev`, presented later.
 
-Networks
-^^^^^^^^
+Exchanges
+^^^^^^^^^
+
+Exchanges balance
+"""""""""""""""""
+
+Network exchanges
+"""""""""""""""""
+
+Freight exchanges
+"""""""""""""""""
+
+.. caution:: 
+    complete
+
+Local networks
+^^^^^^^^^^^^^^
 
 .. math::
     \textbf{Net}_\textbf{loss}(eut,h,td) = \Big(\sum_{i \in \text{RES} \cup \text{TECH} \setminus \text{STO} | f(i,eut) > 0} f(i,eut)\textbf{F}_\textbf{t}(i,h,td) \Big) \%_{\text{net}_{loss}} (eut) 
@@ -1192,43 +1319,115 @@ intermittent renewable capacity installed (see
 Eq. :eq:`eq:DHNCost` links the size of DHN to the total
 size of the installed centralized energy conversion technologies.
 
-Additional Constraints
-^^^^^^^^^^^^^^^^^^^^^^
+Mobility shares
+^^^^^^^^^^^^^^^
+
+.. caution:: 
+    add eq
+
+
+Vehicle-to-grid
+^^^^^^^^^^^^^^^
+
+.. figure:: /images/model_formulation/v2gAndBatteries.png
+   :alt: Illustrative example of a V2G implementation.
+   :name: fig:V2GAndBatteries
+   :width: 7cm
+
+   Illustrative example of a V2G implementation. The battery can
+   interact with the electricity layer. 
+   The size of the battery is directly related to the number of cars (see Eq. :eq:`eq:SizeOfBEV`). 
+   The V2G takes the electricity from the battery to provide a constant share (:math:`\textbf{%}_{\textbf{PassMob}}`) of the
+   passenger mobility layer (*Mob. Pass.*). Thus, it imposes the amount of electricity that electric car must deserve (see Eq. :eq:`eq:BtoBEV`).
+   The remaining capacity of battery available can be used to provide V2G services (see :eq:`eq:LimitChargeAndDischarge_ev`). 
+   
 
 .. math::
-    \textbf{F}_\textbf{t} (Nuclear,h,td) = \textbf{P}_\textbf{Nuclear}  ~~~~~~ \forall h \in H, \forall td \in TD
-    :label: eq:CstNuke
+    \textbf{F} (i) = \frac{\textbf{F} (j)}{ veh_{capa} (j)} ev_{batt,size} (j)  ~~~~~~ \forall  j \in  V2G, i \in \text{EVs_BATT OF V2G}(j)
+    :label: eq:SizeOfBEV
 
-Nuclear power plants are assumed to have no power variation over the
-year, Eq. :eq:`eq:CstNuke`. If needed, this equation can
-be replicated for all other technologies for which a constant operation
-over the year is desired.
+Vehicle-to-grid dynamics are included in the model via the *V2G* set.
+For each vehicle :math:`j \in V2G`, a battery :math:`i` (:math:`i`
+:math:`\in` *EVs_BATT*) is associated using the set EVs_BATT_OF_V2G
+(:math:`i \in \text{EVs_BATT_OF_V2G}(j)`). Each type :math:`j`
+of *V2G* has a different size of battery per car
+(:math:`ev_{batt,size}(j)`), e.g. the first generation battery of the
+Nissan Leaf (ZE0) has a capacity of 24 kWh [10]_. The number of vehicles
+of a given technology is calculated with the installed capacity (**F**)
+in [km-pass/h] and its capacity per vehicles (:math:`veh_{capa}` in
+[km-pass/h/veh.]). Thus, the energy that can be stored in batteries
+**F**\ (:math:`i`) of *V2G*\ (:math:`j`) is the ratio of the installed capacity of
+vehicle by its specific capacity per vehicles times the size of battery
+per car (:math:`ev_{batt,size}(j)`), Eq. 
+:eq:`eq:SizeOfBEV`. As an example, if this technology
+of cars covers 10 Mpass-km/h, and the capacity per vehicle is 50.4
+pass-km/car/h (which represents an average speed of 40km/h and occupancy
+of 1.26 passenger per car); thus, the amount of BEV cars are 0.198
+million cars. And if a BEV has a 24kWh of battery, such as the Nissan
+Leaf (ZE0), thus, the equivalent battery has a capacity of 4.76 GWh.
+
 
 .. math::
-    \textbf{F}_\textbf{t} (j,h,td) = \textbf{%}_\textbf{PassMob} (j)   \sum_{l \in EUT\_of\_EUC(PassMob)} \textbf{EndUses}(l,h,td) 
-    :label: eq:mob_share_fix
+    \textbf{Sto}_\textbf{out} (j,Elec,h,td) \geq - f(i,Elec) \textbf{F}_\textbf{t} (i,h,td) 
+    :label: eq:BtoBEV
 
-    \forall j \in TECH\_OF\_EUC(PassMob) , \forall h \in H, \forall td \in TD
+    \forall i \in V2G , \forall j \in \text{EVs_BATT OF V2G}(j), \forall h \in H, td \in TD 
+
+
+
+
+Eq. :eq:`eq:BtoBEV` forces batteries of electric vehicles
+to supply, at least, the energy required by each associated electric
+vehicle technology. This lower bound is not an equality; in fact,
+according to the V2G concept, batteries can also be used to support the
+grid. :numref:`Figure %s <fig:V2GAndBatteries>` shows through an example
+with only BEVs how Eq. :eq:`eq:BtoBEV` simplifies the
+implementation of V2G. In this illustration, a battery technology is
+associated to a BEV. The battery can either supply the BEV needs or
+sends electricity back to the grid.
 
 .. math::
-    \textbf{F}_\textbf{t} (j,h,td) = \textbf{%}_\textbf{FreightMob} (j)   \sum_{l \in EUT\_of\_EUC(FreightMob)} \textbf{EndUses}(l,h,td) 
-    :label: eq:freight_share_fix
+    \textbf{Sto}_\textbf{in} (j,l,h,td)t_{sto_{in}}(\text{j}) + \Big(\textbf{Sto}_\textbf{out}(j,l,h,td) + f(i,Elec) \textbf{F}_\textbf{t} (i,h,td) \Big) \cdot t_{sto_{out}}(\text{j})
+    :label: eq:LimitChargeAndDischarge_ev
 
-    \forall j \in TECH\_OF\_EUC(FreightMob) , \forall h \in H, \forall td \in TD
+    \leq \Big( \textbf{F} (j) - \frac{\textbf{F} (j)}{ veh_{capa} (j)} ev_{batt,size} (j) \Big) \cdot \%_{sto_{avail}}(j)
+
+    \forall i \in V2G , \forall j \in \text{EVs_BATT OF V2G}(j) , \forall l \in L, \forall h \in H, \forall td \in TD
+
+Eq. :eq:`eq:LimitChargeAndDischarge_ev` limits the availability of batteries to the number of vehicle connected to the grid.
+This equation is similar to the one for other type of storage (see Eq. :eq:`eq:LimitChargeAndDischarge`); 
+except that a part of the batteries are not accounted, i.e. the one running (see Eq. :eq:`eq:BtoBEV`). 
+Therefore, the available output is corrected by removing the electricity powering the running car (here, :math:`f(i,Elec) \leq 0`) 
+and the available batteries is corrected by removing the numbers of electric cars running (:math:`\frac{\textbf{F} (j)}{ veh_{capa} (j)} ev_{batt,size} (j)`).
 
 .. math::
-    \textbf{%}_\textbf{Fr,Rail} + \textbf{%}_\textbf{Fr,Train} + \textbf{%}_\textbf{Fr,Boat} = 1
-    :label: eq:freight_share_constant
+    \textbf{Sto}_\textbf{level} (j,t) \geq \textbf{F}[i] soc_{ev}(i,h)
+    :label: eq:EV_min_state_of_charge
 
+    \forall i \in V2G , \forall j \in \text{EVs_BATT OF V2G}(j) , \forall t \in T| \{h,td\} \in T\_H\_TD
 
-Eqs. :eq:`eq:mob_share_fix` - :eq:`eq:freight_share_fix`
-impose that the share of the different technologies for mobility
-(:math:`\textbf{%}_{\textbf{PassMob}}`) and (:math:`\textbf{%}_{\textbf{Freight}}`) be the same at each time
-step [9]_. In other words, if 20% of the mobility is supplied by train,
-this share remains constant in the morning or the afternoon.
-Eq. :eq:`eq:freight_share_constant`
-verifies that the freight technologies supply the overall freight demand
-(this constraint is related to :numref:`Figure %s <fig:EndUseDemand>`).
+For each electric vehicle (:math:`ev`), a minimum state of charge is imposed for each hour of the day \big(:math:`soc_{ev}(i,h)`\big). 
+As an example, we can impose that the state of charge of EV is 60% in the morning, to ensure that cars can be used to go for work. 
+Eq. :eq:`eq:EV_min_state_of_charge` imposes, for each type of `V2G`, 
+that the level of charge of the EV batteries is greater than the minimum state of charge times the storage capacity.
+
+Hydro dams
+^^^^^^^^^^
+
+.. caution::
+    add eq
+
+Concentrated solar power
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. caution::
+    add eq
+
+Solar area
+^^^^^^^^^^
+
+.. caution::
+    add eq
 
 Decentralised heat production
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1316,92 +1515,6 @@ demand :math:`(\textbf{EndUses}(HeatLowT,h,td)`). :numref:`Figure %s <fig:FsolAn
 two technologies (a gas boiler and a HP), how decentralised thermal
 storage and thermal solar are implemented.
 
-Vehicle-to-grid
-^^^^^^^^^^^^^^^
-
-.. figure:: /images/model_formulation/v2gAndBatteries.png
-   :alt: Illustrative example of a V2G implementation.
-   :name: fig:V2GAndBatteries
-   :width: 7cm
-
-   Illustrative example of a V2G implementation. The battery can
-   interact with the electricity layer. 
-   The size of the battery is directly related to the number of cars (see Eq. :eq:`eq:SizeOfBEV`). 
-   The V2G takes the electricity from the battery to provide a constant share (:math:`\textbf{%}_{\textbf{PassMob}}`) of the
-   passenger mobility layer (*Mob. Pass.*). Thus, it imposes the amount of electricity that electric car must deserve (see Eq. :eq:`eq:BtoBEV`).
-   The remaining capacity of battery available can be used to provide V2G services (see :eq:`eq:LimitChargeAndDischarge_ev`). 
-   
-
-.. math::
-    \textbf{F} (i) = \frac{\textbf{F} (j)}{ veh_{capa} (j)} ev_{batt,size} (j)  ~~~~~~ \forall  j \in  V2G, i \in \text{EVs_BATT OF V2G}(j)
-    :label: eq:SizeOfBEV
-
-Vehicle-to-grid dynamics are included in the model via the *V2G* set.
-For each vehicle :math:`j \in V2G`, a battery :math:`i` (:math:`i`
-:math:`\in` *EVs_BATT*) is associated using the set EVs_BATT_OF_V2G
-(:math:`i \in \text{EVs_BATT_OF_V2G}(j)`). Each type :math:`j`
-of *V2G* has a different size of battery per car
-(:math:`ev_{batt,size}(j)`), e.g. the first generation battery of the
-Nissan Leaf (ZE0) has a capacity of 24 kWh [10]_. The number of vehicles
-of a given technology is calculated with the installed capacity (**F**)
-in [km-pass/h] and its capacity per vehicles (:math:`veh_{capa}` in
-[km-pass/h/veh.]). Thus, the energy that can be stored in batteries
-**F**\ (:math:`i`) of *V2G*\ (:math:`j`) is the ratio of the installed capacity of
-vehicle by its specific capacity per vehicles times the size of battery
-per car (:math:`ev_{batt,size}(j)`), Eq. 
-:eq:`eq:SizeOfBEV`. As an example, if this technology
-of cars covers 10 Mpass-km/h, and the capacity per vehicle is 50.4
-pass-km/car/h (which represents an average speed of 40km/h and occupancy
-of 1.26 passenger per car); thus, the amount of BEV cars are 0.198
-million cars. And if a BEV has a 24kWh of battery, such as the Nissan
-Leaf (ZE0), thus, the equivalent battery has a capacity of 4.76 GWh.
-
-
-.. math::
-    \textbf{Sto}_\textbf{out} (j,Elec,h,td) \geq - f(i,Elec) \textbf{F}_\textbf{t} (i,h,td) 
-    :label: eq:BtoBEV
-
-    \forall i \in V2G , \forall j \in \text{EVs_BATT OF V2G}(j), \forall h \in H, td \in TD 
-
-
-
-
-Eq. :eq:`eq:BtoBEV` forces batteries of electric vehicles
-to supply, at least, the energy required by each associated electric
-vehicle technology. This lower bound is not an equality; in fact,
-according to the V2G concept, batteries can also be used to support the
-grid. :numref:`Figure %s <fig:V2GAndBatteries>` shows through an example
-with only BEVs how Eq. :eq:`eq:BtoBEV` simplifies the
-implementation of V2G. In this illustration, a battery technology is
-associated to a BEV. The battery can either supply the BEV needs or
-sends electricity back to the grid.
-
-.. math::
-    \textbf{Sto}_\textbf{in} (j,l,h,td)t_{sto_{in}}(\text{j}) + \Big(\textbf{Sto}_\textbf{out}(j,l,h,td) + f(i,Elec) \textbf{F}_\textbf{t} (i,h,td) \Big) \cdot t_{sto_{out}}(\text{j})
-    :label: eq:LimitChargeAndDischarge_ev
-
-    \leq \Big( \textbf{F} (j) - \frac{\textbf{F} (j)}{ veh_{capa} (j)} ev_{batt,size} (j) \Big) \cdot \%_{sto_{avail}}(j)
-
-    \forall i \in V2G , \forall j \in \text{EVs_BATT OF V2G}(j) , \forall l \in L, \forall h \in H, \forall td \in TD
-
-Eq. :eq:`eq:LimitChargeAndDischarge_ev` limits the availability of batteries to the number of vehicle connected to the grid.
-This equation is similar to the one for other type of storage (see Eq. :eq:`eq:LimitChargeAndDischarge`); 
-except that a part of the batteries are not accounted, i.e. the one running (see Eq. :eq:`eq:BtoBEV`). 
-Therefore, the available output is corrected by removing the electricity powering the running car (here, :math:`f(i,Elec) \leq 0`) 
-and the available batteries is corrected by removing the numbers of electric cars running (:math:`\frac{\textbf{F} (j)}{ veh_{capa} (j)} ev_{batt,size} (j)`).
-
-.. math::
-    \textbf{Sto}_\textbf{level} (j,t) \geq \textbf{F}[i] soc_{ev}(i,h)
-    :label: eq:EV_min_state_of_charge
-
-    \forall i \in V2G , \forall j \in \text{EVs_BATT OF V2G}(j) , \forall t \in T| \{h,td\} \in T\_H\_TD
-
-For each electric vehicle (:math:`ev`), a minimum state of charge is imposed for each hour of the day \big(:math:`soc_{ev}(i,h)`\big). 
-As an example, we can impose that the state of charge of EV is 60% in the morning, to ensure that cars can be used to go for work. 
-Eq. :eq:`eq:EV_min_state_of_charge` imposes, for each type of `V2G`, 
-that the level of charge of the EV batteries is greater than the minimum state of charge times the storage capacity.
-
-
 Peak demand
 ^^^^^^^^^^^
 
@@ -1435,6 +1548,46 @@ centralised heating system to have a supply capacity (production plus
 storage) higher than the peak demand. These equations force the
 installed capacity to meet the peak heating demand, i.e. which
 represents, somehow, the network adequacy  [11]_.
+
+
+Additional Constraints
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. math::
+    \textbf{F}_\textbf{t} (Nuclear,h,td) = \textbf{P}_\textbf{Nuclear}  ~~~~~~ \forall h \in H, \forall td \in TD
+    :label: eq:CstNuke
+
+Nuclear power plants are assumed to have no power variation over the
+year, Eq. :eq:`eq:CstNuke`. If needed, this equation can
+be replicated for all other technologies for which a constant operation
+over the year is desired.
+
+.. math::
+    \textbf{F}_\textbf{t} (j,h,td) = \textbf{%}_\textbf{PassMob} (j)   \sum_{l \in EUT\_of\_EUC(PassMob)} \textbf{EndUses}(l,h,td) 
+    :label: eq:mob_share_fix
+
+    \forall j \in TECH\_OF\_EUC(PassMob) , \forall h \in H, \forall td \in TD
+
+.. math::
+    \textbf{F}_\textbf{t} (j,h,td) = \textbf{%}_\textbf{FreightMob} (j)   \sum_{l \in EUT\_of\_EUC(FreightMob)} \textbf{EndUses}(l,h,td) 
+    :label: eq:freight_share_fix
+
+    \forall j \in TECH\_OF\_EUC(FreightMob) , \forall h \in H, \forall td \in TD
+
+.. math::
+    \textbf{%}_\textbf{Fr,Rail} + \textbf{%}_\textbf{Fr,Train} + \textbf{%}_\textbf{Fr,Boat} = 1
+    :label: eq:freight_share_constant
+
+
+Eqs. :eq:`eq:mob_share_fix` - :eq:`eq:freight_share_fix`
+impose that the share of the different technologies for mobility
+(:math:`\textbf{%}_{\textbf{PassMob}}`) and (:math:`\textbf{%}_{\textbf{Freight}}`) be the same at each time
+step [9]_. In other words, if 20% of the mobility is supplied by train,
+this share remains constant in the morning or the afternoon.
+Eq. :eq:`eq:freight_share_constant`
+verifies that the freight technologies supply the overall freight demand
+(this constraint is related to :numref:`Figure %s <fig:EndUseDemand>`).
+
 
 .. _sssec_lp_adaptation_case_study:
 
@@ -1578,14 +1731,12 @@ meter of PV panel installed, four additional square meters are needed.
    rather than the electrical one.
 
 .. [4]
-   To simplify the reading, the formulation
-   :math:`t \in T| \{h,td\} \in T\_H\_TD(t)` is used. However, this
-   cannot be directly implemented in the code and it requires two
-   additional sets : :math:`HOUR\_OF\_PERIOD(t)` and
-   :math:`TYPICAL\_DAY\_OF\_PERIOD(t)`. Hence, we have:
-   :math:`t \in T| \{h,td\} \in T\_H\_TD(t)`, which is equivalent in the
-   code to
-   :math:`t \in T| h \in HOUR\_OF\_PERIOD(t), td \in TYPICAL\_DAY\_OF\_PERIOD(t)`.
+   This variable is added to the road freight demand to keep a linear formulation. Furthermore, as rail and
+   boat freight are always more efficient than road freight, their maximum capacity is already reached with the
+   freight demand of the region. Therefore, adding the additional freight due to exchanges to the road freight 
+   demand is equivalent to directly adding it to the whole freight mobility demand. This does not mean that the
+   transportation of energy goods will always be done by truck in practice. Some of the energy goods might be
+   more interesting to transport by train or boat than other goods, which will then be transported by truck.
 
 .. [5]
    In most cases, the activation of the constraint stated in

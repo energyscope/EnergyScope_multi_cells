@@ -727,7 +727,8 @@ latter summarised in Table
    Normalised passenger mobility time series over a day. We assume a
    similar passenger mobility demand over the days of the year.
 
-.. _app:discount_and_interest_rates:
+
+.. _discount_and_interest_rates:
 
 Discount rate and interest rate
 -------------------------------
