@@ -3,9 +3,6 @@
 Model formulation
 =================
 
-.. caution ::
-   TO BE UPDATED TO MULTI-CELLS version
-
 .. role:: raw-latex(raw)
    :format: latex
 ..
@@ -238,7 +235,7 @@ heating, mobility and non-energy demand; this replaces the classical
 economic-sector based representation of energy demand. Heat is divided
 in three end-use types (EUTs): high temperature heat for industry, low temperature for
 space heating and low temperature for hot water. Mobility is divided in
-four EUTs: passenger mobility, long-haul aviation, freight and shipping [1]_. Non-energy demand is,
+four EUTs: passenger mobility [1]_, long-haul aviation, freight and shipping. Non-energy demand is,
 based on the IEA definition, “*fuels that are used as raw materials in
 the different sectors and are not consumed as a fuel or transformed into
 another fuel.*” :cite:`IEA_websiteDefinition`. As examples,
@@ -875,18 +872,9 @@ Tables :numref:`%s <tab:variablesIndependent>` and
 Energy model formulation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. caution:: 
-    here, update eq to ESMC and update thesis manuscript with comment FC and HJ
-
-.. caution:: 
-    update number of figs and eq
-
 In the following, the overall linear programming formulation is proposed through :numref:`Figure %s <fig:EndUseDemand>` and equations
- :eq:`eq:obj_func` - :eq:`eq:solarAreaLimited`
-the constraints are regrouped in paragraphs. It starts with the
-calculation of the EUD. Then, the cost, the GWP and the objective
-functions are introduced. Then, it follows with more specific
-paragraphs, such as *storage* or *vehicle-to-grid* implementations.
+ :eq:`eq:obj_func` - :eq:`eq:elecImpLimited`. The constraints are regrouped in paragraphs.
+
 
 Objective function: total annualised system cost
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -920,9 +908,9 @@ total annualised cost and thus encourages the investment. This is further discus
     ~~~~~~ \forall r \in \text{REG}, j \in \text{TECH}.\\
     :label: eq:tau
 
-The total investment cost (:math:` \textbf{C}_{\textbf{inv}}`) of each technology results from the multiplication of its
+The total investment cost (:math:`\textbf{C}_{\textbf{inv}}`) of each technology results from the multiplication of its
 specific investment cost (:math:`c_{\text{inv}}`) and its installed size (:math:`\textbf{F}`), the latter defined with
-respect to the main output type [3]_:
+respect to the main output type [2]_:
 
 .. math::
     \textbf{C}_{\textbf{inv}}(r,j) = c_{\text{inv}}(r,j) \textbf{F}(r,j) ~~~~~~ \forall r \in \text{REG}, j \in \text{TECH}.\\
@@ -1052,7 +1040,7 @@ demand are expressed in millions of ton-kilometers (Mtkms). Freight mobility is 
 across the periods according to :math:`\%_{fr}` time series. 
 The variables :math:`\textbf{%}_{\textbf{Rail}}`, :math:`\textbf{%}_{\textbf{Boat}}` and :math:`\textbf{%}_{\textbf{Road}}` define
 the share of rail, boat and road for freight mobility, respectively. The freight due energy
-exchanges also augment the freight mobility demand :math:`\big( \textbf{Freight}_{\textbf{exch}}(r)/8760 \big)` [4]_. 
+exchanges also augment the freight mobility demand :math:`\big( \textbf{Freight}_{\textbf{exch}}(r)/8760 \big)` [3]_. 
 The shipping and non-energy demands are distributed uniformly across the periods. The non-energy
 demand is dispatched into its three main feedstocks according to their share, :math:`\%_{ned}(r,HVC)`,
 :math:`\%_{ned}(r,AMMONIA)` and :math:`\%_{ned}(r,METHANOL)`. This subdivision is adapted from :cite:`Rixhon2022`.
@@ -1190,468 +1178,775 @@ or deliver energy from its storage to the layer (:math:`\textbf{Sto}_{\textbf{ou
 Storage
 ^^^^^^^
 
-.. caution:: 
-    from here, update equations
+The storage level (:math:`\textbf{Sto}_{\textbf{level}}`) at a time step (:math:`t`) is equal
+to the storage level at :math:`t-1`, minus the
+self-discharge losses (:math:`%_{sto_{loss}}`), plus the inputs to the storage, minus the output from the
+storage (accounting for input/output efficiencies), see Eq. :eq:`eq:sto_level`.
+In the code, for the first period of the year, this equation is slightly modified to set the storage level at 
+the beginning of the year according to the one at the end of the year. Hence, if :math:`t=1`, 
+we set :math:`t-1` to the last period of the year (8760). 
 
 .. math::
-    \textbf{Sto}_\textbf{level} (j,t) =    \textbf{Sto}_\textbf{level} (j,t-1)\cdot\left(1 - \%_{sto_{loss}}(j) \right)  
+    \textbf{Sto}_\textbf{level} (r,j,t) =    \textbf{Sto}_\textbf{level} (r,j,t-1)\cdot\left(1 - \%_{sto_{loss}}(j) \right)  
    :label: eq:sto_level
 
-    + t_{op} (h,td)\cdot \Big(\sum_{l \in L | \eta_{\text{sto,in} (j,l) > 0}} \textbf{Sto}_\textbf{in} 	(j,l,h,td) \eta_{\text{sto,in}} (j,l) 
+    + t_{op} (h,td)\cdot \Big(\sum_{l \in L | \eta_{\text{sto,in} (j,l) > 0}} \textbf{Sto}_\textbf{in} 	(r,j,l,h,td) \eta_{\text{sto,in}} (j,l) 
+    - \sum_{l \in L | \eta_{\text{sto,out} (j,l) > 0}} \textbf{Sto}_\textbf{out} (r,j,l,h,td) /  \eta_{\text{sto,out}} (j,l)\Big)
     
-    ~~~~~~ - \sum_{l \in L | \eta_{\text{sto,out} (j,l) > 0}} \textbf{Sto}_\textbf{out} (j,l,h,td) /  \eta_{\text{sto,out}} (j,l)\Big)
-    
-    \forall j \in \text{STO}, \forall t \in \text{T}| \{h,td\} \in T\_H\_TD(t)
+    ~~~~~~~~~~~~~~ \forall r \in \text{REG}, j \in \text{STO}, \forall t(h,td) \in \text{T}.
 
+
+
+The storage systems which can
+only be used for short-term (daily) applications are included in the
+daily storage set (:math:`\text{STO_DAILY}`). For these units,
+Eq. :eq:`eq:Sto_level_bound_DAILY` imposes
+that the storage level be the same at the end of each typical day [4]_.
+Adding this constraint drastically reduces
+the computational time. Indeed, this constraint reduces the number of variables by forcing
+the storage level of daily storage technologies to be defined on typical days and not over the
+entire year as the other storage technologies.
 
 .. math::
-    \textbf{Sto}_\textbf{level} (j,t) = \textbf{F}_\textbf{t} (j,h,td) ~~~~~~ \forall j \in \text{STO DAILY},\forall t \in \text{T}| \{h,td\} \in T\_H\_TD(t)
+    \textbf{Sto}_\textbf{level} (r,j,t) = \textbf{F}_\textbf{t} (r,j,h,td) 
+    ~~~~~~ \forall r \in \text{REG}, j \in \text{STO_DAILY}, t(h,td) \in \text{T}.
     :label: eq:Sto_level_bound_DAILY
 
-.. math::
-    \textbf{Sto}_\textbf{level} (j,t) \leq \textbf{F} (j) ~~~~~~ \forall j \in \text{STO} \setminus \text{STO DAILY},\forall t \in \text{T}  
-    :label: eq:Sto_level_bound
-
-
-The storage level (:math:`\textbf{Sto}_{\textbf{level}}`) at a time step (:math:`t`) is equal
-to the storage level at :math:`t-1` (accounting for the losses in
-:math:`t-1`), plus the inputs to the storage, minus the output from the
-storage (accounting for input/output efficiencies),
-Eq. :eq:`eq:sto_level`:. The storage systems which can
-only be used for short-term (daily) applications are included in the
-daily storage set (STO DAILY). For these units,
-Eq. :eq:`eq:Sto_level_bound_DAILY`: imposes
-that the storage level be the same at the end of each typical day [5]_.
-Adding this constraint drastically reduces the computational time. For
-the other storage technologies, which can also be used for seasonal
-storage, the capacity is bounded by
+For the other storage technologies, which can also be used for seasonal
+storage, the storage level is bounded by
 Eq. :eq:`eq:Sto_level_bound`. For these units,
 the storage behaviour is thus optimized over 8760h.
 
-.. math::
-    \textbf{Sto}_\textbf{in}(j,l,h,td)\cdot \Big(\lceil  \eta_{sto,in}(j,l)\rceil -1 \Big) = 0  ~~~~~~ \forall j \in \text{STO},\forall l \in \text{L}, \forall h \in \text{H}, \forall td \in \text{TD}
-    :label: eq:StoInCeil
 
 .. math::
-    \textbf{Sto}_\textbf{out}(j,l,h,td)\cdot \Big(\lceil  \eta_{sto,out}(j,l)\rceil -1 \Big) = 0  ~~~~~~ \forall j \in \text{STO},\forall l \in \text{L}, \forall h \in \text{H}, \forall td \in \text{TD}
-    :label: eq:StoOutCeil
-
-.. math::
-    \Big(\textbf{Sto}_\textbf{in} (j,l,h,td)t_{sto_{in}}(\text{j}) + \textbf{Sto}_\textbf{out}(j,l,h,td)t_{sto_{out}}(\text{j})\Big) \leq \textbf{F} (j)\%_{sto_{avail}}(j)
-    :label: eq:LimitChargeAndDischarge
-
-    \forall j \in STO \setminus {V2G} , \forall l \in L, \forall h \in H, \forall td \in TD
+    \textbf{Sto}_\textbf{level} (r,j,t) \leq \textbf{F} (r,j) 
+    ~~~~~~ \forall r\in \text{REG}, j \in \text{STO} \setminus \text{STO_DAILY},\forall t \in \text{T}.
+    :label: eq:Sto_level_bound
 
 
-Eqs. :eq:`eq:StoInCeil` - :eq:`eq:StoOutCeil`
-force the power input and output to zero if the layer is
-incompatible [6]_. As an example, a PHS will only be linked to the
-electricity layer (input/output efficiencies :math:`>` 0). All other
-efficiencies will be equal to 0, to impede that the PHS exchanges with
-incompatible layers (e.g. mobility, heat, etc).
 Eq. :eq:`eq:LimitChargeAndDischarge`
 limits the power input/output of a storage technology based on its
 installed capacity (**F**) and three specific characteristics. First,
 storage availability (:math:`\%_{sto_{avail}}`) is defined as the ratio between
 the available storage capacity and the total installed capacity (default
-value is 100%). This parameter is only used to realistically represent
-V2G, for which we assume that only a fraction of the fleet (i.e. 20% in
-these cases) can charge/discharge at the same time. Second and third,
+value is 100%). Second and third,
 the charging/discharging time (:math:`t_{sto_{in}}`, :math:`t_{sto_{out}}`), which are
 the time to complete a full charge/discharge from empty/full
-storage [7]_. As an example, a daily thermal storage needs at least 4
-hours to discharge
-(:math:`t_{sto_{out}}=4`\ [h]), and
-another 4 hours to charge
-(:math:`t_{sto_{in}}=4`\ [h]). Eq. :eq:`eq:LimitChargeAndDischarge` applies for 
+storage. As an example, a daily thermal storage needs at least 4
+hours to discharge (:math:`t_{sto_{out}}=4`\ [h]), and
+another 4 hours to charge (:math:`t_{sto_{in}}=4`\ [h]). 
+These two parameters are defined in each region as for some specific storage technologies (e.g. PHS), 
+the discharging and charging power depends on
+the location. However, these parameters generally are intrinsic characteristics of a storage
+technology and are identical in all regions. Note that, in this linear formulation, storage
+technologies can charge and discharge simultaneously. On the one hand, this avoids the
+need for integer variables; on the other hand, it has no physical meaning. However, in a cost
+minimization problem, the cheapest solution identified by the solver will always choose to
+either charge or discharge at any given time, as long as cost and efficiencies are defined.
+Hence, we recommend always verifying numerically the fact that only storage inputs or
+outputs are activated at each hour, as we do in all our implementations.
+Eq. :eq:`eq:LimitChargeAndDischarge` applies for 
 all storage except electric vehicles which are limited by another constraint Eq. :eq:`eq:LimitChargeAndDischarge_ev`, presented later.
+
+.. math::
+    \Big(\textbf{Sto}_\textbf{in} (r,j,l,h,td)t_{sto_{in}}(r,j) + \textbf{Sto}_\textbf{out}(r,j,l,h,td)t_{sto_{out}}(r,j)\Big) \leq \textbf{F} (r,j)\%_{sto_{avail}}(j)
+    :label: eq:LimitChargeAndDischarge
+
+    \forall r \in \text{REG}, j \in STO \setminus \text{EVs_BATT} , \forall l \in \text{L}, \forall h \in \text{H}, td \in \text{TD}.
+
+Eqs. :eq:`eq:StoInCeil` - :eq:`eq:StoOutCeil`
+force the power input and output to zero if the layer is
+incompatible [5]_. As an example, a PHS will only be linked to the
+electricity layer (input/output efficiencies :math:`>` 0). All other
+efficiencies will be equal to 0, to impede that the PHS exchanges with
+incompatible layers (e.g. mobility, heat, etc).
+
+.. math::
+    \textbf{Sto}_\textbf{in}(r,j,l,h,td)\cdot \Big(\lceil  \eta_{sto,in}(j,l)\rceil -1 \Big) = 0  
+    ~~~~~~ \forall r \in \text{REG}, j \in \text{STO}, l \in \text{L}, h \in \text{H}, td \in \text{TD},
+    :label: eq:StoInCeil
+
+.. math::
+    \textbf{Sto}_\textbf{out}(r,j,l,h,td)\cdot \Big(\lceil  \eta_{sto,out}(j,l)\rceil -1 \Big) = 0  
+    ~~~~~~ \forall r \in \text{REG}, j \in \text{STO}, l \in \text{L}, h \in \text{H}, td \in \text{TD}.
+    :label: eq:StoOutCeil
+
 
 Exchanges
 ^^^^^^^^^
 
+The exchanges are modelled into two distinct categories according to the means of transportation:
+(i) exchanges through a network and (ii) exchanges through freight. The resources
+in each category are defined by the sets :math:`\text{NER}` and :math:`\text{FER}`, respectively. Those two categories
+share equations ensuring the energy and mass balance of exchanges (Eqs. :eq:`eq:exch_balance`-:eq:`eq:noexchanges`)
+but differ in terms of losses and cost constraints. Table :numref:`%s <tab:exch_formulation>` summarizes conceptually those
+constraints, which are then fully described (Eqs. :eq:`eq:capa_lim_imp`-:eq:`eq:freight_exch`). On the one side, energy
+carriers exchanged through a network experience some losses during transportation. They
+require a transmission infrastructure whose design is optimised between certain bounds.
+These optimised transfer capacities limit the quantity that can be transported across each 
+border. On the other side, energy carriers’ exchanges through freight increase the freight
+demand in each region involved in the exchange. This freight demand increase implies
+buying more freight vehicles. Here, the exchange is only constrained by the amount that
+the exporting region can provide.
+
+.. csv-table:: Exchanges modelling into two main categories: network exchanges and freight exchanges. They differ in the way their energetic cost, investment cost and quantity constraint are formulated.
+   :header:  , Network exchanges, Freight exchanges
+   :widths: 30,35,35
+   :name: tab:exch_formulation
+
+    **Energetic cost**, Network losses, Additional freight demand
+    **Investment cost**, Transmission infrastructure, More freight vehicle
+    **Quantity constraint**, Transfer capacity, Availability of resources
+    *Examples*, "*Electricity, methane*", "*Methanol, woody biomass*"
+
+
+
 Exchanges balance
 """""""""""""""""
+
+Eq. :eq:`eq:exch_balance` defines the energy balance of the exchanges between two regions considering
+the losses during exchanges (:math:`exch_{loss}`). As exchanges have an energy cost (i.e. losses for
+network exchanges or additional demand for freight exchanges), the optimisation model
+never considers exchanges in both directions between two regions simultaneously. Hence,
+when one region imports a certain quantity at a certain time (:math:`\textbf{Exch}_{\textbf{imp}}`), the corresponding
+region exports (:math:`\textbf{Exch}_{\textbf{exp}}`) this quantity increased by the exchanges losses:
+
+.. math::
+    \textbf{Exch}_\textbf{imp}(r_1,r_2,i,h,td)\cdot \Big( 1 +  exch_{loss}(i) \cdot dist(r_1,r_2)/1000 \Big) - \textbf{Exch}_\textbf{exp}(r_1,r_2,i,h,td)
+    :label: eq:exch_balance
+
+    = -\textbf{Exch}_\textbf{imp}(r_2,r_1,i,h,td)\cdot \Big( 1 +  exch_{loss}(i) \cdot dist(r_2,r_1)/1000 \Big) + \textbf{Exch}_\textbf{exp}(r_2,r_1,i,h,td)
+
+    \forall r_1, r_2 \in \text{REG}, i \in \text{RES}, h \in \text{H}, td \in \text{TD}.
+
+Eq. :eq:`eq:exch_only_neigh` ensures that exchanges occur only between adjacent regions. The distance
+parameter (:math:`dist`) is set by default to 0 and is only defined for adjacent regions where direct
+exchanges are considered. Nevertheless, two non-adjacent regions can exchange energy
+commodities with the help of one or several other regions that link them.
+
+.. math::
+    \textbf{Exch}_\textbf{imp}(r_1,r_2,i,h,td) = \textbf{Exch}_\textbf{exp}(r_1,r_2,i,h,td) = 0
+    :label: eq:exch_only_neigh
+
+    ~~~~~~~~~~~~~~~~~~~ \forall r_1, r_2 \in \text{REG}|dist(r_1,r_2)=0, i \in \text{RES}, h \in \text{H}, td \in \text{TD}.
+
+
+The exchanges of each region with its adjacent regions are regrouped into total imported (:math:`\textbf{R}_{\textbf{t,imp}}`) and 
+exported (:math:`\textbf{R}_{\textbf{t,exp}}`) quantities, see Eqs. :eq:`eq:r_t_imp` and :eq:`eq:r_t_exp`. Those are then included in
+the layer balance of each region, see Eq. :eq:`eq:layer_balance`.
+
+.. math::
+    \textbf{R}_{\textbf{t,imp}}(r_1,i,h,td) = \sum_{r_2 \in \text{REG}} \textbf{Exch}_\textbf{imp}(r_1,r_2,i,h,td)
+    ~~~~~~~ \forall r_1 \in \text{REG}, i \in \text{RES}, h \in \text{H}, td \in \text{TD},
+    :label: eq:r_t_imp
+
+    
+
+.. math::
+    \textbf{R}_{\textbf{t,exp}}(r_1,i,h,td) = \sum_{r_2 \in \text{REG}} \textbf{Exch}_\textbf{exp}(r_1,r_2,i,h,td)
+    ~~~~~~~~ \forall r_1 \in \text{REG}, i \in \text{RES}, h \in \text{H}, td \in \text{TD}.
+    :label: eq:r_t_exp
+
+Eq. :eq:`eq:noexchanges` forces to have no exchanges for resources if it does not make sense. For instance,
+one region cannot directly exchange its solar or wind resources. It must first convert it into
+electricity or another carrier to exchange it.
+
+.. math::
+    \textbf{R}_{\textbf{t,imp}}(r,i,h,td) = \textbf{R}_{\textbf{t,exp}}(r,i,h,td) = 0
+    ~~~~~~~~ \forall r \in \text{REG}, i \in \text{NOEXCHANGES}, h \in \text{H}, td \in \text{TD}.
+    :label: eq:noexchanges
 
 Network exchanges
 """""""""""""""""
 
+For energy carriers exchanged through a network (:math:`\text{NER}`, e.g. electricity, methane, hydrogen),
+at each period, the exchanges (:math:`\textbf{Exch}_{\textbf{imp}}` and :math:`\textbf{Exch}_{\textbf{exp}}`) 
+are bounded by the installed transfer capacity linking the two regions (:math:`\textbf{Tc}`) 
+for all network types related to this resource (:math:`\text{NT}(i)`), see
+Eqs. :eq:`eq:capa_lim_imp` and :eq:`eq:capa_lim_exp`. The network type allows us to consider different onshore and offshore
+interconnections. For instance, two regions can be interconnected by a hydrogen network
+made of four different network types: (i) underground pipelines retrofitted from existing
+methane pipelines, (ii) new underground pipelines, (iii) subsea pipelines retrofitted from
+existingmethane pipelines, (iv) new subsea pipelines. The total hydrogen transfer capacity
+between the two regions equals the sumof the transfer capacity of all these network types.
+
+.. math::
+    \textbf{Exch}_{\textbf{imp}}(r_1,r_2,i,h,td) \leq \sum_{n \in \text{NT}(i)} \textbf{Tc}(r_2,r_1,i,n)
+    ~~~~~~~~ \forall r_1,r_2 \in \text{REG}, i \in \text{NER}, h \in \text{H}, td \in \text{TD},
+    :label: eq:capa_lim_imp
+
+.. math::
+    \textbf{Exch}_{\textbf{exp}}(r_1,r_2,i,h,td) \leq \sum_{n \in \text{NT}(i)} \textbf{Tc}(r_1,r_2,i,n)
+    ~~~~~~~~ \forall r_1,r_2 \in \text{REG}, i \in \text{NER}, h \in \text{H}, td \in \text{TD}.
+    :label: eq:capa_lim_exp
+
+The model can optimise the transfer capacities (:math:`\textbf{Tc}`) between all regions and for each 
+network type of each resource. For all resources exchanged through a network, these
+transfer capacities are limited by the parameters defining the lower and upper bounds
+(:math:`tc_{min}` and :math:`tc_{max}`), see Eq. :eq:`eq:tc_bounds`. The lower bound expresses the fact that there is an existing
+network that will stay in place. The upper bound allows the expansion of this existing
+network.
+
+.. math::
+    tc_{min}(r_1,r_2,i,n) \leq \textbf{Tc}(r_1,r_2,i,n) \leq tc_{max}(r_1,r_2,i,n)
+    ~~~~~~~~ \forall r_1,r_2 \in \text{REG}, i \in \text{NER} \setminus Methane, n \in \text{NT}(i).
+    :label: eq:tc_bounds
+
+For the methane network, specific equations are defined to consider that the existing
+network can be retrofitted to a hydrogen network, see Eqs. :eq:`eq:tc_bounds_methane_pipeline` and :eq:`eq:tc_bounds_methane_subsea`. These equations
+ensure that the methane network transfer capacity and themethane capacity retrofitted
+to hydrogen are within the bounds of the methane network. Hydrogen is less dense than
+methane. Thus, when retrofitting a methane pipeline to a hydrogen pipeline, we lose 37%
+of the transfer capacity :cite:`van_rossum_european_2022`. This is expressed by the ratio ch4toh2. There are two network
+types for methane: underground pipelines and subsea pipelines. Therefore, we have two
+equations:
+
+.. math::
+    tc_{min}(r_1,r_2,Methane,MethanePipeline) 
+    :label: eq:tc_bounds_methane_pipeline
+
+    \leq \textbf{Tc}(r_1,r_2,Methane,MethanePipeline) + \textbf{Tc}(r_1,r_2,H2,H2Retro)/ch4toh2 \leq 
+
+    tc_{max}(r_1,r_2,Methane,MethanePipeline)
+
+    ~~~~~~~~ \forall r_1,r_2 \in \text{REG}.
+    
+
+.. math::
+    tc_{min}(r_1,r_2,Methane,MethaneSubsea)
+    :label: eq:tc_bounds_methane_subsea
+
+    \leq \textbf{Tc}(r_1,r_2,Methane,MethaneSubsea) + \textbf{Tc}(r_1,r_2,H2,H2SubseaRetro)/ch4toh2 \leq 
+
+    tc_{max}(r_1,r_2,Methane,MethaneSubsea)
+
+    ~~~~~~~~ \forall r_1,r_2 \in \text{REG}.
+   
+
+In this model, it is assumed that all network transfer capacities between regions are bidirectional:
+
+.. math::
+    \textbf{Tc}(r_1,r_2,i,n) = \textbf{Tc}(r_2,r_1,i,n)
+    ~~~~~~~~ \forall r_1,r_2 \in \text{REG}, i \in \text{NER}, n \in \text{NT}(i).
+    :label: eq:tc_bidir
+
+Installed transfer capacities between two regions imply an investment into the corresponding
+technology in each region. This investment is proportional to the typical distance
+between the region pair. Each region of the pair pays for half of the installation:
+
+.. math::
+    \textbf{F}(r_1,n) = \sum_{r_2 \in \text{REG}} \bigg(dist(r_1,r_2) \cdot \textbf{Tc}(r_2,r_1,i,n)/2 \bigg)
+    ~~~~~~~~ \forall r_1 \in \text{REG}, i \in \text{NER}, n \in \text{NT}(i).
+    :label: eq:tc_inv
+
 Freight exchanges
 """""""""""""""""
 
-.. caution:: 
-    complete
+The resources that can be exchanged by freight are defined by the set :math:`\text{FER}` (i.e. ammonia,
+methanol, Fischer-Tropsch (FT) fuels, woody biomass and CO2). The annual freight to
+transport these resources across each border (:math:`\textbf{Freight}_{\textbf{exch,b}}`) is computed in two steps, see
+Eq. :eq:`eq:freight_exch_b`. First, the energy exchanged is converted into tonnes thanks to the lower heating
+value (LHV) of each resource (:math:`lhv`). Second, these tonnes are converted into ton-kilometers
+with the typical distance between the region pair (:math:`dist`).
+
+.. math::
+    \textbf{Freight}_{\textbf{exch,b}}(r_1,r_2) 
+    :label: eq:freight_exch_b
+
+    = dist(r_1,r_2) \sum_{i \in \text{FER}, t(h,td) \in \text{T}} \bigg( \big(\textbf{Exch}_{\textbf{imp}}(r_1,r_2,i,h,td) + \textbf{Exch}_{\textbf{exp}}(r_1,r_2,i,h,td) \big)/lhv(i) \bigg)
+
+    ~~~~~~~~ \forall r_1,r_2 \in \text{REG}.
+    
+
+The additional freight across each border is shared evenly between the two regions of the
+pair to compute the total additional freight of each region, see Eq. :eq:`eq:freight_exch`. This additional
+demand is directly added to the freight demand of each region, see :numref:`Figure %s <fig:EndUseDemand>`.
+
+.. math::
+    \textbf{Freight}_{\textbf{exch}}(r_1) = \sum_{r_2 \in \text{REG}} \textbf{Freight}_{\textbf{exch,b}}(r_1,r_2)/2
+    ~~~~~~~~ \forall r_1 \in \text{REG}.
+    :label: eq:freight_exch
 
 Local networks
 ^^^^^^^^^^^^^^
 
+Eq. :eq:`eq:loss` calculates network losses as a share
+(:math:`\%_{net_{loss}}`) of the total energy transferred through the network of each region. As
+an example, losses in the electricity grid in Belgium are estimated to be 4.7\% of
+the energy transferred in 2015 [6]_.
+
 .. math::
-    \textbf{Net}_\textbf{loss}(eut,h,td) = \Big(\sum_{i \in \text{RES} \cup \text{TECH} \setminus \text{STO} | f(i,eut) > 0} f(i,eut)\textbf{F}_\textbf{t}(i,h,td) \Big) \%_{\text{net}_{loss}} (eut) 
+    \textbf{Net}_\textbf{loss}(r,eut,h,td) = \Big(\sum_{j \in \text{TECH} \setminus \text{STO} | f(j,eut) > 0} f(j,eut)\textbf{F}_\textbf{t}(r,j,h,td) 
     :label: eq:loss
 
-    \forall eut = \text{EUT}, \forall h \in H, \forall td \in TD
+    + \sum_{i \in \text{RES} | f(i,eut) > 0} f(i,eut)\textbf{R}_\textbf{t,imp}(r,i,h,td) \Big) \%_{\text{net}_{loss}} (eut) 
 
-.. math::
-    \textbf{F} (Grid) = 1 + \frac{c_{grid,extra}}{c_{inv}(Grid)} 
-    \Big(
-    \textbf{F}(Wind_{onshore}) + \textbf{F}(Wind_{offshore}) + \textbf{F}(PV)
-    :label: eq:mult_grid
+    \forall r \in \text{REG}, eut \in \text{EUT}, h \in \text{H}, td \in \text{TD}.
 
-    -\big( 
-    f_{min}(Wind_{onshore}) + f_{min}(Wind_{offshore}) + f_{min}(PV)
-    \big)
-    \Big)
-
-.. math::
-    \textbf{F} (DHN) = \sum_{j \in \text{TECH} \setminus {STO} | f(j,\text{HeatLowTDHN}) >0} f(j,\text{HeatLowTDHN}) \cdot \textbf{F} (j) 
-    :label: eq:DHNCost
-
-Eq. :eq:`eq:loss` calculates network losses as a share
-(:math:`%_{net_{loss}}`) of the total energy transferred through the network. As
-an example, losses in the electricity grid are estimated to be 4.5\% of
-the energy transferred in 2015 [8]_.
-Eqs. :eq:`eq:mult_grid` - :eq:`eq:DHNCost`
-define the extra investment for networks. Integration of intermittent RE
+Eq. :eq:`eq:mult_grid`
+defines the extra investment for the local electricity network. Integration of intermittent RE
 implies additional investment costs for the electricity grid
-(:math:`c_{grid,ewtra}`). As an example, the reinforcement of the electricity
+(:math:`c_{grid,extra}`). As an example, the reinforcement of the electricity
 grid is estimated to be 358 millions €\ :sub:`2015` per Gigawatt of
 intermittent renewable capacity installed (see 
 `Data for the grid <#ssec:app1_grid:>`__ for details).
+
+
+.. math::
+    \textbf{F} (r,Grid) = 1 + \frac{c_{grid,extra}}{c_{inv}(r,Grid)} 
+    \Big(
+    \textbf{F}(r,Wind_{onshore}) + \textbf{F}(r,Wind_{offshore}) + \textbf{F}(r,PV_{utility}) + \textbf{F}(r,PV_{rooftop})
+    :label: eq:mult_grid
+
+    -\big( 
+    f_{min}(r,Wind_{onshore}) + f_{min}(r,Wind_{offshore}) + f_{min}(r,PV_{utility}) + f_{min}(r,PV_{rooftop})
+    \big)
+    \Big)
+
+    ~~~~~~~ \forall r \in \text{REG}.
+
 Eq. :eq:`eq:DHNCost` links the size of DHN to the total
-size of the installed centralized energy conversion technologies.
+size of the installed centralized energy conversion technologies:
+
+.. math::
+    \textbf{F} (r,DHN) = \sum_{j \in \text{TECH_OF_EUT}(HeatLowTDHN)} \textbf{F} (r,j) ~~~~~~~ \forall r \in \text{REG}.
+    :label: eq:DHNCost
+
 
 Mobility shares
 ^^^^^^^^^^^^^^^
 
-.. caution:: 
-    add eq
+The share of the different technologies for passenger mobility (:math:`j \in \text{TECH_OF_EUC}(PassMob)`)
+stays constant at each time step (:math:`\textbf{%}_{\textbf{PassMob}}`):
+
+.. math::
+    \textbf{F}_\textbf{t} (r,j,h,td) = \textbf{%}_\textbf{PassMob} (r,j) \cdot \big( \%_{pass}(r,h,td) \cdot endUsesInput(PassMob) \big)   
+    :label: eq:mob_share_fix
+
+    \forall r \in \text{REG}, j \in \text{TECH_OF_EUC}(PassMob) , h \in \text{H}, td \in \text{TD}.
+
+In other words, if 20% of the passenger mobility is supplied by train, this share remains 
+constant in the morning or the afternoon. But the total amount changes according to the
+passenger mobility time series (:math:`\%_{pass}`). This equation approximates the fact that, in reality,
+there is an entire fleet of vehicles.
+
+Similarly, we impose that the share of the different technologies for freight mobility 
+(:math:`j \in \text{TECH_OF_EUC}(FreightMob)`) and for shipping (:math:`j \in \text{TECH_OF_EUC}(Shipping)`) stays constant
+at each time step (:math:`\textbf{%}_{\textbf{FreightMob}}` and :math:`\textbf{%}_{\textbf{Shipping}}`, respectively):
+
+.. math::
+    \textbf{F}_\textbf{t} (r,j,h,td) = \textbf{%}_\textbf{FreightMob} (r,j) \cdot \big( endUsesInput(FreightMob)/8760 \big)   
+    :label: eq:freight_share_fix
+
+    \forall r \in \text{REG}, j \in \text{TECH_OF_EUC}(FreightMob) , h \in \text{H}, td \in \text{TD},
+
+.. math::
+    \textbf{F}_\textbf{t} (r,j,h,td) = \textbf{%}_\textbf{Shipping} (r,j) \cdot \big( endUsesInput(Shipping)/8760 \big)   
+    :label: eq:shipping_share_fix
+
+    \forall r \in \text{REG}, j \in \text{TECH_OF_EUC}(Shipping) , h \in \text{H}, td \in \text{TD}.
+
+For freight mobility, we ensure that the freight technologies supply the overall freight
+demand by forcing the sum of shares of rail freight (:math:`\textbf{%}_{\textbf{Fr,Rail}}`), 
+boat freight (:math:`\textbf{%}_{\textbf{Fr,Boat}}`) 
+and road freight (:math:`\textbf{%}_{\textbf{Fr,Road}}`) to be equal to one:
+
+.. math::
+    \textbf{%}_\textbf{Fr,Rail}(r) + \textbf{%}_\textbf{Fr,Boat}(r) + \textbf{%}_\textbf{Fr,Road}(r) = 1
+    ~~~~~~ \forall r \in \text{REG}.
+    :label: eq:freight_share_constant
 
 
 Vehicle-to-grid
 ^^^^^^^^^^^^^^^
 
-.. figure:: /images/model_formulation/v2gAndBatteries.png
+Vehicle-to-grid dynamics are included in the model via the :math:`\text{V2G}` set.
+For each vehicle :math:`i \in \text{V2G}`, a battery (:math:`j \in \text{EVs_BATT}`) 
+is associated using the set :math:`\text{EVs_BATT_OF_V2G}`
+(:math:`j \in \text{EVs_BATT_OF_V2G}(i)`). Each type :math:`i`
+of :math:`\text{V2G}` has a different size of battery per car
+(:math:`ev_{batt,size}(i)`), e.g. typical plug-in hybrid electric vehicle (PHEV) 
+and battery electric vehicle (BEV) have different size of batteries.
+A set of equations links the electric vehicles with their batteries
+both for sizing and operation, see Eqs. :eq:`eq:BtoBEV`-:eq:`eq:EV_min_state_of_charge`.
+
+The general working principle is illustrated in :numref:`Figure %s <fig:V2GAndBatteries>`. It is an example of BEVs supplying
+some passenger mobility. In this illustration, a battery technology is associated with a BEV.
+The battery can either supply the BEV needs or send electricity back to the grid. It can also
+be charged smartly, i.e. according to the grid flexibility needs.
+
+.. figure:: /images/model_formulation/V2GAndBatteries.png
    :alt: Illustrative example of a V2G implementation.
    :name: fig:V2GAndBatteries
-   :width: 7cm
+   :width: 12cm
 
-   Illustrative example of a V2G implementation. The battery can
-   interact with the electricity layer. 
-   The size of the battery is directly related to the number of cars (see Eq. :eq:`eq:SizeOfBEV`). 
-   The V2G takes the electricity from the battery to provide a constant share (:math:`\textbf{%}_{\textbf{PassMob}}`) of the
-   passenger mobility layer (*Mob. Pass.*). Thus, it imposes the amount of electricity that electric car must deserve (see Eq. :eq:`eq:BtoBEV`).
-   The remaining capacity of battery available can be used to provide V2G services (see :eq:`eq:LimitChargeAndDischarge_ev`). 
-   
+   Illustrative example of a vehicle-to-grid (V2G) implementation. The battery (EV_battery) can
+   interact with the electricity layer and the battery electric vehicle (BEV). 
+   The link with the electricity layer goes in both directions as the battery can be charged or 
+   discharged flexibly according to the grid needs and respecting both the availability of the 
+   vehicle connected to the grid and the minimum state of charge required. The link with the 
+   BEV only goes in one direction as the battery is discharged to supply these vehicles with 
+   power according to the demand in the passenger mobility (Mob. Pass.) layer.
 
-.. math::
-    \textbf{F} (i) = \frac{\textbf{F} (j)}{ veh_{capa} (j)} ev_{batt,size} (j)  ~~~~~~ \forall  j \in  V2G, i \in \text{EVs_BATT OF V2G}(j)
-    :label: eq:SizeOfBEV
 
-Vehicle-to-grid dynamics are included in the model via the *V2G* set.
-For each vehicle :math:`j \in V2G`, a battery :math:`i` (:math:`i`
-:math:`\in` *EVs_BATT*) is associated using the set EVs_BATT_OF_V2G
-(:math:`i \in \text{EVs_BATT_OF_V2G}(j)`). Each type :math:`j`
-of *V2G* has a different size of battery per car
-(:math:`ev_{batt,size}(j)`), e.g. the first generation battery of the
-Nissan Leaf (ZE0) has a capacity of 24 kWh [10]_. The number of vehicles
-of a given technology is calculated with the installed capacity (**F**)
-in [km-pass/h] and its capacity per vehicles (:math:`veh_{capa}` in
-[km-pass/h/veh.]). Thus, the energy that can be stored in batteries
-**F**\ (:math:`i`) of *V2G*\ (:math:`j`) is the ratio of the installed capacity of
-vehicle by its specific capacity per vehicles times the size of battery
-per car (:math:`ev_{batt,size}(j)`), Eq. 
-:eq:`eq:SizeOfBEV`. As an example, if this technology
-of cars covers 10 Mpass-km/h, and the capacity per vehicle is 50.4
-pass-km/car/h (which represents an average speed of 40km/h and occupancy
-of 1.26 passenger per car); thus, the amount of BEV cars are 0.198
-million cars. And if a BEV has a 24kWh of battery, such as the Nissan
-Leaf (ZE0), thus, the equivalent battery has a capacity of 4.76 GWh.
-
+Eq. :eq:`eq:BtoBEV` forces batteries of electric vehicles to supply, at least, the energy required by each 
+associated electric vehicle technology. This constraint is not an equality, as batteries can
+also be used to support the grid. There is a minus sign on the right side of the equation as
+the car consumes electricity, and thus, the f parameter is negative.
 
 .. math::
-    \textbf{Sto}_\textbf{out} (j,Elec,h,td) \geq - f(i,Elec) \textbf{F}_\textbf{t} (i,h,td) 
+    \textbf{Sto}_\textbf{out} (r,j,Elec,h,td) \geq - f(i,Elec) \textbf{F}_\textbf{t} (r,i,h,td) 
     :label: eq:BtoBEV
 
-    \forall i \in V2G , \forall j \in \text{EVs_BATT OF V2G}(j), \forall h \in H, td \in TD 
+    \forall r \in \text{REG}, i \in \text{V2G} , j \in \text{EVs_BATT_OF_V2G}(i), h \in \text{H}, td \in \text{TD}. 
 
+The number of vehicles of a given technology is calculated by the ratio of the installed capacity (:math:`\textbf{F}`)
+in [Mkm-pass/h] with the capacity per vehicle (:math:`veh_{capa}`) in
+[km-pass/h/veh.]. Thus, the energy that can be stored in batteries
+is this ratio times the size of battery
+per car (:math:`ev_{batt,size}(j)`), Eq. :eq:`eq:SizeOfBEV`. As an example, if this technology
+of cars covers 10 Mpass-km/h, and the capacity per vehicle is 50.4
+pass-km/car/h (which represents an average speed of 40km/h and occupancy
+of 1.26 passenger per car), the amount of BEV cars are 0.198
+million cars. Thus, if a BEV has a 50kWh battery, the equivalent battery has a
+capacity of 9.92 GWh.
 
-
-
-Eq. :eq:`eq:BtoBEV` forces batteries of electric vehicles
-to supply, at least, the energy required by each associated electric
-vehicle technology. This lower bound is not an equality; in fact,
-according to the V2G concept, batteries can also be used to support the
-grid. :numref:`Figure %s <fig:V2GAndBatteries>` shows through an example
-with only BEVs how Eq. :eq:`eq:BtoBEV` simplifies the
-implementation of V2G. In this illustration, a battery technology is
-associated to a BEV. The battery can either supply the BEV needs or
-sends electricity back to the grid.
 
 .. math::
-    \textbf{Sto}_\textbf{in} (j,l,h,td)t_{sto_{in}}(\text{j}) + \Big(\textbf{Sto}_\textbf{out}(j,l,h,td) + f(i,Elec) \textbf{F}_\textbf{t} (i,h,td) \Big) \cdot t_{sto_{out}}(\text{j})
+    \textbf{F} (r,j) = \frac{\textbf{F} (r,i)}{ veh_{capa} (i)} ev_{batt,size} (i)  
+    ~~~~~~ \forall  r \in \text{REG}, i \in  \text{V2G}, j \in \text{EVs_BATT_OF_V2G}(i).
+    :label: eq:SizeOfBEV
+
+Eq. :eq:`eq:LimitChargeAndDischarge_ev` limits the availability of batteries for charging and discharging 
+to the number of vehicle connected to the grid.
+This equation is similar to the one for other type of storage, see Eq. :eq:`eq:LimitChargeAndDischarge`; 
+except that a part of the batteries are not accounted, i.e. the batteries of the cars on the move. 
+Therefore, the available output is corrected by removing the electricity powering the running car (here, :math:`f(i,Elec) \leq 0`) 
+and the available batteries are corrected by removing the numbers of electric cars on the move 
+(:math:`\frac{\textbf{F}_\textbf{t} (r,i,h,td)}{ veh_{capa} (i)} ev_{batt,size} (i)`). 
+Furthermore, not all the stationed cars are connected to a smart charging station. Only a
+share (20%) is available for charging or discharging (:math:`\%_{sto_{avail}}(j)`).
+
+
+.. math::
+    \textbf{Sto}_\textbf{in} (r,j,l,h,td)t_{sto_{in}}(r,j) + \Big(\textbf{Sto}_\textbf{out}(r,j,l,h,td) + 
+    f(i,Elec) \textbf{F}_\textbf{t} (r,i,h,td) \Big) \cdot t_{sto_{out}}(r,j)
     :label: eq:LimitChargeAndDischarge_ev
 
-    \leq \Big( \textbf{F} (j) - \frac{\textbf{F} (j)}{ veh_{capa} (j)} ev_{batt,size} (j) \Big) \cdot \%_{sto_{avail}}(j)
+    \leq \Big( \textbf{F} (r,j) - \frac{\textbf{F}_\textbf{t} (r,i,h,td)}{ veh_{capa} (i)} ev_{batt,size} (i) \Big) 
+    \cdot \%_{sto_{avail}}(j)
 
-    \forall i \in V2G , \forall j \in \text{EVs_BATT OF V2G}(j) , \forall l \in L, \forall h \in H, \forall td \in TD
+    \forall r \in \text{REG}, i \in \text{V2G} , j \in \text{EVs_BATT_OF V2G}(j) , l \in \text{L}, \forall h \in \text{H}, td \in \text{TD}.
 
-Eq. :eq:`eq:LimitChargeAndDischarge_ev` limits the availability of batteries to the number of vehicle connected to the grid.
-This equation is similar to the one for other type of storage (see Eq. :eq:`eq:LimitChargeAndDischarge`); 
-except that a part of the batteries are not accounted, i.e. the one running (see Eq. :eq:`eq:BtoBEV`). 
-Therefore, the available output is corrected by removing the electricity powering the running car (here, :math:`f(i,Elec) \leq 0`) 
-and the available batteries is corrected by removing the numbers of electric cars running (:math:`\frac{\textbf{F} (j)}{ veh_{capa} (j)} ev_{batt,size} (j)`).
 
-.. math::
-    \textbf{Sto}_\textbf{level} (j,t) \geq \textbf{F}[i] soc_{ev}(i,h)
-    :label: eq:EV_min_state_of_charge
-
-    \forall i \in V2G , \forall j \in \text{EVs_BATT OF V2G}(j) , \forall t \in T| \{h,td\} \in T\_H\_TD
-
-For each electric vehicle (:math:`ev`), a minimum state of charge is imposed for each hour of the day \big(:math:`soc_{ev}(i,h)`\big). 
-As an example, we can impose that the state of charge of EV is 60% in the morning, to ensure that cars can be used to go for work. 
+For each EV, a minimum state of charge is imposed for each hour of the day (:math:`soc_{ev}(i,h)`). 
+By default, we impose that the state of charge of the EVs fleet is 60% at 7 a.m., to ensure that cars can be used to go to work. 
 Eq. :eq:`eq:EV_min_state_of_charge` imposes, for each type of `V2G`, 
 that the level of charge of the EV batteries is greater than the minimum state of charge times the storage capacity.
+
+.. math::
+    \textbf{Sto}_\textbf{level} (r,j,t) \geq \textbf{F}(r,j) soc_{ev}(i,h)
+    ~~~~~~     \forall r \in \text{REG}, i \in \text{V2G} , j \in \text{EVs_BATT_OF_V2G}(i) , t(h,td) \in \text{T}.
+    :label: eq:EV_min_state_of_charge
+
 
 Hydro dams
 ^^^^^^^^^^
 
-.. caution::
-    add eq
+The hydro dams are implemented as the combination of two components, see 
+:numref:`Figure %s <fig:hydro_dam_modelling>`: a storage unit (the reservoir or dam storage (:math:`DamSto`)) and a power production unit
+(:math:`HydroDam`). We differentiate between pumped hydro storage (PHS) and the storage unit with river inflow, :math:`DamSto`.
+A PHS has a lower and upper reservoir without an inlet source; a :math:`DamSto` has an inlet source,
+i.e. a river inflow, but cannot pump water from the lower reservoir.
+
+.. figure:: /images/model_formulation/hydro_dam_modelling.jpg
+   :alt:  Visual representation of hydro dam modelling.
+   :name: fig:hydro_dam_modelling
+   :width: 17cm
+
+   Visual representation of hydro dam modelling. This figure is adapted from :cite:`Limpens2019`.
+
+The technology :math:`HydroDam` accounts for all the dam hydroelectric infrastructure costs
+and emissions. Eqs. :eq:`eq:storage_capa_hydro_dams`-:eq:`eq:limit_hydro_dams_output` 
+regulate the reservoir (:math:`DamSto`) based on the production (:math:`HydroDam`). 
+Eq. :eq:`eq:storage_capa_hydro_dams` linearly relates the reservoir size with the power plant size
+(:math:`\textbf{F}(r, HydroDam)`):
+
+.. math::
+    \textbf{F} (r,DamSto) \leq f_{min}(r,DamSto) 
+    :label: eq:storage_capa_hydro_dams
+
+    + \big( f_{max}(r,DamSto) - f_{min}(r,DamSto) \big) 
+    \cdot \bigg(\frac{\textbf{F}(r,HydroDam) - f_{min}(r,HydroDam)}{f_{max}(r,HydroDam) - f_{min}(r,HydroDam)} \bigg)
+
+    ~~~~~~     \forall r \in \text{REG} \setminus \text{RWITHOUTDAM}.
+
+Eq. :eq:`eq:impose_hydro_dams_inflow` imposes the storage input power (:math:`\textbf{Sto}_\textbf{in}`) 
+to be equal to the water inflow of the
+dam (:math:`\textbf{F}_\textbf{t}(r, HydroDam, h, td)`). This water inflow is constrained by the hourly capacity factor
+equation, see Eq. :eq:`eq:cp_t`.
+
+.. math::
+    \textbf{Sto}_\textbf{in} (r,DamSto, Elec, h, td) = \textbf{F}_\textbf{t}(r,HydroDam,h,td) 
+    ~~~~~~     \forall r \in \text{REG}, h \in \text{H}, td \in \text{TD}.
+    :label: eq:impose_hydro_dams_inflow
+
+Eq. :eq:`eq:limit_hydro_dams_output` ensures that the storage output (:math:`\textbf{Sto}_\textbf{out}`) 
+is lower or equal to the installed capacity
+(:math:`\textbf{F}(r, HydroDam)`). Furthermore, the dam storage is constrained by the storage equations,
+see Eqs. :eq:`eq:sto_level` and :eq:`eq:Sto_level_bound`.
+
+.. math::
+    \textbf{Sto}_\textbf{out} (r,DamSto, Elec, h, td) \leq \textbf{F}(r,HydroDam) 
+    ~~~~~~     \forall r \in \text{REG}, h \in \text{H}, td \in \text{TD}.
+    :label: eq:limit_hydro_dams_output
+
 
 Concentrated solar power
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. caution::
-    add eq
+The CSP technologies are modelled into 3 elements, see :numref:`Figure %s <fig:csp_modelling>`: collectors, storage
+and power block. The solar irradiance converted into heat is given by a time series and
+constrained by Eq :eq:`eq:cp_t`. This heat goes onto a specific layer where it is either stored in the
+CSP heat storage or converted into electricity through the power block.
+
+.. figure:: /images/model_formulation/csp_modelling.jpg
+   :alt:  Visual representation of concentrated solar power (CSP) modelling.
+   :name: fig:csp_modelling
+   :width: 17cm
+
+   Visual representation of concentrated solar power (CSP) modelling.
+
+Two different CSP technologies are considered: solar tower (ST) and parabolic trough (PT)
+Each CSP technology also has its own layer representing the heat produced and stored on
+the CSP plant. Eqs. :eq:`eq:sm_limit_solar_tower` and :eq:`eq:sm_limit_parabolic_trough` 
+ensure that the link between the size of the collector
+field :math:`\big( \textbf{F}(r, ST_{collector})` or :math:`\textbf{F}(r, PT_{collector}) \big)` 
+and the size of the power block :math:`\big( \textbf{F}(r, ST_{powerblock})` or :math:`\textbf{F}(r, PT_{powerblock}) \big)` 
+are kept within a realistic range. In these equations, the size of the collector
+field defined in [GW:sub:`th`] is converted into equivalent electrical power (i.e. [GW:sub:`el`]) thanks to
+an efficiency of the power block :math:`\big(\frac{−1}{f(ST_{powerblock},ST_{Heat})}` or 
+:math:`\frac{−1}{f(PT_{powerblock},PT_{Heat})} \big)`. There is a minus
+sign as the power block consumes heat (:math:`f < 0`). The link between this equivalent electrical
+power and the power block size is bounded by the maximum solar multiple (:math:`sm_{max}`).
+A typical maximum solar multiple of 4 is taken :cite:`dupont2020global`.
+
+.. math::
+    -\frac{\textbf{F}(r,ST_{collector})}{f(ST_{powerblock},ST_{Heat})} \leq sm_{max} \textbf{F}(r,ST_{powerblock}) 
+    ~~~~~~     \forall r \in \text{REG}.
+    :label: eq:sm_limit_solar_tower
+
+.. math::
+    \frac{−\textbf{F}(r,PT_{collector})}{f(PT_{powerblock},PT_{Heat})} \leq sm_{max} \textbf{F}(r,PT_{powerblock}) 
+    ~~~~~~     \forall r \in \text{REG}.
+    :label: eq:sm_limit_parabolic_trough
 
 Solar area
 ^^^^^^^^^^
 
-.. caution::
-    add eq
+As several solar-based technologies are competing for the same locations, the upper limit
+for those is calculated based on the available land area (:math:`solar_{area}`) and power densities of
+PV (:math:`power\_density_{pv}`), solar thermal (:math:`power\_density_{solar~thermal}`) and 
+CSP (:math:`power\_density_{pt}` and :math:`power\_density_{st}`), see
+Eqs. :eq:`eq:solar_area_rooftop_limited`-:eq:`eq:solar_area_ground_high_irr_limited`. 
+The equivalence between an installed capacity (in gigawatt peaks, GWp) and the
+land use (in km²) is calculated based on the peak power density (GWp/km²). In other words,
+it represents the peak power of one square meter of solar technology, considering also the
+spacing needed between panels.
+
+Rooftop PV and solar thermal decentralised and centralised are competing for rooftop area
+(:math:`solar_{area,rooftop}`):
+
+.. math::
+    \frac{\textbf{F}(r,PV_{rooftop})}{power\_density_{pv}} 
+    + \frac{\big(\textbf{F}(r,Dec_{Solar}) + \textbf{F}(r,DHN_{Solar}) \big)}{power\_density_{solar~thermal}} 
+    \leq solar_{area,rooftop} (r)
+    ~~~~~~~~ \forall r \in \text{REG}.
+    :label: eq:solar_area_rooftop_limited
+  
+The utility PV and CSP technologies compete for ground area (:math:`solar_{area,ground}`):
+
+.. math::
+    \frac{\textbf{F}(r,PV_{utility})}{power\_density_{pv}} 
+    + \frac{\textbf{F}(r,PT_{collector}) }{power\_density_{pt}}
+    + \frac{\textbf{F}(r,ST_{collector}) }{power\_density_{st}}
+    \leq solar_{area,ground} (r)
+    :label: eq:solar_area_ground_limited
+
+    ~~~~~~~~ \forall r \in \text{REG}.
+
+
+Additionally, CSP technologies can only be installed on locations with annual direct normal
+irradiance (DNI) above 1800 kWh/m² and a maximum slope of 2.1° :cite:`ruiz_enspreso_2019`. The two different
+CSP technologies compete for that high irradiance ground area (:math:`solar_{area,ground,high~irr}`),
+which is a subset of the total solar ground area (:math:`solar_{area,ground}`):
+
+.. math::
+    \frac{\textbf{F}(r,PT_{collector}) }{power\_density_{pt}}
+    + \frac{\textbf{F}(r,ST_{collector}) }{power\_density_{st}}
+    \leq solar_{area,ground,high~irr} (r)
+    ~~~~~~~~ \forall r \in \text{REG}.
+    :label: eq:solar_area_ground_high_irr_limited
 
 Decentralised heat production
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
-.. math::
-    \textbf{F} (Dec_{Solar}) = \sum_{j \in \text{TECH OF EUT} (\text{HeatLowTDec}) \setminus \{ 'Dec_{Solar}' \}} \textbf{F}_\textbf{sol} (j)  
-    :label: eq:de_strategy_dec_total_ST
-
-.. math::
-    \textbf{F}_{\textbf{t}_\textbf{sol}} (j,h,td) \leq  \textbf{F}_\textbf{sol} (j)  c_{p,t}('Dec_{Solar}',h,td)
-    :label: eq:op_strategy_dec_total_ST
-
-    \forall j \in \text{TECH OF EUT} (\text{HeatLowTDec}) \setminus \{ 'Dec_{Solar}' \}, \forall h\in H, \forall td \in TD
-
-
-\endgroup  
-Thermal solar is implemented as a decentralized technology. It is always
-installed together with another decentralized technology, which serves
-as backup to compensate for the intermittency of solar thermal. Thus, we
-define the total installed capacity of solar thermal
-**F**\ ('':math:`Dec_{solar}`'') as the sum of **F\ sol**\ (:math:`j`),
-Eq. :eq:`eq:de_strategy_dec_total_ST`,
-where :math:`\textbf{F}_{\textbf{sol}}(j)` is the solar thermal
-capacity associated to the backup technology :math:`j`.
-Eq. :eq:`eq:op_strategy_dec_total_ST`
-links the installed size of each solar thermal capacity
-:math:`\textbf{F}_{\textbf{sol}}(j)` to its actual production
-::math:`\textbf{F}_{\textbf{t}_\textbf{sol}}(j,h,td))` via the
-solar capacity factor (:math:`c_{p,t}('Dec_{solar}')`).
-
-.. math::
-    \textbf{F}_\textbf{t} (j,h,td) + \textbf{F}_{\textbf{t}_\textbf{sol}} (j,h,td)  
-    :label: eq:heat_decen_share
-
-    + \sum_{l \in \text{L}}\Big( \textbf{Sto}_\textbf{out} (i,l,h,td) - \textbf{Sto}_\textbf{in} (i,l,h,td) \Big)
-
-    = \textbf{%}_\textbf{HeatDec}(\text{j}) \textbf{EndUses}(HeatLowT,h,td) 
-
-    \forall j \in \text{TECH OF EUT} (\text{HeatLowTDec}) \setminus \{ 'Dec_{Solar}' \}, 
-
-    i \in \text{TS OF DEC TECH}(j)  , \forall h\in H, \forall td \in TD
+:numref:`Figure %s <fig:FsolAndTSImplementation>` shows, through an example with
+two technologies (a methane boiler and a heat pump (HP)), how decentralised heat production, thermal
+storage and thermal solar are implemented.
+Each heating technology can be linked with a thermal solar panel installation and thermal
+storage. Together, they must supply a constant share of the decentralised heat demand.
 
 
 .. figure:: /images/model_formulation/ts_and_Fsolv2.png
    :alt: Illustrative example of a decentralised heating layer.
    :name: fig:FsolAndTSImplementation
-   :width: 12cm
+   :width: 17cm
 
-   Illustrative example of a decentralised heating layer with thermal
+   Illustrative example of a decentralised heating layer in one region with thermal
    storage, solar thermal and two conventional production technologies,
-   gas boilers and electrical HP. In this case,
+   methane boilers and electrical heat pumps (HPs). In this case,
    Eq. :eq:`eq:heat_decen_share` applied to the
    electrical HPs becomes the equality between the two following terms:
    left term is the heat produced by: the eHPs
-   (:math:`\textbf{F}_{\textbf{t}}('eHPs',h,td)`), the solar panel
+   (:math:`\textbf{F}_{\textbf{t}}(r,eHPs,h,td)`), the solar panel
    associated to the eHPs
-   (:math:`\textbf{F}_{\textbf{t}_\textbf{sol}}('eHPs',h,td)`) and
+   (:math:`\textbf{F}_{\textbf{t}_\textbf{sol}}(r,eHPs,h,td)`) and
    the storage associated to the eHPs; right term is the product between
    the share of decentralised heat supplied by eHPs
-   (:math:`\textbf{%}_{\textbf{HeatDec}}('eHPs')`) and heat low temperature decentralised
-   demand (:math:`\textbf{EndUses}(HeatLowT,h,td)`).
+   (:math:`\textbf{%}_{\textbf{HeatDec}}(eHPs)`) and heat low temperature decentralised
+   demand (:math:`\textbf{EndUses}(r,HeatLowT,h,td)`).
+
+Thermal solar, when implemented as a decentralized technology, is always
+installed together with another decentralized technology, which serves
+as backup to compensate for the intermittency of solar thermal. Thus, we
+define the total installed capacity of solar thermal
+(:math:`\textbf{F}(r,Dec_{solar})`) as the sum of the solar thermal
+capacity associated with each backup technology (:math:`\textbf{F}_\textbf{sol}(r,j)`):
+
+.. math::
+    \textbf{F} (r,Dec_{Solar}) = 
+    \sum_{j \in \text{TECH_OF_EUT} (HeatLowTDec) \setminus \{ Dec_{Solar} \}} \textbf{F}_\textbf{sol} (r,j)
+    ~~~~~~~~ \forall r \in \text{REG}.
+    :label: eq:de_strategy_dec_total_ST
+
+Eq. :eq:`eq:op_strategy_dec_total_ST`
+links the installed size of each solar thermal capacity
+:math:`\big( \textbf{F}_{\textbf{sol}}(r,j) \big)` to its actual production
+:math:`\big( \textbf{F}_{\textbf{t}_\textbf{sol}}(r,j,h,td) \big)` via the
+solar capacity factor (:math:`c_{p,t}(r,Dec_{solar},h,td)`).
+
+.. math::
+    \textbf{F}_{\textbf{t}_\textbf{sol}} (r,j,h,td) \leq  \textbf{F}_\textbf{sol} (r,j)  c_{p,t}(r,Dec_{Solar},h,td)
+    :label: eq:op_strategy_dec_total_ST
+
+    \forall r \in \text{REG}, j \in \text{TECH_OF_EUT}(HeatLowTDec) \setminus \{ Dec_{Solar} \}, h \in \text{H}, td \in \text{TD}.
+
 
 A thermal storage :math:`i` is defined for each decentralised heating
-technology :math:`j`, to which it is related via the set *TS OF DEC TECH*,
-i.e. :math:`i`\ =\ *TS OF DEC TECH(j)*. Each thermal storage :math:`i` can store
+technology :math:`j`, to which it is linked via the set :math:`\text{TS_OF_DEC_TECH}`. 
+Each thermal storage :math:`i` can store
 heat from its technology :math:`j` and the associated thermal solar
-:math:`\textbf{F}_{\textbf{sol}}` (:math:`j`). Similarly to the passenger mobility,
+:math:`\textbf{F}_{\textbf{sol}}(r,j)`. Similarly to the passenger mobility,
 Eq. :eq:`eq:heat_decen_share` makes the model
 more realistic by defining the operating strategy for decentralized
 heating. In fact, in the model we represent decentralized heat in an
 aggregated form; however, in a real case, residential heat cannot be
-aggregated. A house heated by a decentralised gas boiler and solar
+aggregated. A house heated by a decentralised methane boiler and solar
 thermal panels should not be able to be heated by the electrical heat
 pump and thermal storage of the neighbours, and vice-versa. Hence,
 Eq. :eq:`eq:heat_decen_share` imposes that the
-use of each technology (:math:`\textbf{F}_{\textbf{t}}(j,h,td)`),
+use of each technology (:math:`\textbf{F}_{\textbf{t}}(r,j,h,td)`),
 plus its associated thermal solar
-(:math:`\textbf{F}_{\textbf{t}_\textbf{sol}}(j,h,td)`) plus
+(:math:`\textbf{F}_{\textbf{t}_\textbf{sol}}(r,j,h,td)`), plus
 its associated storage outputs
-(:math:`\textbf{Sto}_{\textbf{out}}(i,l,h,td)`) minus its associated
-storage inputs (:math:`\textbf{Sto}_{\textbf{in}}(i,l,h,td)`) should
-be a constant share (:math:`\textbf{%}_{\textbf{HeatDec}}(j)`) of the decentralised heat
-demand :math:`(\textbf{EndUses}(HeatLowT,h,td)`). :numref:`Figure %s <fig:FsolAndTSImplementation>` shows, through an example with
-two technologies (a gas boiler and a HP), how decentralised thermal
-storage and thermal solar are implemented.
+(:math:`\textbf{Sto}_{\textbf{out}}(r,i,l,h,td)`), minus its associated
+storage inputs (:math:`\textbf{Sto}_{\textbf{in}}(r,i,l,h,td)`) should
+be a constant share (:math:`\textbf{%}_{\textbf{HeatDec}}(r,j)`) of the decentralised heat
+demand :math:`(\textbf{EndUses}(r,HeatLowT,h,td)`) throughout the year. 
+This documentation presents Eq. :eq:`eq:heat_decen_share` in a non-linear compressed form for clarity and conciseness. 
+In the model implementation, it is
+linearized by directly replacing the demand variable (:math:`\textbf{EndUses}`) with the parameters that
+define it: the end-use inputs and the time series.
+
+.. math::
+    \textbf{F}_\textbf{t} (r,j,h,td) + \textbf{F}_{\textbf{t}_\textbf{sol}} (r,j,h,td)
+    + \sum_{l \in \text{L}}\Big( \textbf{Sto}_\textbf{out} (r,i,l,h,td) - \textbf{Sto}_\textbf{in} (r,i,l,h,td) \Big)
+    = \textbf{%}_\textbf{HeatDec}(r,j) \textbf{EndUses}(r,HeatLowT,h,td) 
+    :label: eq:heat_decen_share
+
+    \forall r \in \text{REG}, j \in \text{TECH_OF_EUT}(HeatLowTDec) \setminus \{ Dec_{Solar} \}, 
+
+    i \in \text{TS_OF_DEC_TECH}(j), h\in \text{H}, td \in \text{TD}.
+
 
 Peak demand
 ^^^^^^^^^^^
 
-.. math::
-    \textbf{F} (j) 
-    \geq
-    \%_{Peak_{sh}}\max_{h\in H,td\in TD}\left\{\textbf{F}_\textbf{t}(j,h,td)\right\}
-    :label: eq:dec_peak
-
-    \forall j \in \text{TECH OF  EUT} (HeatLowTDEC)   \setminus \{ 'Dec_{Solar}'\}
-
-.. math::
-    \sum_{\hspace{3cm}j \in \text{TECH OF EUT} (HeatLowTDHN), i \in \text{STO OF EUT}(HeatLowTDHN)}
-    :label: eq:dhn_peak
-    
-    \Big( \textbf{F} (j)+
-    \textbf{F} (i)/t_{sto_{out}}(i,HeatLowTDHN)  \Big)
-    
-    \geq
-    \%_{Peak_{sh}} \max_{h\in H,td\in TD}  \big\{ \textbf{EndUses}(HeatLowTDHN,h,td) \big\}
-  
-Finally,
-Eqs. :eq:`eq:dec_peak` - :eq:`eq:dhn_peak`
-constrain the installed capacity of low temperature heat supply. Based
+Eqs. :eq:`eq:dec_peak` - :eq:`eq:sc_peak`
+constrain the installed capacity of low temperature heat supply and space cooling supply. Based
 on the selected TDs, the ratio between the yearly peak demand and the
-TDs peak demand is defined for space heating (:math:`\%_{Peak_{sh}}`).
+TDs peak demand is defined for space heating and space cooling in each region 
+(:math:`\%_{Peak_{sh}}(r)` and :math:`\%_{Peak_{sc}}(r)`).
+These equations force the
+installed capacity to meet the peak heating demand, i.e. which
+represents, somehow, the network adequacy  [7]_.
+
 Eq. :eq:`eq:dec_peak` imposes that the installed
 capacity for decentralised technologies covers the real peak over the
-year. Similarly, Eq. :eq:`eq:dhn_peak` forces the
+year. This work expresses it in a non-linear form for clarity and
+conciseness. In the actual model implementation, it is linearized by dividing it into two
+equations.
+
+.. math::
+    \textbf{F} (r,j) 
+    \geq
+    \%_{Peak_{sh}}(r) \max_{h \in \text{H}, td \in \text{TD}}\left\{\textbf{F}_\textbf{t}(r,j,h,td)\right\}
+    :label: eq:dec_peak
+
+    \forall r \in \text{REG}, j \in \text{TECH_OF_EUT}(HeatLowTDEC)  \setminus \{ Dec_{Solar} \}.
+
+Similarly, Eq. :eq:`eq:dhn_peak` forces the
 centralised heating system to have a supply capacity (production plus
-storage) higher than the peak demand. These equations force the
-installed capacity to meet the peak heating demand, i.e. which
-represents, somehow, the network adequacy  [11]_.
+storage) higher than the peak demand:
+
+.. math::
+    \sum_{i,j} \Big( \textbf{F} (r,j) +  \frac{\textbf{F} (r,i)}{t_{sto_{out}}(r,i)}  \Big)
+    \geq
+    \%_{Peak_{sh}}(r) \max_{h\in \text{H},td\in \text{TD}}  \big\{ \textbf{EndUses}(r,HeatLowTDHN,h,td) \big\}
+    :label: eq:dhn_peak
+
+    where j \in \text{TECH_OF_EUT}(HeatLowTDHN), i \in \text{STO_OF_EUT}(HeatLowTDHN),
+
+    \forall r \in \text{REG}.
+    
+
+Eq. :eq:`eq:sc_peak` imposes that the installed capacity for space cooling technologies covers the real
+peak over the year.
+
+.. math::
+    \textbf{F} (r,j) 
+    \geq
+    \%_{Peak_{sc}}(r) \max_{h \in \text{H}, td \in \text{TD}}\left\{\textbf{F}_\textbf{t}(r,j,h,td)\right\}
+    :label: eq:sc_peak
+
+    \forall r \in \text{REG}, j \in \text{TECH_OF_EUT}(SpaceCooling).
+
 
 
 Additional Constraints
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. math::
-    \textbf{F}_\textbf{t} (Nuclear,h,td) = \textbf{P}_\textbf{Nuclear}  ~~~~~~ \forall h \in H, \forall td \in TD
-    :label: eq:CstNuke
-
-Nuclear power plants are assumed to have no power variation over the
-year, Eq. :eq:`eq:CstNuke`. If needed, this equation can
+Conventional nuclear power plants are assumed to have no power variation over the
+year, see Eq. :eq:`eq:CstNuke`. If needed, this equation can
 be replicated for all other technologies for which a constant operation
 over the year is desired.
 
-.. math::
-    \textbf{F}_\textbf{t} (j,h,td) = \textbf{%}_\textbf{PassMob} (j)   \sum_{l \in EUT\_of\_EUC(PassMob)} \textbf{EndUses}(l,h,td) 
-    :label: eq:mob_share_fix
-
-    \forall j \in TECH\_OF\_EUC(PassMob) , \forall h \in H, \forall td \in TD
 
 .. math::
-    \textbf{F}_\textbf{t} (j,h,td) = \textbf{%}_\textbf{FreightMob} (j)   \sum_{l \in EUT\_of\_EUC(FreightMob)} \textbf{EndUses}(l,h,td) 
-    :label: eq:freight_share_fix
-
-    \forall j \in TECH\_OF\_EUC(FreightMob) , \forall h \in H, \forall td \in TD
-
-.. math::
-    \textbf{%}_\textbf{Fr,Rail} + \textbf{%}_\textbf{Fr,Train} + \textbf{%}_\textbf{Fr,Boat} = 1
-    :label: eq:freight_share_constant
-
-
-Eqs. :eq:`eq:mob_share_fix` - :eq:`eq:freight_share_fix`
-impose that the share of the different technologies for mobility
-(:math:`\textbf{%}_{\textbf{PassMob}}`) and (:math:`\textbf{%}_{\textbf{Freight}}`) be the same at each time
-step [9]_. In other words, if 20% of the mobility is supplied by train,
-this share remains constant in the morning or the afternoon.
-Eq. :eq:`eq:freight_share_constant`
-verifies that the freight technologies supply the overall freight demand
-(this constraint is related to :numref:`Figure %s <fig:EndUseDemand>`).
-
-
-.. _sssec_lp_adaptation_case_study:
-
-Adaptations for the case study
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Additional constraints are required to implement scenarios. Scenarios
-require six additional constraints
-(Eqs. :eq:`eq:LimitGWP` - :eq:`eq:solarAreaLimited`)
-to impose a limit on the GWP emissions, the minimum share of RE primary
-energy, the relative shares of technologies, such as gasoline cars in
-the private mobility, the cost of energy efficiency measures, the
-electricity import power capacity and the available surface area for
-solar technologies.
-
-
-.. math::
-    \textbf{GWP}_\textbf{tot} \leq gwp_{limit}  
-    :label: eq:LimitGWP
-
-.. math::
-    \sum_{j \in  \text{RES}_\text{re},t \in T| \{h,td\} \in T\_H\_TD(t)} \textbf{F}_\textbf{t}(j,h,td)  \cdot  t_{op} (h,td)   
-    :label: eq:LimitRE
-    
-    \geq 
-    re_{share} \sum_{j \in \text{RES} ,t \in T| \{h,td\} \in T\_H\_TD(t)} \textbf{F}_\textbf{t}(j,h,td) \cdot  t_{op} (h,td)
-    
-
-To force the Belgian energy system to decrease its emissions, two lever
-can constraint the annual emissions:
-Eq. :eq:`eq:LimitGWP` imposes a maximum yearly
-emissions threshold on the GWP (:math:`gwp_{limit}`); and
-Eq. :eq:`eq:LimitRE` fixes the minimum renewable primary
-energy share.
-
-.. math::
-    f_{\text{min,\%}}(j) \sum_{j' \in \text{TECH OF EUT} (eut),t \in T|\{h,td\} \in T\_H\_TD(t)}    \textbf{F}_\textbf{t}(j',h,td)\cdot t_{op}(h,td)  
-    :label: eq:fmin_max_perc
-    
-    \leq 
- 	\sum_{t \in T|\{h,td\} \in T\_H\_TD(t)}  \textbf{F}_\textbf{t} (j,h,td)\cdot t_{op}(h,td) 
-    
-    \leq 
-    f_{\text{max,\%}}(j) \sum_{j'' \in \text{TECH OF EUT} (eut),t \in T|\{h,td\} \in T\_H\_TD(t)}    \textbf{F}_\textbf{t}(j'',h,td)\cdot t_{op}(h,td) 
-    
-    \forall eut \in EUT, \forall j \in \text{TECH OF EUT} (eut) 
-
-
-To represent the Belgian energy system in 2015,
-Eq. :eq:`eq:fmin_max_perc` imposes the relative
-share of a technology in its sector.
-Eq. :eq:`eq:fmin_max_perc` is complementary to
-Eq. :eq:`eq:fmin_fmax`, as it expresses the minimum
-(:math:`f_{min,\%}`) and maximum (:math:`f_{max,\%}`) yearly output shares of each
-technology for each type of EUD. In fact, for a given technology,
-assigning a relative share (e.g. boilers providing at least a given
-percentage of the total heat demand) is more intuitive and close to the
-energy planning practice than limiting its installed size. :math:`f_{min,\%}`
-and :math:`f_{max,\%}` are fixed to 0 and 1, respectively, unless otherwise
-indicated.
-
-.. math::
-    \textbf{F}(Efficiency) =  \frac{1}{1+i_{rate}} 
-    :label: eq:efficiency
+    \textbf{F}_\textbf{t} (r,Nuclear,h,td) = \textbf{P}_\textbf{Nuclear}(r)  
+    ~~~~~~ \forall r \in \text{REG}, h \in \text{H}, \forall td \in \text{TD}.
+    :label: eq:CstNuke
 
 To account for efficiency measures from today to the target year,
 Eq. :eq:`eq:efficiency` imposes their cost. The EUD
@@ -1665,72 +1960,95 @@ the year, the required investments must be completed before this year.
 Therefore, the annualisation cost has to be deducted from one year. This
 mathematically implies to define the capacity of efficiency measures
 deployed to :math:`1/ (1+i_{rate})` rather than 1. The investment is
-already expressed in €\ :sub:`2015`.
+already expressed in M€\ :sub:`2015`.
 
 .. math::
-    \textbf{F}_{\textbf{t}}(Electricity,h,td) \leq  elec_{import,max} ~~~~~~ \forall h \in H, \forall td \in TD
+    \textbf{F}(r,Efficiency) =  \frac{1}{1+i_{rate}} 
+    :label: eq:efficiency
+
+.. _sssec_lp_adaptation_case_study:
+
+Adaptations for the case study
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Additional constraints are coded to implement scenarios. 
+They are not used in all scenarios,
+and scenarios can be set in other ways, 
+but they facilitate setting certain typical scenario constraints.
+
+To go into the direction of the energy transition, there are three possible levers. The first
+lever, using Eq. :eq:`eq:LimitGWP`, imposes a maximum yearly emissions threshold on the overall GWP
+(:math:`gwp_{limit,overall}`):
+
+.. math::
+    \sum_{r \in \text{REG}} \textbf{GWP}_\textbf{tot}(r) \leq gwp_{limit,overall}.  
+    :label: eq:LimitGWP
+
+The second lever, using Eq. :eq:`eq:LimitRE`, fixes the minimum renewable primary energy share in
+each region. The third lever, using Eq. :eq:`eq:res_avail_ext`, can force regions to use less fossil resources by
+reducing their availability (:math:`avail_{ext}`).
+
+.. math::
+    \sum_{j \in  \text{RES}_\text{re},t(h,td) \in \text{T}} \bigg( \textbf{R}_\textbf{t,local}(r,j,h,td)
+    + \textbf{R}_\textbf{t,ext}(r,j,h,td) + \textbf{R}_\textbf{t,imp}(r,j,h,td) \bigg)  \cdot  t_{op} (h,td)   
+    :label: eq:LimitRE
+    
+    \geq 
+    re_{share}(r) \sum_{j \in  \text{RES},t(h,td) \in \text{T}} \bigg( \textbf{R}_\textbf{t,local}(r,j,h,td)
+    + \textbf{R}_\textbf{t,ext}(r,j,h,td) + \textbf{R}_\textbf{t,imp}(r,j,h,td) \bigg)  \cdot  t_{op} (h,td)
+
+    \forall r \in \text{REG}. 
+    
+Themodel also has the ability to represent a historical energy system of the regions studied.
+This is done thanks to Eq. :eq:`eq:fmin_max_perc`, which imposes the relative technology share in its sector.
+Eq. :eq:`eq:fmin_max_perc` is complementary to
+Eq. :eq:`eq:fmin_fmax`, as it expresses the minimum
+(:math:`f_{min,\%}`) and maximum (:math:`f_{max,\%}`) yearly output shares of each
+technology for each type of EUD. In fact, for a given technology,
+assigning a relative share (e.g. boilers providing at least a given
+percentage of the total heat demand) is more intuitive and close to the
+energy planning practice than limiting its installed size. :math:`f_{min,\%}`
+and :math:`f_{max,\%}` are fixed to 0 and 1, respectively, unless otherwise
+indicated.
+
+.. math::
+    f_{\text{min,%}}(r,j) \sum_{j' \in \text{TECH_OF_EUT} (eut),t(h,td) \in \text{T}} 
+    \textbf{F}_\textbf{t}(r,j',h,td)\cdot t_{op}(h,td)  
+    :label: eq:fmin_max_perc
+    
+    \leq 
+ 	\sum_{t(h,td) \in \text{T}}  \textbf{F}_\textbf{t} (r,j,h,td) \cdot t_{op}(h,td) 
+    
+    \leq 
+    f_{\text{max,%}}(r,j) \sum_{j'' \in \text{TECH_OF_EUT} (eut),t(h,td) \in \text{T}}    \textbf{F}_\textbf{t}(r,j'',h,td)\cdot t_{op}(h,td) 
+    
+    \forall r \in \text{REG}, eut \in EUT, j \in \text{TECH_OF_EUT} (eut). 
+
+
+Eq. :eq:`eq:elecImpLimited` limits the power grid import capacity from neighbouring regions that are outside
+of the modelled regions, based on a net transfer capacity (:math:`elec_{import,max}`). This equation can
+be used with Eq. :eq:`eq:res_avail_ext`, which defines the total quantity of electricity that can be imported.
+If this quantity is 0, then no imports from outside of the modelled area are considered, and
+Eq. :eq:`eq:elecImpLimited` can be neglected.
+
+.. math::
+    \textbf{R}_{\textbf{t,ext}}(r,Electricity,h,td) \leq  elec_{import,max}(r) 
+    ~~~~~~ \forall r \in \text{REG}, h \in \text{H}, td \in \text{TD}.
     :label: eq:elecImpLimited
 
-.. math::
-    \textbf{F}_{\textbf{t}}(i,h,td) \cdot t_{op} (h,td) =  \textbf{Import}_{\textbf{constant}}(i) ~~~~~~ \forall i \in \text{RES_IMPORT_CONSTANT}, h \in H, \forall td \in TD
-    :label: eq:import_resources_constant
-
-
-
-Eq. :eq:`eq:elecImpLimited` limits the power grid
-import capacity from neighbouring countries based on a net transfer
-capacity (:math:`elec_{import,max}`). Eq. :eq:`eq:import_resources_constant` imposes that some resources are imported at a constant power. 
-As an example, gas and hydrogen are supposed imported at a constant flow during the year. 
-In addition to offering a more realistic representation, this implementation makes it possible to visualise the level of storage within the region (i.e. gas, petrol ...).
-
-.. caution::
-    Adding too many ressource to Eq. :eq:`eq:import_resources_constant` increase drastically the computational time. 
-    In this implementation, only resources expensive to store have been accounted: hydrogen and gas. 
-    Other resources, such as diesel or ammonia, can be stored at a cheap price with small losses.
-    By limiting to two types of resources (hydrogen and gas), the computation time is below a minute.
-    By adding all resources, the computation time is above 6 minutes.
-
-
-.. math::
-    \textbf{F}(PV)/power\_density_{pv} 
-    :label: eq:solarAreaLimited
-
-    + \big( \textbf{F}(Dec_{Solar}) + \textbf{F}(DHN_{Solar}) \big)/power\_density_{solar~thermal}  \leq solar_{area}
-
-In this model version, the upper limit for solar based technologies is
-calculated based on the available land area (*solar\ area*) and power
-densities of both PV (:math:`power\_density_{pv}`) and solar thermal
-(:math:`power\_density_{solar~thermal}`),
-Eq. :eq:`eq:solarAreaLimited`. The equivalence
-between an install capacity (in watt peaks Wp) and the land use (in
-:math:`km^2`) is calculated based on the power peak density
-(in [Wp/m\ :math:`^2`]). In other words, it represents the peak power of a
-one square meter of solar panel. We evaluate that PV and solar thermal
-have a power peak density of :math:`power\_density_{pv}` =0.2367 and
-:math:`power\_density_{solar~thermal}` =0.2857 [GW/km\ :math:`^2`] [12]_. Thus,
-the land use of PV is the installed power (:math:`\textbf{F}(PV)` in [GW])
-divided by the power peak density (in [GW/km\ :math:`^2`]). This area is
-a lower bound of the real installation used. Indeed, here, the
-calculated area correspond to the installed PV. However, in utility
-plants, panels are oriented perpendicular to the sunlight. As a
-consequence, a space is required to avoid shadow between rows of panels.
-In the literature, the *ground cover ratio* is defined as the total
-spatial requirements of large scale solar PV relative to the area of the
-solar panels. This ratio is estimated around five
-:cite:`dupont2020global`, which means that for each square
-meter of PV panel installed, four additional square meters are needed.
-
+Footnotes
+---------
 
 .. [1]
     Passenger transport activity includes private mobility, public mobility and short-haul aviation. Each category can be supplied with different end-use technologies.
 
-.. [3]
+.. [2]
    Indeed, some technologies have several outputs, such as a CHP. Thus,
    the installed size must be defined with respect to one of these
-   outputs. As an example, CHP are defined based on the thermal output
+   outputs. For example, CHP are defined based on the thermal output
    rather than the electrical one.
 
-.. [4]
+.. [3]
    This variable is added to the road freight demand to keep a linear formulation. Furthermore, as rail and
    boat freight are always more efficient than road freight, their maximum capacity is already reached with the
    freight demand of the region. Therefore, adding the additional freight due to exchanges to the road freight 
@@ -1738,7 +2056,7 @@ meter of PV panel installed, four additional square meters are needed.
    transportation of energy goods will always be done by truck in practice. Some of the energy goods might be
    more interesting to transport by train or boat than other goods, which will then be transported by truck.
 
-.. [5]
+.. [4]
    In most cases, the activation of the constraint stated in
    Eq. :eq:`eq:sto_level` will have as a consequence
    that the level of storage be the same at the beginning and at the end
@@ -1748,67 +2066,24 @@ meter of PV panel installed, four additional square meters are needed.
    sequence, a daily storage behaviour might need to be explicitly
    enforced.
 
-.. [6]
+.. [5]
    In the code, these equations are implemented with a *if-then*
    statement.
 
-.. [7]
-   In this linear formulation, storage technologies can charge and
-   discharge at the same time. On the one hand, this avoids the need of
-   integer variables; on the other hand, it has no physical meaning.
-   However, in a cost minimization problem, the cheapest solution
-   identified by the solver will always choose to either charge or
-   discharge at any given :math:`t`, as long as cost and efficiencies
-   are defined. Hence, we recommend to always verify numerically the
-   fact that only storage inputs or outputs are activated at each
-   :math:`t`, as we do in all our implementations.
-
-.. [8]
+.. [6]
    This is the ratio between the losses in the grid and the total annual
    electricity production in Belgium in 2015
    :cite:`Eurostat2017`.
 
-.. [9]
-   [foot:nonLinear]All equations expressed in a compact non-linear form
-   in this section Eqs. :eq:`eq:mob_share_fix`, :eq:`eq:freight_share_fix`, 
-   :eq:`eq:heat_decen_share` and :eq:`eq:dhn_peak` can be linearised. For these
-   cases, the **EndUses** is defined with parameters and a variable
-   representing a constant share over the year (e.g.  :math:`\textbf{%}_\textbf{public}`). As
-   an example, **EndUses** in
-   Eq. :eq:`eq:mob_share_fix` is equal to
-   :math:`\textbf{EndUsesInput}(PassMb) \cdot %pass (h, td) / t_op (h, td)`.
-   The term :math:`\textbf{%}_{\textbf{public}}`, is missing in the equation, but is implicitly
-   implemented in :math:`\textbf{%}_{\textbf{PassMob}}`.
-
-.. [10]
-   This generation (ZE0) was marketed from 2010 to 2017 with a battery
-   capacity of 24 kWh. The new generation (ZE1) accounts for an improved
-   capacity and reaches 40 kWh per battery. Data from
-   https://en.wikipedia.org/wiki/Nissan_Leaf, consulted on 08-02-2021
-
-.. [11]
+.. [7]
    The model resolution of the dispatch is not accurate enough to verify
    the adequacy. As one model cannot address all the issues, another
    approach has been preferred: couple the model to a dispatch one, and
-   iterate between them. Percy and Coates
-   :cite:`percy_coates_coupling_2020` demonstrated the
-   feasibility of coupling a design model (ESTD) with a dispatch one
-   (Dispa-SET :cite:`Quoilin2017`). Based on a feedback
+   iterate between them. This was tested by Pavicevic et al. :cite:`pavivcevic2022bi` 
+   on the regional version of the EnergyScope model by coupling it 
+   with a dispatch model (Dispa-SET :cite:`Quoilin2017`). Based on a feedback
    loop, they iterated on the design to verify the power grid adequacy
    and the strategic reserves. Results show that the backup capacities
    and storage needed to be slightly increased compared to the results
    of the design model alone.
-
-.. [12]
-   The calculation is based on the annual capacity factor, the
-   conversion efficiency and the average yearly irradiation. As an
-   example, for PV, the efficiency in 2035 is estimated at
-   23% :cite:`DanishEnergyAgency2019` with an average daily
-   irradiation - similar to historical values - of
-   2820 Wh/m\ \ :math:`^2` in
-   Belgium :cite:`IRM_Atlas_Irradiation`. The capacity
-   factor of solar is around 11.4%, hence specific area for 1 kilowatt
-   peak (:math:`kW_p`) is
-   :math:`2820/24\cdot0.23/0.114\approx236.7`\ \ [:math:`MW_p`/km\ \ :math:`^2`]=\ \ :math:`0.2367`
-   [:math:`GW_p`/km\ \ :math:`^2`].
 
