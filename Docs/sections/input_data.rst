@@ -1,5 +1,5 @@
 
-.. _app:bestd_data:
+.. _app:esmc_eu_data:
 
 Input Data
 ++++++++++
@@ -7,43 +7,87 @@ Input Data
 .. caution ::
    TO BE UPDATED TO MULTI-CELLS version
 
-**Belgian energy system data in 2035**
-
-..
-   .. caution ::
-      This section is still under construction.
-      It is built from Limpens PhD thesis (2021) available at http://dx.doi.org/10.13140/RG.2.2.25755.18724 
-
-
 .. role:: raw-latex(raw)
    :format: latex
 ..
 
+The optimisation model described in the :doc:`/sections/model_formulation` Section is suitable to model any multi-regional
+whole-energy system. This Section presents how we modelled **a fossil-free European
+whole-energy system in 2050**. We model 34 European countries, each one modelled as one cell, see :numref:`Figure %s <fig:modelled_regions>`: 
+the 28 European Union countries minus Cyprus and Malta [1]_, plus the United Kingdom, Norway,
+Switzerland, Albania, Bosnia and Herzegovina,Montenegro, North Macedonia, Serbia and
+Kosovo. The list of countries considered and their two-letter code can be found in Appendix B.
+
+.. caution:: 
+   add list of countries and two-letter code?
+
+.. figure:: /images/eu_data/modelled_regions.png
+   :alt: Modelled regions
+   :name: fig:modelled_regions
+   :width: 10cm
+
+   Our model represents 34 European countries. In the model, each country is one 
+   cell with its own energy system interconnected with other cells through energy exchanges.
+
+This study’s environmental constraint is to eliminate
+all fossil fuels. The aim is to analyze the design and the technical challenges of energy
+systems without these fuels. Therefore, we do not fix any constraint onto the GHG emissions
+(Eq. :eq:`eq:LimitGWP` is not used and thus Eqs. :eq:`eq:GWP_tot`-:eq:eq:`CO2_net` only serve for accounting but not
+for constraining the system). However, the fossil-free constraint is more ambitious than a
+net-zero constraint as it forces Europe to have no fossil emissions at all in its whole-energy
+system.
+
+Following the whole-energy system approach, our model of the European energy system
+considers 28 energy resources converted through 167 technologies to supply demands in 17
+end-use layers, see :numref:`Figure %s <fig:esmc_eu_illustration_2>`. 
+The resources provide some energy fluxes at a certain cost
+and with a certain availability (e.g. the wood resource provides energy in the form of woody
+biomass at a certain cost and is limited by its potential). The renewable energy potentials
+are evaluated for each country. Additionally, certain resources can be imported from the
+exterior of the system. Then, the technologies convert one or several fluxes as input into one
+or several fluxes as output with a certain efficiency (e.g. an industrial wood CHP converts
+1.9 GW of woody biomass into 1 GW of high-temperature heat and 0.34 GW of electricity
+and produces 0.74 Mt of industrial CO\ :sub:`2` that can be captured with additional investments).
+Finally, the different end-use demands (EUDs) consume specific fluxes which are provided by corresponding
+end-use technologies (e.g. the high-temperature heat demand consumes GW of heat
+produced by industrial furnaces, whereas the private mobility consumes Mpkm/h supplied
+by cars). The EUDs are forecasted for each country in 2050. Additionally, the networks and
+exchange possibilities are modelled between neighbouring countries. All those input data
+define the environment in which the energy system is optimised.
+
+.. figure:: /images/esmc_eu_illustration.png
+   :alt: Illustrative example of a EnergyScope Multi-Cells implementation.
+   :name: fig:esmc_eu_illustration_2
+   :width: 15cm
+
+   The European energy system modelled with EnergyScope Multi-Cells implements in each country: 
+   28 energy resources converted through 167 technologies to supply demands in 17 end-use layers. 
+   Technologies (in bold) represent groups of technologies with different energy inputs 
+   (e.g. Boilers include methane boilers, oil boilers ...).
+   Abbreviations: atmospheric (Atm.), battery electric vehicle (BEV), biomass (biom.), 
+   biomethanisation (Biometh.), compressed air energy storage (CAES), carbon capture (CC), 
+   combined cycle gas turbine (CCGT), cogeneration of heat and power (CHP), carbon dioxyde (CO2), 
+   collector (Coll.) concentrated solar power (CSP), decentralised heat (Decen. or Dec.), 
+   district heating network (DHN), electricity (Elec.), Fischer-Tropsch (FT) geothermal (Geoth.), 
+   hydrogen (H2), high-temperature (High T), high value chemical (HVC), internal combustion engine (ICE), 
+   industrial (Ind.), low-temperature (Low T), methanation (Methan.), methanolation (Methanol.), 
+   offshore (Off.), onshore (On.), power block (PB), plug-in hybrid electric vehicle (PHEV), 
+   pumped hydro storage (PHS), photovoltaic (PV), renewable (Re.), thermal (Th.).
 
 
-Overview This appendix reports the input data for the application of the
-LP modeling framework to the case study of Belgium between 2015 and
-2050. Data are detailed for the year 2035 and 2015, the latter used for
-model verification. Trends to extrapolated these data for the other
-years are given. This appendix is an improved version previously
-presented in :cite:`Limpens2019,Limpens_belgian_2020`
+This Section summarizes the main assumptions into four categories: (i) Energy demand evaluation and projection, 
+(ii) Resources and renewable energy potentials, (iii) Energy conversion
+technologies, and (iv) Interconnections and exchanges. In addition, a fisrt section gives preliminary 
+notes on costs and emissions accounting. This documentation provides all the numerical values and
+assumptions. The full datasets and the preprocessing scripts are open-source. The up-to-date version that can still evolve
+is accessible on the `Github repository <https://github.com/energyscope/EnergyScope_multi_cells>`_ of the model.
 
-The data can be grouped into three parts: resources (Section `Resources <#app:sec:BESTD_resources>`__), demand (Section
-`Demand <#sec:app1_end_uses>`__) and technologies (Section
-`Technologies <#app:BESTD_data_technologies>`__.. For resources, the work of the JRC
-:cite:`simoes2013jrc`, Biomass atlas
-:cite:`elbersen2012atlas` and
-:cite:t:`H2coalition2020shipping` have been used to
-complement and confirm or correct the prices already reported in previous works
-:cite:`Moret2017PhDThesis,Limpens2019,limpens2020impact`.
-For energy demand, the annual demand is calculated from the work of the
-European Commission’s projections up to 2050
-:cite:`EuropeanCommission2016`. As a complement, the time
-series are all calculated on the basis of the year 2015. For
-technologies, they are characterised by the following characteristics:
-energy balances, cost (investment and maintenance), and environmental
-impact (global warming potential (GWP)). For weather dependent technologies (wind, solar, etc.), real
-production for the year 2015 was collected from the TSO.
+
+General notes on costs and emissions accounting
+===============================================
+
+.. caution::
+   proofread and update
 
 For GWP and GHG emissions, LCA data are taken from the Ecoinvent
 database v3.2 [1]_ :cite:`weidema_ecoinvent_2013` using the
@@ -131,10 +175,236 @@ for the cost of resources.
    as real data have been collected for this case. And finally, the
    extension of the data from year 2035 to other years are detailed.
 
-.. _app:sec:BESTD_resources:
+.. _discount_and_interest_rates:
+
+Discount rate and interest rate
+-------------------------------
+
+To compute their profitability, companies apply a discount rate to the
+investment they make. A discount rate is used for both cost of finance
+and for risk perception and opportunity cost. The cost of finance is to
+be compared with concepts like ‘hurdle rate’ or ‘rate of return’ usually
+calculated in accordance to an annual return on investment. Each
+individual investment physically occurring in year k, results in a
+stream of payments towards the amortization of this investment spread
+over several years in the future. The higher the cost of finance (or
+hurdle rate), the higher the annual payments spread over the lifetime of
+an investment and thus the higher the total cost. The hurdle rate
+affects only the investment costs so the impact is bigger for capital
+intensive technologies. We consider differentiated hurdle discount rates
+for different groups of energy supply and demand technologies,
+representing the different risk perception of industry versus
+individuals.
+
+According with :cite:t:`Meinke-Hubeny2017` who based their
+work on the JRC EU TIMES model :cite:`simoes2013jrc` in line
+with the PRIMES model :cite:`EuropeanCommission2016`, the
+discount rate is around 7.5 up to 12% depending on the technologies.
+Discount rate cannot be directly converted into interest rate as the
+first is fixed by the market and the second is fixed by the central
+banks. As the evidence presented in Figure
+:numref:`Figure %s <fig:path_be_irate_discountrate>` indicates, while these two
+interest rates tend to move together, they also may follow different
+paths from time to time.
+
+
+.. figure:: /images/belgian_data/path_be_i_rate_and_discount_rate.png
+   :alt: Comparison of Belgian interest rate and discount rate. The following rate was chosen to represent the discount rate: floating loans rate over a 1M€ (other than bank overdraft) and up to 1 year initial rate fixation.
+   :name: fig:path_be_irate_discountrate
+
+   Comparison of Belgian interest rate and discount rate. The following
+   rate was chosen to represent the discount rate: floating loans rate
+   over a 1M€ (other than bank overdraft) and up to 1 year initial rate
+   fixation.
+
+For the different studies, the real discount rate for the public
+investor :math:`i_{rate}` is fixed to 1.5%, which is similar to the floating
+loan rate over a million euros (other than bank overdraft) and greater
+than the central bank interest rate.
+
+
+.. _sec:app1_end_uses:
+
+Energy demand
+=======================================
+
+The EUD for heating, electricity and mobility in 2035 is calculated from
+the forecast done by the EUC in 2035 for Belgium (see Appendix 2 in
+:cite:`EuropeanCommission2016`). However, in
+:cite:`EuropeanCommission2016`, the FEC is given for heating
+and electricity. The difference between FEC and EUD is detailed in
+Section
+`[ssec:conceptual_modelling_framework] <#ssec:conceptual_modelling_framework>`__
+and can be summarised as follows: the FEC is the amount of input energy
+needed to satisfy the EUD in energy services. Except for HP, the FEC is
+greater than EUD. We applied a conservative approach by assuming that
+the EUD equal to the FEC for electricity and heating demand.
+
+.. _ssec:app1_electricity_end_uses:
+
+Electricity
+-----------
+
+The values in table `1.3 <#tbl:elec_demand>`__ list the electricity
+demand that is not related to heating for the three sectors in 2035. The
+overall electricity EUD is given in
+:cite:`EuropeanCommission2016`. However, only the FEC is
+given by sectors. In order to compute the share of electricity by
+sector, we assume that the electricity to heat ratio for the residential
+and services remain constant between 2015 and 2035. This ratio can be
+calculated from :cite:t:`EuropeanCommission-Eurostat.2018`,
+these ratio of electricity consumed are 24.9% and 58.2% for residential
+and services, respectively. As a consequence, the industrial electricity
+demand is equal to the difference between the overall electricity demand
+and the two other sectors.
+
+A part of the electricity is assumed to be a fixed demand, such as
+fridges in households and services, or industrial processes. The other
+part is varying, such as the lighting demand. The ratio between varying
+electricity and fixed demand are calculated in order to fit the real curve 
+in 2015 (data provided by ENTSO-E
+https://www.entsoe.eu/). It results in a share of 32.5% of varying electricity demand  
+and 67.5% of baseload electricity demand.
+demand of electricity is shared over the year according to *%\ elec*,
+which is represented in  :numref:`Figure %s <fig:TS_elec>`. We use the real
+2015 Belgian electricity demand (data provided by ENTSO-E
+https://www.entsoe.eu/). *%\ elec* time series is the normalised value
+of the difference between the real time series and its minimum value.
+
+.. container::
+
+   .. table:: Yearly electricity demand not related to heating by sector, in 2035.
+      :name: tbl:elec_demand
+
+      ========== =========== ============
+      \          **Varying** **Constant**
+      \          [TWh]       [TWh]
+      Households 7.7         14.3
+      Industry   11.1        33.7
+      Services   11.0        14.1
+      ========== =========== ============
+
+.. figure:: /images/belgian_data/ts_elec_Belgium.png
+   :alt: Normalised electricity time series over the year.
+   :name: fig:TS_elec
+
+   Normalised electricity time series over the year.
+
+
+.. _ssec:app1_heating_end_uses:
+
+Heating
+-------
+
+We applied the same methodology as in previous paragraph to compute the
+residential, service heat yearly demand. The industrial heat processes
+demand is assumed to be the overall industrial energy demand where
+electricity and non energy use have been removed. Yearly EUD per sector
+is reported in table `1.4 <#tbl:heat_demand>`__.
+
+A part of the heat is assumed to be a fixed demand, such as hot water in
+households and services, or industrial processes. The other part
+represents the space heating demand and is varying. Similarly to the
+electricity, the ratio between varying electricity and fixed demand are
+the one of Switzerland, presented in
+:cite:`Limpens2019,Moret2017PhDThesis` which are based on
+:cite:`prognos_ag_energieperspektiven_2012`. The varying
+demand of heat is shared over the year according to :math:`%_{sh}`. This time
+series is based on our own calculation. The methodology is the
+following: based on the temperature time series of Uccle 2015 (data from
+IRM :cite:`Reyniers2012`); the HDH are calculated; and then
+the time series. The HDH is a similar approach than the more commonly
+used HDD. According to Wikipedia, HDD is defined as follows: “*HDD is a
+measurement designed to quantify the demand for energy needed to heat a
+building. HDD is derived from measurements of outside air temperature.
+The heating requirements for a given building at a specific location are
+considered to be directly proportional to the number of HDD at that
+location. [...] Heating degree days are defined relative to a base
+temperature*”. According to the European Environment Agency [37b]_, the
+base temperature is 15.5\ :math:`^o`\ C, we took 16\ :math:`^o`\ C. HDH
+are computed as the difference between ambient temperature and the
+reference temperature at each hour of the year. If the ambient
+temperature is above the reference temperature, no heating is needed.
+:numref:`Figure %s <fig:HDD_BE_2015>` compares the result of our methodology
+with real value collected by Eurostat [38]_. The annual HDD was 2633,
+where we find 2507.
+
+By normalising the HDH, we find :math:`%_{sh}`, which is represented in 
+
+.. figure:: /images/belgian_data/belgium_HDD_2015.png
+   :alt: Comparison of HDD between Eurostat and our own calculation.
+   :name: fig:HDD_BE_2015
+
+   Comparison of HDD between Eurostat and our own calculation.
+
+.. figure:: /images/belgian_data/ts_sh_Belgium.png
+   :alt: Normalised space heating time series over the year.
+   :name: fig:TS_heat
+
+   Normalised space heating time series over the year.
+
+.. container::
+
+   .. table:: Yearly heat end use demand per sector, in 2035.
+      :name: tbl:heat_demand
+
+      ========== ================= ============= ========================
+      \          **Space heating** **Hot water** **Process heat**\  [39]_
+      \          [TWh]             [TWh]         [TWh]
+      Households 70.2              18.0          0
+      Industry   13.1              3.4           50.4
+      Services   34.8              7.8           0
+      ========== ================= ============= ========================
+
+   .. [39]
+      We define process heat as the high temperature heat required in the
+      industrial processes. This heat cannot be supplied by technologies
+      such as heat pumps or thermal solar.
+
+.. _ssec:app1_demand_mobility:
+
+Mobility
+--------
+
+The annual passenger transport demand in Belgium for 2035 is expected
+to be 194 billions :cite:`EuropeanCommission2016`.
+Passenger transport demand is divided between public and private
+transport. The lower (:math:`%_{public,min}`) and upper bounds
+(:math:`%_{public,max}`) for the use of public transport are 19.9% [40]_ and
+50% of the annual passenger transport demand, respectively. The
+passenger mobility demand is shared over the day according to
+:math:`%_{pass}`. We assume a constant passenger mobility demand for every
+day of the year. This latter is represented in Figure
+:numref:`Figure %s <fig:TS_mobPass>` (data from Figure 12 of
+:cite:`USTransportation`).
+The annual freight transport demand in Belgium for 2035 is expected to
+be 98e09 tons kilometers :cite:`EuropeanCommission2016`.
+The freight can be supplied by trucks, trains or boats. The lower
+(:math:`%_{fr,rail,min}`) and upper bounds (:math:`%_{fr,rail,max}`) for the use of
+freight trains are 10.9% and 25% of the annual freight transport
+demand, respectively. The lower (:math:`%_{fr,boat,min}`) and upper bounds
+(:math:`%_{fr,boat,max}`) for the use of freight inland boats are 15.6% and
+30% of the annual freight transport demand, respectively. The lower
+(:math:`%_{fr,trucks,min}`) and upper bounds (:math:`%_{fr,trucks,max}`) for the use
+of freight trucks are 0% and 100% of the annual freight transport
+demand, respectively. The bounds and technologies information are
+latter summarised in Table
+`1.15 <#tbl:freight_vehicles_efficiency>`__.
+
+.. figure:: /images/belgian_data/ts_mob.png
+   :alt: Normalised passenger mobility time series over a day. We assume a similar passenger mobility demand over the days of the year.  
+   :name: fig:TS_mobPass
+   :width: 6cm
+   :height: 4cm
+
+   Normalised passenger mobility time series over a day. We assume a
+   similar passenger mobility demand over the days of the year.
+
+
+.. _app:sec:esmc_eu_resources:
 
 Resources
-=========
+=========================================
 
 Resources can be regrouped in two categories: endogenous and exogenous.
 In the case of Belgium, endogenous resources are exclusively renewables.
@@ -550,235 +820,11 @@ Since, a specific study for the Belgian case has been conducted by a consortium 
    In 2015, 33.3 TWh of coal were used. Thus, the amount available should be lower than this value.
 
 
-.. _sec:app1_end_uses:
-
-Energy demand and political framework
-=====================================
-
-The EUD for heating, electricity and mobility in 2035 is calculated from
-the forecast done by the EUC in 2035 for Belgium (see Appendix 2 in
-:cite:`EuropeanCommission2016`). However, in
-:cite:`EuropeanCommission2016`, the FEC is given for heating
-and electricity. The difference between FEC and EUD is detailed in
-Section
-`[ssec:conceptual_modelling_framework] <#ssec:conceptual_modelling_framework>`__
-and can be summarised as follows: the FEC is the amount of input energy
-needed to satisfy the EUD in energy services. Except for HP, the FEC is
-greater than EUD. We applied a conservative approach by assuming that
-the EUD equal to the FEC for electricity and heating demand.
-
-.. _ssec:app1_electricity_end_uses:
-
-Electricity
------------
-
-The values in table `1.3 <#tbl:elec_demand>`__ list the electricity
-demand that is not related to heating for the three sectors in 2035. The
-overall electricity EUD is given in
-:cite:`EuropeanCommission2016`. However, only the FEC is
-given by sectors. In order to compute the share of electricity by
-sector, we assume that the electricity to heat ratio for the residential
-and services remain constant between 2015 and 2035. This ratio can be
-calculated from :cite:t:`EuropeanCommission-Eurostat.2018`,
-these ratio of electricity consumed are 24.9% and 58.2% for residential
-and services, respectively. As a consequence, the industrial electricity
-demand is equal to the difference between the overall electricity demand
-and the two other sectors.
-
-A part of the electricity is assumed to be a fixed demand, such as
-fridges in households and services, or industrial processes. The other
-part is varying, such as the lighting demand. The ratio between varying
-electricity and fixed demand are calculated in order to fit the real curve 
-in 2015 (data provided by ENTSO-E
-https://www.entsoe.eu/). It results in a share of 32.5% of varying electricity demand  
-and 67.5% of baseload electricity demand.
-demand of electricity is shared over the year according to *%\ elec*,
-which is represented in  :numref:`Figure %s <fig:TS_elec>`. We use the real
-2015 Belgian electricity demand (data provided by ENTSO-E
-https://www.entsoe.eu/). *%\ elec* time series is the normalised value
-of the difference between the real time series and its minimum value.
-
-.. container::
-
-   .. table:: Yearly electricity demand not related to heating by sector, in 2035.
-      :name: tbl:elec_demand
-
-      ========== =========== ============
-      \          **Varying** **Constant**
-      \          [TWh]       [TWh]
-      Households 7.7         14.3
-      Industry   11.1        33.7
-      Services   11.0        14.1
-      ========== =========== ============
-
-.. figure:: /images/belgian_data/ts_elec_Belgium.png
-   :alt: Normalised electricity time series over the year.
-   :name: fig:TS_elec
-
-   Normalised electricity time series over the year.
-
-
-.. _ssec:app1_heating_end_uses:
-
-Heating
--------
-
-We applied the same methodology as in previous paragraph to compute the
-residential, service heat yearly demand. The industrial heat processes
-demand is assumed to be the overall industrial energy demand where
-electricity and non energy use have been removed. Yearly EUD per sector
-is reported in table `1.4 <#tbl:heat_demand>`__.
-
-A part of the heat is assumed to be a fixed demand, such as hot water in
-households and services, or industrial processes. The other part
-represents the space heating demand and is varying. Similarly to the
-electricity, the ratio between varying electricity and fixed demand are
-the one of Switzerland, presented in
-:cite:`Limpens2019,Moret2017PhDThesis` which are based on
-:cite:`prognos_ag_energieperspektiven_2012`. The varying
-demand of heat is shared over the year according to :math:`%_{sh}`. This time
-series is based on our own calculation. The methodology is the
-following: based on the temperature time series of Uccle 2015 (data from
-IRM :cite:`Reyniers2012`); the HDH are calculated; and then
-the time series. The HDH is a similar approach than the more commonly
-used HDD. According to Wikipedia, HDD is defined as follows: “*HDD is a
-measurement designed to quantify the demand for energy needed to heat a
-building. HDD is derived from measurements of outside air temperature.
-The heating requirements for a given building at a specific location are
-considered to be directly proportional to the number of HDD at that
-location. [...] Heating degree days are defined relative to a base
-temperature*”. According to the European Environment Agency [37b]_, the
-base temperature is 15.5\ :math:`^o`\ C, we took 16\ :math:`^o`\ C. HDH
-are computed as the difference between ambient temperature and the
-reference temperature at each hour of the year. If the ambient
-temperature is above the reference temperature, no heating is needed.
-:numref:`Figure %s <fig:HDD_BE_2015>` compares the result of our methodology
-with real value collected by Eurostat [38]_. The annual HDD was 2633,
-where we find 2507.
-
-By normalising the HDH, we find :math:`%_{sh}`, which is represented in 
-
-.. figure:: /images/belgian_data/belgium_HDD_2015.png
-   :alt: Comparison of HDD between Eurostat and our own calculation.
-   :name: fig:HDD_BE_2015
-
-   Comparison of HDD between Eurostat and our own calculation.
-
-.. figure:: /images/belgian_data/ts_sh_Belgium.png
-   :alt: Normalised space heating time series over the year.
-   :name: fig:TS_heat
-
-   Normalised space heating time series over the year.
-
-.. container::
-
-   .. table:: Yearly heat end use demand per sector, in 2035.
-      :name: tbl:heat_demand
-
-      ========== ================= ============= ========================
-      \          **Space heating** **Hot water** **Process heat**\  [39]_
-      \          [TWh]             [TWh]         [TWh]
-      Households 70.2              18.0          0
-      Industry   13.1              3.4           50.4
-      Services   34.8              7.8           0
-      ========== ================= ============= ========================
-
-   .. [39]
-      We define process heat as the high temperature heat required in the
-      industrial processes. This heat cannot be supplied by technologies
-      such as heat pumps or thermal solar.
-
-.. _ssec:app1_demand_mobility:
-
-Mobility
---------
-
-The annual passenger transport demand in Belgium for 2035 is expected
-to be 194 billions :cite:`EuropeanCommission2016`.
-Passenger transport demand is divided between public and private
-transport. The lower (:math:`%_{public,min}`) and upper bounds
-(:math:`%_{public,max}`) for the use of public transport are 19.9% [40]_ and
-50% of the annual passenger transport demand, respectively. The
-passenger mobility demand is shared over the day according to
-:math:`%_{pass}`. We assume a constant passenger mobility demand for every
-day of the year. This latter is represented in Figure
-:numref:`Figure %s <fig:TS_mobPass>` (data from Figure 12 of
-:cite:`USTransportation`).
-The annual freight transport demand in Belgium for 2035 is expected to
-be 98e09 tons kilometers :cite:`EuropeanCommission2016`.
-The freight can be supplied by trucks, trains or boats. The lower
-(:math:`%_{fr,rail,min}`) and upper bounds (:math:`%_{fr,rail,max}`) for the use of
-freight trains are 10.9% and 25% of the annual freight transport
-demand, respectively. The lower (:math:`%_{fr,boat,min}`) and upper bounds
-(:math:`%_{fr,boat,max}`) for the use of freight inland boats are 15.6% and
-30% of the annual freight transport demand, respectively. The lower
-(:math:`%_{fr,trucks,min}`) and upper bounds (:math:`%_{fr,trucks,max}`) for the use
-of freight trucks are 0% and 100% of the annual freight transport
-demand, respectively. The bounds and technologies information are
-latter summarised in Table
-`1.15 <#tbl:freight_vehicles_efficiency>`__.
-
-.. figure:: /images/belgian_data/ts_mob.png
-   :alt: Normalised passenger mobility time series over a day. We assume a similar passenger mobility demand over the days of the year.  
-   :name: fig:TS_mobPass
-   :width: 6cm
-   :height: 4cm
-
-   Normalised passenger mobility time series over a day. We assume a
-   similar passenger mobility demand over the days of the year.
-
-
-.. _discount_and_interest_rates:
-
-Discount rate and interest rate
--------------------------------
-
-To compute their profitability, companies apply a discount rate to the
-investment they make. A discount rate is used for both cost of finance
-and for risk perception and opportunity cost. The cost of finance is to
-be compared with concepts like ‘hurdle rate’ or ‘rate of return’ usually
-calculated in accordance to an annual return on investment. Each
-individual investment physically occurring in year k, results in a
-stream of payments towards the amortization of this investment spread
-over several years in the future. The higher the cost of finance (or
-hurdle rate), the higher the annual payments spread over the lifetime of
-an investment and thus the higher the total cost. The hurdle rate
-affects only the investment costs so the impact is bigger for capital
-intensive technologies. We consider differentiated hurdle discount rates
-for different groups of energy supply and demand technologies,
-representing the different risk perception of industry versus
-individuals.
-
-According with :cite:t:`Meinke-Hubeny2017` who based their
-work on the JRC EU TIMES model :cite:`simoes2013jrc` in line
-with the PRIMES model :cite:`EuropeanCommission2016`, the
-discount rate is around 7.5 up to 12% depending on the technologies.
-Discount rate cannot be directly converted into interest rate as the
-first is fixed by the market and the second is fixed by the central
-banks. As the evidence presented in Figure
-:numref:`Figure %s <fig:path_be_irate_discountrate>` indicates, while these two
-interest rates tend to move together, they also may follow different
-paths from time to time.
-
-
-.. figure:: /images/belgian_data/path_be_i_rate_and_discount_rate.png
-   :alt: Comparison of Belgian interest rate and discount rate. The following rate was chosen to represent the discount rate: floating loans rate over a 1M€ (other than bank overdraft) and up to 1 year initial rate fixation.
-   :name: fig:path_be_irate_discountrate
-
-   Comparison of Belgian interest rate and discount rate. The following
-   rate was chosen to represent the discount rate: floating loans rate
-   over a 1M€ (other than bank overdraft) and up to 1 year initial rate
-   fixation.
-
-For the different studies, the real discount rate for the public
-investor :math:`i_{rate}` is fixed to 1.5%, which is similar to the floating
-loan rate over a million euros (other than bank overdraft) and greater
-than the central bank interest rate.
 
 .. _app:BESTD_data_technologies:
 
-Technologies
-============
+Energy conversion technologies
+==============================
 
 The technologies are regrouped by their main output types.
 
@@ -3098,14 +3144,25 @@ for the same period and similar objectives
 Switzerland).
 
 
+Interconnections and exchanges
+==============================
+
+.. caution::
+   add from thesis
 
 
 
 
 
+Footnotes
+=========
 
 
 .. [1]
+   Cyprus andMalta are not considered because they are islands with small energy demands compared to
+   the rest of Europe. Adding those two nodes increases the computational burden without changing the global
+   trends at the European level.
+
    The database is consulted online: http://www.ecoinvent.org
 
 .. [2]

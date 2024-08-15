@@ -45,13 +45,23 @@ In its multi-regional implementation, the model also follows the whole-energy sy
 
 
 .. figure:: /images/esmc_eu_illustration.png
-   :alt: Illustrative example of a EnergyScope Multi-Cells implementaion.
+   :alt: Illustrative example of a EnergyScope Multi-Cells implementation.
    :name: fig:esmc_eu_illustration
    :width: 16cm
 
-   The European energy system modelled with EnergyScope Multi-Cells implements in each country: 28 energy resources converted through 167 technologies to supply
-   demands in 17 end-use layers. Technologies (in bold) represent groups of technologies with different energy inputs (e.g. Boilers include methane boilers, oil boilers ...).
-   Abbreviations: atmospheric (Atm.), battery electric vehicle (BEV), biomass (biom.), biomethanisation (Biometh.), compressed air energy storage (CAES), carbon capture (CC), combined cycle gas turbine (CCGT), cogeneration of heat and power (CHP), carbon dioxyde (CO2), collector (Coll.) concentrated solar power (CSP), decentralised heat (Decen. or Dec.), district heating network (DHN), electricity (Elec.), Fischer-Tropsch (FT) geothermal (Geoth.), hydrogen (H2), high-temperature (High T), high value chemical (HVC), internal combustion engine (ICE), industrial (Ind.), low-temperature (Low T), methanation (Methan.), methanolation (Methanol.), offshore (Off.), onshore (On.), power block (PB), plug-in hybrid electric vehicle (PHEV), pumped hydro storage (PHS), photovoltaic (PV), renewable (Re.), thermal (Th.)
+   The European energy system modelled with EnergyScope Multi-Cells implements in each country: 
+   28 energy resources converted through 167 technologies to supply demands in 17 end-use layers. 
+   Technologies (in bold) represent groups of technologies with different energy inputs 
+   (e.g. Boilers include methane boilers, oil boilers ...).
+   Abbreviations: atmospheric (Atm.), battery electric vehicle (BEV), biomass (biom.), 
+   biomethanisation (Biometh.), compressed air energy storage (CAES), carbon capture (CC), 
+   combined cycle gas turbine (CCGT), cogeneration of heat and power (CHP), carbon dioxyde (CO2), 
+   collector (Coll.) concentrated solar power (CSP), decentralised heat (Decen. or Dec.), 
+   district heating network (DHN), electricity (Elec.), Fischer-Tropsch (FT) geothermal (Geoth.), 
+   hydrogen (H2), high-temperature (High T), high value chemical (HVC), internal combustion engine (ICE), 
+   industrial (Ind.), low-temperature (Low T), methanation (Methan.), methanolation (Methanol.), 
+   offshore (Off.), onshore (On.), power block (PB), plug-in hybrid electric vehicle (PHEV), 
+   pumped hydro storage (PHS), photovoltaic (PV), renewable (Re.), thermal (Th.).
 
 Optimisation of hourly operation over a year
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

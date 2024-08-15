@@ -14,7 +14,7 @@ Overview
 --------
 
 The modelling with EnergyScope Multi-Cells is done in two steps; see :numref:`Figure %s <fig:model_overview_blank>`. First, a generic energy systm optimisation model is developed such
-that it can be used with any multi-regional whole-energy system (middle block in :numref:`Figure %s <fig:model_overview_blank>`). This part is described in this Section. Then, the energy background of the specific case study is modelled (left block in :numref:`Figure %s <fig:model_overview_blank>`). In this documentation, the modelling of a fossil-free European energy system is described in the Section :doc:`/sections/Input data`. Other implementations are possible. For instance, the model has
+that it can be used with any multi-regional whole-energy system (middle block in :numref:`Figure %s <fig:model_overview_blank>`). This part is described in this Section. Then, the energy background of the specific case study is modelled (left block in :numref:`Figure %s <fig:model_overview_blank>`). In this documentation, the modelling of a fossil-free European energy system is described in the Section :doc:`/sections/input_data`. Other implementations are possible. For instance, the model has
 already been used to model Italy divided into three main regions :cite:`thiran2021flexibility` and to model Western Europe into six macro-regions :cite:`cornet2021energy,thiran2023validation`. The model gives as an output and energy strategy for the regions modelled. For each regions, it provides an energy system with its cost, emissions, installed capacitites and hourly operation. Between regions, it defines the transmission networks to install and the hourly energy exchanges.
 
 .. figure:: /images/model_formulation/model_overview_blank.jpg
@@ -163,7 +163,7 @@ Hereafter, we present the core of the energy model. First, we introduce
 the conceptual modelling framework with an illustrative example, in
 order to clarify as well the nomenclature. Second, we introduce the
 constraints of the energy model (data used are detailed in
-the Section :doc:`/sections/Input data`).
+the Section :doc:`/sections/input_data`).
 
 
 .. _ssec_lp_framework:
