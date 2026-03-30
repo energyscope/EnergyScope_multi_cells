@@ -28,3 +28,5 @@ scripts/projects/
 Data/exogenous_data/gitignored/
 
 Docs/_build/
+
+*.DS_Store
