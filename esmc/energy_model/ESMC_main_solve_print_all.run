@@ -44,7 +44,8 @@ option cplex_options $cplex_options 'timelimit 129600 ';
 option cplex_options $cplex_options 'baropt predual=-1 barstart=4 crossover=0';
 option cplex_options $cplex_options 'bardisplay=1';
 option cplex_options $cplex_options 'display=2';
-option cplex_options $cplex_options 'prestats=1';
+# 'prestats' option dropped: invalid in CPLEX 22.1.1
+# option cplex_options $cplex_options 'prestats=1';
 
 
 #option cplex_options $cplex_options 'aggregate=-1';

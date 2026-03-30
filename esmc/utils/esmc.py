@@ -671,7 +671,6 @@ class Esmc:
                              'crossover=0',
                              'timelimit 172800',
                              'bardisplay=1',
-                             'prestats=1',
                              'display=2']
             cplex_options_str = ' '.join(cplex_options)
             ampl_options = {'show_stats': 3,
@@ -731,11 +730,17 @@ class Esmc:
             self.esom.run_ampl()
             # logging info
             logging.info('Finished run')
-            # print in log main outputs
-            self.esom.ampl.eval('print "TotalGWP_global", sum{c in REGIONS} (TotalGWP[c]);')
-            self.esom.ampl.eval('print "GWP_op_global", sum{c in REGIONS, r in RESOURCES} (GWP_op[c,r]);')
-            self.esom.ampl.eval('print "CO2_net_global", sum{c in REGIONS, r in RESOURCES} (CO2_net[c,r]);')
-            self.esom.ampl.eval('print "TotalCost_global", sum{c in REGIONS} (TotalCost[c]);')
+            # print in log main outputs, suppressing potential warnings from solver
+            for expr in [
+                'print "TotalGWP_global", sum{c in REGIONS} (TotalGWP[c]);',
+                'print "GWP_op_global", sum{c in REGIONS, r in RESOURCES} (GWP_op[c,r]);',
+                'print "CO2_net_global", sum{c in REGIONS, r in RESOURCES} (CO2_net[c,r]);',
+                'print "TotalCost_global", sum{c in REGIONS} (TotalCost[c]);'
+            ]:
+                try:
+                    self.esom.ampl.eval(expr)
+                except Exception as e:
+                    logging.warning(f"AMPL eval failed for '{expr}': {e}")
         return
 
     def prints_esom(self, inputs=True, outputs=True, solve_info=False, save_hourly:list=[]):
