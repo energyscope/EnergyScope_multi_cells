@@ -5,13 +5,10 @@ dependencies:
   - numpy >= 1.10
   - matplotlib >= 1.5.1
   - pandas >= 0.19
-  - csv
-  - json
-  - os
-  - shutil
   - pathlib
-  - logging
-  - git
+  - gitpython
   - datetime
   - amplpy
   - setuptools_scm
+  - sklearn
+  - plotly
