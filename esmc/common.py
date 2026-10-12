@@ -519,7 +519,7 @@ plotting_names = {
     "ST_STORAGE": "CSP storage",
     "TS_COLD": "Cold storage",
     "CAES": "CAES",
-    "HEAT_HIGH_T": "Heat high temp.",
+    "HEAT_HIGH_T": "Ind. process heat",
     "HEAT_LOW_T_HW": "Hot water",
     "HEAT_LOW_T_SH": "Space heating",
     "MOBILITY_PASSENGER": "Passenger mobility",

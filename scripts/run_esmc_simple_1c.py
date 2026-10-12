@@ -12,36 +12,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from esmc import Esmc
 from esmc.common import eu34_country_code_iso3166_alpha2, CSV_SEPARATOR
 
-# cwd = Path.cwd()
-# print('Current working directory:', cwd)
-
-# regions_names = ['BE'] #eu34_country_code_iso3166_alpha2
-
-# exch_path = cwd / 'Data' / '2050' /'01_EXCH'
-# import esmc.postprocessing.amplpy2pd as a2p
-
-# r_path = (exch_path / 'Misc_exch.json')
-# misc_exch = {}
-# if r_path.is_file(): # if the file exist, update the data
-#     misc_exch = a2p.read_json(r_path)
-# net_exch = pd.read_csv(exch_path / 'Network_exchanges.csv', sep=CSV_SEPARATOR,
-#                                                       header=[0], index_col=[0, 1, 2, 3])
-
-# res_net = misc_exch['add_sets']['NETWORK_TYPE']
-# pair_index = pd.MultiIndex.from_tuples(
-#     [(r, r, res, n) for r in regions_names for res, net in res_net.items() for n in net],
-#     names=net_exch.index.names,
-# )
-# net_exch = net_exch.reindex(net_exch.index.union(pair_index), fill_value=0).sort_index().loc[(regions_names, regions_names, misc_exch['add_sets']['EXCHANGE_NETWORK_R'], slice(None)), :]
-
-
-#  self.data_reg['Exch']['Network_exchanges'] = pd.read_csv(data_path / 'Network_exchanges.csv', sep=CSV_SEPARATOR,
-#                                                       header=[0], index_col=[0, 1, 2, 3]).loc[
-#                                           (self.regions_names, self.regions_names,
-#                                            self.data_reg['Exch']['Misc_exch']['add_sets']['EXCHANGE_NETWORK_R'],
-#                                            slice(None)), :]
-
-
 # defining cases
 c = 'test_3c'
 
